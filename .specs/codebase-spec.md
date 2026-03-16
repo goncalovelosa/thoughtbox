@@ -44,7 +44,8 @@ thoughtbox-webpage-2026/
 ├── .gitignore
 ├── .dockerignore
 ├── .specs/
-│   └── deployment/               # (empty) Deployment specs placeholder
+│   ├── codebase-spec.md              # This document
+│   └── deployment/               # Deployment specs (Cloud Run, Supabase schema, v1 initiative, Vercel)
 ├── Dockerfile                    # Cloud Run production image
 ├── next.config.ts                # standalone output, poweredByHeader off
 ├── tailwind.config.ts            # brand colour palette, font variables
@@ -346,7 +347,7 @@ Defined in `.env.example`; committed values excluded.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key for browser + SSR |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | For privileged operations (not yet used in app code) |
 | `REDIS_URL` | Yes (prod) | Next.js ISR cache handler in Cloud Run multi-instance setup |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000` |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000`. **Not in `.env.example`** — add manually. |
 | `NODE_ENV` | Auto | `development` locally; Cloud Run injects `production` |
 | `PORT` | Cloud Run injects | Cloud Run sets to `8080`; override locally if needed |
 
@@ -363,7 +364,7 @@ Defined in `.env.example`; committed values excluded.
 ### Dockerfile
 
 - Multi-stage: `deps` → `builder` → `runner`.
-- Production image runs `node .next/standalone/server.js` on port `8080`.
+- Production image runs `node server.js` on port `8080` (standalone output is copied to `/app`; `package.json` `start` script uses the equivalent `node .next/standalone/server.js` for local use).
 - `npm run start` (in `package.json`) also runs the standalone server.
 
 ### Scripts
