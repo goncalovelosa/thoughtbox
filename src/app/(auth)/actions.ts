@@ -41,7 +41,7 @@ export async function signInAction(
     redirect('/app')
   }
 
-  const workspaceSlug = (profile.workspaces as any).slug
+  const workspaceSlug = (profile.workspaces as { slug: string }).slug
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
 
@@ -131,6 +131,6 @@ export async function resetPasswordAction(
     .eq('user_id', user.id)
     .single()
 
-  const workspaceSlug = (profile?.workspaces as any)?.slug || 'dashboard'
+  const workspaceSlug = (profile?.workspaces as { slug: string } | null)?.slug || 'dashboard'
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
