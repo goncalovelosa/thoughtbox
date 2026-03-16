@@ -39,3 +39,4 @@ thoughtbox/
 thoughtbox-session-spec-pack/
 .vercel
 .env*.local
+.mcp.json

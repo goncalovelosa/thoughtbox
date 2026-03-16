@@ -4,7 +4,6 @@ import { SessionDetailHeader } from '@/components/session-area/session-detail-he
 import { SessionTraceExplorer } from '@/components/session-area/session-trace-explorer'
 import { 
   createSessionDetailVM, 
-  createThoughtViewModels, 
   type RawSessionRecord,
   type RawThoughtRecord
 } from '@/lib/session/view-models'
@@ -19,10 +18,10 @@ export default async function SessionDetailPage({ params }: Props) {
 
   const supabase = createMcpClient(workspaceSlug)
   
-  // Fetch session details
+  // Fetch session details - ensure we get workspace_id for realtime
   const { data: sessionRow, error: sessionError } = await supabase
     .from('sessions')
-    .select('*')
+    .select('*, workspace_id')
     .eq('id', runId)
     .single()
     
@@ -60,7 +59,6 @@ export default async function SessionDetailPage({ params }: Props) {
     sessionVM.thoughtCount = sessionRow.thought_count
   }
 
-  // Map Thoughts
   const rawThoughts: RawThoughtRecord[] = (thoughtRows || []).map(row => ({
     id: row.id,
     thoughtNumber: row.thought_number,
@@ -87,15 +85,14 @@ export default async function SessionDetailPage({ params }: Props) {
     critique: row.critique
   }))
 
-  const { rows, details } = createThoughtViewModels(rawThoughts)
-
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-8 bg-slate-950 min-h-[calc(100vh-theme(spacing.16))] text-slate-100">
       <SessionDetailHeader session={sessionVM} workspaceSlug={workspaceSlug} />
       
       <SessionTraceExplorer 
-        rows={rows}
-        details={details}
+        initialThoughts={rawThoughts}
+        workspaceId={sessionRow.workspace_id}
+        sessionId={runId}
       />
     </div>
   )
