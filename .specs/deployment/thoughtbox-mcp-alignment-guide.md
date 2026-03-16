@@ -13,25 +13,29 @@ The storage layer must enforce workspace isolation for every query.
   ```
 - **Insert Mapping:** When creating a session or saving a thought, ensure the `workspace_id` column is populated with the instance's `workspaceId`.
 
-## 2. API Key Resolution
-The server must translate a `tbx_...` key provided by the agent into a valid `workspaceId`.
+## 2. API Key Resolution & Entitlement Check
+The server must translate a `tbx_...` key into a valid `workspaceId` and verify the account is active.
 
 ### Recommended Logic:
 1. Extract the prefix (first 8 chars) from the incoming key.
-2. Query the `api_keys` table using a **Supabase Service Role Key** (internal admin check):
+2. Query the `api_keys` and `workspaces` table using a **Supabase Service Role Key**:
    ```typescript
    const { data } = await adminClient
      .from('api_keys')
-     .select('workspace_id, key_hash')
+     .select('workspace_id, key_hash, workspaces(subscription_status)')
      .eq('key_prefix', prefix)
      .eq('status', 'active')
      .single();
    ```
-3. Use `bcryptjs` to verify the full key against the `key_hash`:
+3. **Entitlement Check:** Verify the subscription is active:
    ```typescript
-   const isValid = await bcrypt.compare(providedKey, data.key_hash);
+   const ws = data.workspaces as any;
+   if (ws.subscription_status !== 'active') {
+     throw new Error('Workspace subscription is inactive. Please upgrade at the dashboard.');
+   }
    ```
-4. Return the `workspace_id` to the session manager.
+4. Use `bcryptjs` to verify the full key against the `key_hash`.
+5. Return the `workspace_id` to the session manager.
 
 ## 3. Real-time Broadcasting
 The "Observatory" no longer uses local WebSockets. It uses Supabase Realtime Broadcast.
