@@ -45,7 +45,7 @@ thoughtbox-webpage-2026/
 ├── .dockerignore
 ├── .specs/
 │   ├── codebase-spec.md              # This document
-│   └── deployment/               # Deployment specs (Cloud Run, Supabase schema, Vercel)
+│   └── deployment/               # Deployment specs (Cloud Run, Supabase schema, v1 initiative, Vercel)
 ├── Dockerfile                    # Cloud Run production image
 ├── next.config.ts                # standalone output, poweredByHeader off
 ├── tailwind.config.ts            # brand colour palette, font variables
@@ -108,9 +108,6 @@ thoughtbox-webpage-2026/
     │           │   └── page.tsx  # Empty state (projects created via MCP)
     │           ├── runs/
     │           │   └── page.tsx  # Table with placeholder mock data (WS-04/05 pending)
-    │           ├── connect/
-    │           │   ├── page.tsx          # Server Component — fetches session token
-    │           │   └── ConnectPanel.tsx  # 'use client' — config display, copy, token refresh
     │           ├── api-keys/
     │           │   └── page.tsx  # Empty table + info banner (ADR-AUTH-02 pending)
     │           ├── usage/
@@ -293,7 +290,6 @@ All components live under `src/components/nav/`. No component library (shadcn, R
 | `/w/[slug]/billing` | Plan comparison rendered, Stripe button disabled | ADR-BILL-01 |
 | `/w/[slug]/settings/account` | All form fields disabled | ADR-FE-02 |
 | `/w/[slug]/settings/workspace` | All form fields disabled, 1 hardcoded member row | ADR-FE-02 |
-| `/w/[slug]/connect` | Complete — shows session token + MCP config snippet with copy button | — |
 | `/w/[slug]/docs/quickstart` | Complete — workspace-contextual links | — |
 
 ---
@@ -351,7 +347,7 @@ Defined in `.env.example`; committed values excluded.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key for browser + SSR |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | For privileged operations (not yet used in app code) |
 | `REDIS_URL` | Yes (prod) | Next.js ISR cache handler in Cloud Run multi-instance setup |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000`. |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000`. **Not in `.env.example`** — add manually. |
 | `NODE_ENV` | Auto | `development` locally; Cloud Run injects `production` |
 | `PORT` | Cloud Run injects | Cloud Run sets to `8080`; override locally if needed |
 
@@ -385,7 +381,7 @@ Defined in `.env.example`; committed values excluded.
 ## 12. Integration Status — Web App + MCP Server + Supabase
 
 > Updated 2026-03-16. Revised after AUTH-01 review and decision to skip
-> workspace model for initial demo.
+> workspace model for initial demo. See `.specs/deployment/auth-01-review.md`.
 
 ### 12.1 Design decision: no workspaces for now
 
@@ -408,8 +404,8 @@ connection token, and use Thoughtbox via their MCP client.
 | System | What works | What's broken or missing |
 |---|---|---|
 | **Next.js web app** | Marketing pages complete. Auth flows (sign-in/up/reset) wired to Supabase and functional. Workspace UI shells rendered with hardcoded/empty data. | No connection to MCP server data. No token generation page. Sign-in hardcoded to redirect to `/w/demo/dashboard`. |
-| **Thoughtbox MCP server** | Deployed on Cloud Run (`thoughtbox-mcp`). Validates OAuth tokens via JWKS (ES256). Per-session Supabase storage isolation. Captures sessions/thoughts to Supabase. FS mode works locally without auth. | RLS on product tables broken (see below). `SUPABASE_JWT_SECRET` on Cloud Run is the JWKS key ID, not the HS256 signing secret (latent bug, not hit in practice because per-session storage always provides `userToken`). |
-| **Supabase** (`akjccuoncxlvrrtkvtno`) | Auth active (email/password, PKCE callback). Product tables exist (sessions, thoughts, entities, relations, observations). Workspace/membership tables exist (empty, inert). | `project_isolation` RLS policies were replaced by membership-based policies that require workspace rows. Since nothing populates workspaces/memberships, authenticated users can't read/write product data. OAuth 2.1 Server enablement not confirmed (AUTH-01 H1 was INCONCLUSIVE). |
+| **Thoughtbox MCP server** | Deployed on Cloud Run (`thoughtbox-mcp`). Validates OAuth tokens via JWKS (ES256). Per-session Supabase storage isolation. Captures sessions/thoughts to Supabase. FS mode works locally without auth. | RLS on product tables broken — revert migration ready, see `.specs/deployment/rls-revert-migration.md`. `SUPABASE_JWT_SECRET` on Cloud Run is the JWKS key ID, not the HS256 signing secret (latent bug, not hit in practice because per-session storage always provides `userToken`). |
+| **Supabase** (`akjccuoncxlvrrtkvtno`) | Auth active (email/password, PKCE callback). Product tables exist (sessions, thoughts, entities, relations, observations). Workspace/membership tables exist (empty, inert). | `project_isolation` RLS policies were replaced by membership-based policies that require workspace rows. Revert migration spec ready: `.specs/deployment/rls-revert-migration.md`. OAuth 2.1 Server enablement not confirmed (AUTH-01 H1 was INCONCLUSIVE). |
 
 ### 12.3 RLS status
 
@@ -418,12 +414,12 @@ connection token, and use Thoughtbox via their MCP client.
 policies (which check `workspace_memberships` via `auth.uid()`). Since nothing creates
 workspace/membership rows, all data access fails for authenticated users.
 
-**Fix needed**: Revert product table RLS to `project_isolation`. The MCP server's
-`SupabaseStorage.refreshClient()` already mints custom JWTs with a `project` claim
-for its Supabase client. OAuth validates the user at the HTTP layer; the storage
-layer talks to Supabase with a project-scoped JWT. Two separate concerns.
-
-This is a migration in the `thoughtbox-staging` repo. Does not affect the web app.
+**Fix**: ADR-RLS-001 (`.adr/accepted/ADR-RLS-001-revert-project-isolation.md`) with
+migration spec at `.specs/deployment/rls-revert-migration.md`. Copy-paste SQL that
+drops `user_project_access` policies and `user_can_access_project()` function, then
+re-creates `project_isolation` policies on all five product tables. Leaves
+`service_role_bypass` and workspace infrastructure untouched. Execute in
+`thoughtbox-staging` Supabase project — does not affect the web app.
 
 ### 12.4 Demo-critical path
 
