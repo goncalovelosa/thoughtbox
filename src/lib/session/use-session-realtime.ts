@@ -16,6 +16,12 @@ export function useSessionRealtime(
   const [status, setStatus] = useState<string>('connecting')
   const supabase = useMemo(() => createClient(), [])
 
+  // Reset thoughts when navigating to a different session (client-side navigation)
+  // useState initializer only runs on mount, so we need this effect to handle prop changes
+  useEffect(() => {
+    setThoughts(initialThoughts)
+  }, [sessionId, initialThoughts])
+
   useEffect(() => {
     if (!workspaceId) return
 
