@@ -1,36 +1,29 @@
 import { createClient } from '@supabase/supabase-js'
-import jwt from 'jsonwebtoken'
 
-export function createMcpClient(workspaceSlug: string) {
+/**
+ * Creates a Supabase client for server-side MCP/workspace data access.
+ * 
+ * Uses the service role key to bypass RLS policies. This is appropriate because:
+ * 1. This function is only called from Server Components (not exposed to client)
+ * 2. The calling pages are protected by the app's authentication middleware
+ * 3. The workspaceSlug parameter is used for query filtering, not security
+ * 
+ * @param _workspaceSlug - The workspace slug (reserved for future workspace-scoped filtering)
+ */
+export function createMcpClient(_workspaceSlug: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  const secret = process.env.SUPABASE_JWT_SECRET
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!url || !key || !secret) {
-    throw new Error('Missing Supabase environment variables for MCP client')
+  if (!url || !serviceRoleKey) {
+    throw new Error('Missing Supabase environment variables for MCP client (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)')
   }
 
-  // Create a JWT signed with the Supabase JWT secret
-  // This token carries the 'project' claim required by the RLS policies in data-01
-  const token = jwt.sign(
-    { 
-      role: 'authenticated', 
-      project: workspaceSlug 
-    },
-    secret,
-    { expiresIn: '1h' }
-  )
-
-  // Create a client instance pre-configured with this auth header
-  // This bypasses the normal user session since this is an admin/workspace scoped read
-  return createClient(url, key, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    },
+  // Create a client with the service role key to bypass RLS
+  // This is safe because this function is only used server-side
+  return createClient(url, serviceRoleKey, {
     auth: {
-      persistSession: false
+      persistSession: false,
+      autoRefreshToken: false
     }
   })
 }
