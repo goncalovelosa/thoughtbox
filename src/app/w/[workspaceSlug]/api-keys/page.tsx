@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'API Keys' }
 type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ApiKeysPage({ params }: Props) {
-  await params
+  const { workspaceSlug } = await params
   const keys = await listApiKeys()
 
   return (
@@ -20,7 +20,7 @@ export default async function ApiKeysPage({ params }: Props) {
             Manage keys used to authenticate MCP and REST API requests.
           </p>
         </div>
-        <CreateKeyDialog />
+        <CreateKeyDialog workspaceSlug={workspaceSlug} />
       </div>
 
       <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">

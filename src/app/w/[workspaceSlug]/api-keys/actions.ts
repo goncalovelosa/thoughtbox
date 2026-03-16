@@ -26,6 +26,22 @@ export async function createApiKeyAction(
     return { error: 'Not authenticated.' }
   }
 
+  const workspaceSlug = (formData.get('workspaceSlug') as string | null)?.trim() ?? ''
+  if (workspaceSlug.length === 0) {
+    return { error: 'Workspace is required.' }
+  }
+
+  // Look up workspace by slug
+  const { data: workspace, error: workspaceError } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('slug', workspaceSlug)
+    .single()
+
+  if (workspaceError || !workspace) {
+    return { error: 'Workspace not found.' }
+  }
+
   const name = (formData.get('name') as string | null)?.trim() ?? ''
   if (name.length === 0) {
     return { error: 'Name is required.' }
@@ -43,6 +59,7 @@ export async function createApiKeyAction(
     key_prefix: keyPrefix,
     key_hash: keyHash,
     created_by_user_id: user.id,
+    workspace_id: workspace.id,
   })
 
   if (insertError) {
