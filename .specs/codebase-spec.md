@@ -45,7 +45,7 @@ thoughtbox-webpage-2026/
 ├── .dockerignore
 ├── .specs/
 │   ├── codebase-spec.md              # This document
-│   └── deployment/               # Deployment specs (Cloud Run, Supabase schema, v1 initiative, Vercel)
+│   └── deployment/               # Deployment specs (Cloud Run, Supabase schema, Vercel)
 ├── Dockerfile                    # Cloud Run production image
 ├── next.config.ts                # standalone output, poweredByHeader off
 ├── tailwind.config.ts            # brand colour palette, font variables
@@ -347,7 +347,7 @@ Defined in `.env.example`; committed values excluded.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key for browser + SSR |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes (server) | For privileged operations (not yet used in app code) |
 | `REDIS_URL` | Yes (prod) | Next.js ISR cache handler in Cloud Run multi-instance setup |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000`. **Not in `.env.example`** — add manually. |
+| `NEXT_PUBLIC_SITE_URL` | Recommended | Used to construct auth redirect URLs; falls back to `VERCEL_URL` → `localhost:3000`. |
 | `NODE_ENV` | Auto | `development` locally; Cloud Run injects `production` |
 | `PORT` | Cloud Run injects | Cloud Run sets to `8080`; override locally if needed |
 
@@ -378,20 +378,109 @@ Defined in `.env.example`; committed values excluded.
 
 ---
 
-## 12. Outstanding / Not Yet Implemented
+## 12. Integration Status — Web App + MCP Server + Supabase
 
-| Feature | Reference | Blocking what |
+> Updated 2026-03-16. Revised after AUTH-01 review and decision to skip
+> workspace model for initial demo.
+
+### 12.1 Design decision: no workspaces for now
+
+The v1 conditions doc describes workspaces as the tenancy/billing boundary. The
+`chatgpt-data-model.md` raw material specced out workspace tables, memberships,
+and roles. AUTH-01 implemented those tables prematurely — nothing populates them,
+nothing reads them, and the RLS rewrite that depended on them broke 33 tests.
+
+**Decision**: Workspaces are deferred. The immediate goal is per-user isolation:
+each user signs in, gets a token, connects to the MCP server, and their data is
+scoped by `project` (the existing MCP scoping mechanism). The web app's
+`/w/[workspaceSlug]` route stays as-is but is cosmetic — it does not resolve to
+a real workspace row in the database. Workspace tables remain as inert scaffolding.
+
+This is sufficient for the demo target: Vatsal and Kindred can sign up, get a
+connection token, and use Thoughtbox via their MCP client.
+
+### 12.2 Three systems, current state
+
+| System | What works | What's broken or missing |
 |---|---|---|
-| Auth session wired into workspace UI (user email in top bar, workspace resolution) | ADR-FE-02 | Account & workspace settings, `/app` redirect to real workspace |
-| API key issuance & revocation | ADR-AUTH-02 | API keys page, project creation button |
-| Real run + thought data | WS-04 / WS-05 | Dashboard stats, runs table, projects page |
-| Stripe billing integration | ADR-BILL-01 | Billing page upgrade flow |
-| Live usage counters | WS-06 | Usage meters |
-| Deep health checks (Supabase/Redis) | WS-08 | `/health` endpoint (currently lightweight) |
-| Vitest tests | — | Test suite exists as devDep but no test files written |
-| Docs content pages | — | Core concepts, API reference, guides (all `href="#"` stubs) |
-| `SUPABASE_SERVICE_ROLE_KEY` usage | — | Imported in env but not used by any app code yet |
-| Redis ISR cache handler | ADR-GCP-01 | Multi-instance cache coherence in Cloud Run |
-| Team member invitations | — | Workspace settings members section |
-| Account deletion | — | Account settings danger zone |
-| Workspace deletion | — | Workspace settings danger zone |
+| **Next.js web app** | Marketing pages complete. Auth flows (sign-in/up/reset) wired to Supabase and functional. Workspace UI shells rendered with hardcoded/empty data. | No connection to MCP server data. No token generation page. Sign-in hardcoded to redirect to `/w/demo/dashboard`. |
+| **Thoughtbox MCP server** | Deployed on Cloud Run (`thoughtbox-mcp`). Validates OAuth tokens via JWKS (ES256). Per-session Supabase storage isolation. Captures sessions/thoughts to Supabase. FS mode works locally without auth. | RLS on product tables broken (see below). `SUPABASE_JWT_SECRET` on Cloud Run is the JWKS key ID, not the HS256 signing secret (latent bug, not hit in practice because per-session storage always provides `userToken`). |
+| **Supabase** (`akjccuoncxlvrrtkvtno`) | Auth active (email/password, PKCE callback). Product tables exist (sessions, thoughts, entities, relations, observations). Workspace/membership tables exist (empty, inert). | `project_isolation` RLS policies were replaced by membership-based policies that require workspace rows. Since nothing populates workspaces/memberships, authenticated users can't read/write product data. OAuth 2.1 Server enablement not confirmed (AUTH-01 H1 was INCONCLUSIVE). |
+
+### 12.3 RLS status
+
+**Problem**: AUTH-01 migration `20260313100000` dropped `project_isolation` policies
+(which checked a `project` claim in the JWT) and replaced them with `user_project_access`
+policies (which check `workspace_memberships` via `auth.uid()`). Since nothing creates
+workspace/membership rows, all data access fails for authenticated users.
+
+**Fix needed**: Revert product table RLS to `project_isolation`. The MCP server's
+`SupabaseStorage.refreshClient()` already mints custom JWTs with a `project` claim
+for its Supabase client. OAuth validates the user at the HTTP layer; the storage
+layer talks to Supabase with a project-scoped JWT. Two separate concerns.
+
+This is a migration in the `thoughtbox-staging` repo. Does not affect the web app.
+
+### 12.4 Demo-critical path
+
+Goal: Vatsal and Kindred can sign up on the web app, get an MCP connection config,
+and use Thoughtbox from their MCP client (e.g., Claude Code).
+
+```
+Step 1 — Fix RLS (thoughtbox-staging)
+│   Write migration restoring project_isolation on product tables.
+│   Keeps workspace/membership tables untouched (inert).
+│   Unblocks MCP server writing data to Supabase.
+│   Unblocks 33 integration tests.
+│
+Step 2 — Verify hosted services (both repos)
+│   Confirm MCP server on Cloud Run accepts requests with valid token.
+│   Confirm web app sign-in/sign-up works against hosted Supabase.
+│   Confirm Supabase product tables are accessible with project_isolation restored.
+│
+Step 3 — Build connect page (thoughtbox-webpage-2026)
+│   New page: `/connect` (or `/w/demo/connect`)
+│   Shows the signed-in user's current Supabase access token.
+│   Displays a copy-paste MCP config snippet:
+│     {
+│       "thoughtbox": {
+│         "type": "http",
+│         "url": "https://thoughtbox-mcp-....run.app/mcp?token=<TOKEN>"
+│       }
+│     }
+│   Token comes from the user's active Supabase session (already managed
+│   by @supabase/ssr middleware — session refresh handles expiry).
+│   User refreshes the page if token expires → gets a fresh one.
+│
+Step 4 — Deploy (both repos)
+    Push MCP server with RLS fix to Cloud Run.
+    Push web app with connect page to Cloud Run.
+    Vatsal and Kindred sign up, visit /connect, copy config, use Thoughtbox.
+```
+
+No dependency on workspaces, API keys, billing, usage, or trace explorer.
+No changes to MCP server auth — it already accepts `?token=` with Supabase tokens.
+
+### 12.5 Future work (not demo-critical)
+
+These items remain from the original v1 conditions doc. They are ordered by
+dependency but none are needed for the immediate demo.
+
+| Item | What it is | Depends on |
+|---|---|---|
+| Workspace data model (ADR-DATA-02) | Decide what a workspace actually is and when to introduce it | Product decision |
+| Workspace auto-provisioning | Create workspace + membership on sign-up | Data model decision |
+| Workspace resolution in web app | Replace hardcoded `/w/demo` with real lookup | Auto-provisioning |
+| Wire dashboard to Supabase data | Dashboard, projects, runs pages query real data | Workspace resolution |
+| API key model (ADR-AUTH-02) | api_keys table, hashed storage, issuance UI | Data model decision |
+| API key auth on MCP server | MCP server accepts API keys as auth alternative | API key model |
+| Run detail / trace explorer | Open a session, see thoughts in timeline | Dashboard wiring |
+| Stripe billing (ADR-BILL-01) | Payment flow, subscription sync, plan enforcement | Workspace model |
+| Usage metering | Track and display per-user/workspace usage | API key auth |
+| RLS migration to membership model | Rewrite product table RLS to use workspace membership | Workspace model + populated data |
+| Team member invitations | Invite users to workspaces | Workspace model |
+| Account/workspace settings | Enable disabled form fields | Workspace resolution |
+| Account/workspace deletion | Danger zone actions | Workspace resolution |
+| Docs content pages | Core concepts, API reference, guides (stubs) | No dependency |
+| Deep health checks | Supabase/Redis connectivity in `/health` | No dependency |
+| Redis ISR cache handler | Multi-instance cache coherence | No dependency |
