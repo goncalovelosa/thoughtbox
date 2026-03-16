@@ -13,6 +13,7 @@ const ROUTE_TITLES: Record<string, string> = {
   billing: 'Billing',
   account: 'Account settings',
   workspace: 'Workspace settings',
+  connect: 'Connect',
   quickstart: 'Quickstart',
 }
 

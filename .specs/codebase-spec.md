@@ -108,6 +108,9 @@ thoughtbox-webpage-2026/
     │           │   └── page.tsx  # Empty state (projects created via MCP)
     │           ├── runs/
     │           │   └── page.tsx  # Table with placeholder mock data (WS-04/05 pending)
+    │           ├── connect/
+    │           │   ├── page.tsx          # Server Component — fetches session token
+    │           │   └── ConnectPanel.tsx  # 'use client' — config display, copy, token refresh
     │           ├── api-keys/
     │           │   └── page.tsx  # Empty table + info banner (ADR-AUTH-02 pending)
     │           ├── usage/
@@ -290,6 +293,7 @@ All components live under `src/components/nav/`. No component library (shadcn, R
 | `/w/[slug]/billing` | Plan comparison rendered, Stripe button disabled | ADR-BILL-01 |
 | `/w/[slug]/settings/account` | All form fields disabled | ADR-FE-02 |
 | `/w/[slug]/settings/workspace` | All form fields disabled, 1 hardcoded member row | ADR-FE-02 |
+| `/w/[slug]/connect` | Complete — shows session token + MCP config snippet with copy button | — |
 | `/w/[slug]/docs/quickstart` | Complete — workspace-contextual links | — |
 
 ---

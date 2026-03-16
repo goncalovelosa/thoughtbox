@@ -48,7 +48,7 @@ export default async function DashboardPage({ params }: Props) {
         <QuickAction
           title="Connect your first agent"
           description="Add Thoughtbox to your MCP client config and start capturing thoughts."
-          href={`${base}/docs/quickstart`}
+          href={`${base}/connect`}
           icon="🚀"
         />
         <QuickAction
