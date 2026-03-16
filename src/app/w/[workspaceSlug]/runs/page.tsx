@@ -2,45 +2,53 @@ import type { Metadata } from 'next'
 import { SessionsIndexHeader } from '@/components/session-area/sessions-index-header'
 import { SessionsIndexControls } from '@/components/session-area/sessions-index-controls'
 import { SessionsTableShell } from '@/components/session-area/sessions-table-shell'
-import type { SessionSummaryVM } from '@/lib/session/view-models'
+import { createSessionSummaryVM, type RawSessionRecord } from '@/lib/session/view-models'
+import { createMcpClient } from '@/lib/supabase/mcp'
 
 export const metadata: Metadata = { title: 'Runs' }
 
 type Props = { params: Promise<{ workspaceSlug: string }> }
 
-// Placeholder rows shown until real data is available (WS-04/WS-05)
-// Now using the SessionSummaryVM format instead of the old raw format
-const mockRuns: SessionSummaryVM[] = [
-  {
-    id: 'run_placeholder_1',
-    shortId: 'run_pla',
-    status: 'completed',
-    thoughtCount: 12,
-    startedAtISO: '2026-03-13T12:00:00Z',
-    startedAtLabel: '2026-03-13 12:00 UTC',
-    durationLabel: '3.2s',
-    href: '#' // Will be dynamically generated when real data is fetched
-  },
-  {
-    id: 'run_placeholder_2',
-    shortId: 'run_pla',
-    status: 'abandoned',
-    thoughtCount: 2,
-    startedAtISO: '2026-03-13T11:45:00Z',
-    startedAtLabel: '2026-03-13 11:45 UTC',
-    durationLabel: '0.8s',
-    href: '#'
-  },
-]
-
 export default async function RunsPage({ params }: Props) {
   const { workspaceSlug } = await params
+  
+  // Data fetch from Supabase
+  const supabase = createMcpClient(workspaceSlug)
+  
+  const { data: rawSessions, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .order('updated_at', { ascending: false })
+    .limit(100)
+    
+  if (error) {
+    console.error('Failed to fetch sessions:', error)
+    // Could render an error state component here instead, but for now fallback to empty array
+  }
 
-  // Inject real workspace slug into mock hrefs for now
-  const sessions = mockRuns.map(run => ({
-    ...run,
-    href: `/w/${workspaceSlug}/runs/${run.id}`
-  }))
+  // Normalize to View Models
+  const sessions = (rawSessions || []).map(row => {
+    // Adapter mapping from snake_case DB columns to camelCase RawSessionRecord
+    const raw: RawSessionRecord = {
+      id: row.id,
+      title: row.title,
+      tags: row.tags,
+      createdAt: row.created_at,
+      completedAt: row.completed_at,
+      updatedAt: row.updated_at,
+      status: row.status || 'abandoned', // Note: database schema doesn't define status yet, this may need migration
+      // thoughts array is not needed for the summary VM, it relies on thought_count if thoughts is undefined
+    }
+    
+    const vm = createSessionSummaryVM(raw, workspaceSlug)
+    
+    // Override the thoughtCount in the VM with the denormalized DB column if available
+    if (row.thought_count != null) {
+      vm.thoughtCount = row.thought_count
+    }
+    
+    return vm
+  })
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 bg-slate-950 min-h-[calc(100vh-theme(spacing.16))]">

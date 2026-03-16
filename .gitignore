@@ -36,3 +36,4 @@ next-env.d.ts
 
 # Local reference copy of MCP server (not part of this repo)
 thoughtbox/
+thoughtbox-session-spec-pack/
