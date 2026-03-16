@@ -235,7 +235,7 @@ export function createSessionDetailVM(raw: RawSessionRecord): SessionDetailVM {
   }
 }
 
-export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows: ThoughtRowVM[], details: Map<string, ThoughtDetailVM> } {
+export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows: ThoughtRowVM[], details: Record<string, ThoughtDetailVM> } {
   // Sort thoughts robustly: by thoughtNumber if present, falling back to timestamp
   const sorted = [...rawThoughts].sort((a, b) => {
     if (a.thoughtNumber != null && b.thoughtNumber != null) {
@@ -261,7 +261,7 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
   let nextAvailableLane = 1
 
   const rows: ThoughtRowVM[] = []
-  const details = new Map<string, ThoughtDetailVM>()
+  const details: Record<string, ThoughtDetailVM> = {}
 
   let lastTimestamp: Date | null = null
 
@@ -372,7 +372,7 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
     }
 
     rows.push(rowVM)
-    details.set(raw.id, detailVM)
+    details[raw.id] = detailVM
   })
 
   return { rows, details }

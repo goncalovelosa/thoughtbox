@@ -86,7 +86,7 @@ describe('Session View Models (Spec 09)', () => {
       const { rows, details } = createThoughtViewModels([raw])
       expect(rows[0].displayType).toBe('reasoning')
       expect(rows[0].isTyped).toBe(false)
-      expect(details.get('th_1')?.rawThought).toBe('This is a test thought')
+      expect(details['th_1']?.rawThought).toBe('This is a test thought')
     })
 
     it('preserves typed metadata when thoughtType is present', () => {
@@ -107,7 +107,7 @@ describe('Session View Models (Spec 09)', () => {
       expect(rows[0].displayType).toBe('action_report')
       expect(rows[0].isTyped).toBe(true)
       
-      const detail = details.get('th_1')!
+      const detail = details['th_1']!
       expect(detail.actionResult?.tool).toBe('write_file')
     })
 
@@ -206,7 +206,7 @@ describe('Session View Models (Spec 09)', () => {
       expect(() => createThoughtViewModels([raw])).not.toThrow()
       const { rows, details } = createThoughtViewModels([raw])
       expect(rows[0].displayType).toBe('invalid_type')
-      expect(details.get('t1')?.options).toBeNull() // null handled gracefully by runtime
+      expect(details['t1']?.options).toBeNull() // null handled gracefully by runtime
     })
     
     it('places extra persistence fields into debugMeta', () => {
@@ -217,7 +217,7 @@ describe('Session View Models (Spec 09)', () => {
       }
 
       const { details } = createThoughtViewModels([raw])
-      const meta = details.get('t1')!.debugMeta
+      const meta = details['t1']!.debugMeta
       
       expect(meta.agentName).toBe('TestAgent')
       expect(meta.contentHash).toBe('0x123abc')
