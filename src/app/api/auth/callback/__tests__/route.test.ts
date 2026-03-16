@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GET } from '../route'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 // Mock the response to be able to read its properties instead of it just being an empty object
-const mockNextResponseRedirect = vi.fn((url) => ({ type: 'redirect', url }))
+const mockNextResponseRedirect = vi.fn((url: URL | string) => ({ type: 'redirect', url }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
   return {
     ...actual,
     NextResponse: {
-      redirect: (...args: any[]) => mockNextResponseRedirect(...args),
+      redirect: (...args: [URL | string]) => mockNextResponseRedirect(...args),
     },
   }
 })
@@ -35,11 +35,11 @@ describe('Auth Callback Route', () => {
       new URL('http://localhost:3000/api/auth/callback?code=123456&next=/my-page')
     )
 
-    const response = await GET(request)
+    const result = await GET(request)
 
     expect(mockExchangeCodeForSession).toHaveBeenCalledWith('123456')
     expect(mockNextResponseRedirect).toHaveBeenCalledWith('http://localhost:3000/my-page')
-    expect((response as any).url).toBe('http://localhost:3000/my-page')
+    expect((result as { url: string }).url).toBe('http://localhost:3000/my-page')
   })
 
   it('exchanges code and redirects to default dashboard if successful but no next param', async () => {
@@ -49,7 +49,7 @@ describe('Auth Callback Route', () => {
       new URL('http://localhost:3000/api/auth/callback?code=123456')
     )
 
-    const response = await GET(request)
+    await GET(request)
 
     expect(mockExchangeCodeForSession).toHaveBeenCalledWith('123456')
     expect(mockNextResponseRedirect).toHaveBeenCalledWith('http://localhost:3000/w/demo/dashboard')
@@ -57,12 +57,12 @@ describe('Auth Callback Route', () => {
 
   it('redirects to sign-in with error if exchange fails', async () => {
     mockExchangeCodeForSession.mockResolvedValueOnce({ error: { message: 'Invalid code' } })
-    
+
     const request = new NextRequest(
       new URL('http://localhost:3000/api/auth/callback?code=bad-code')
     )
 
-    const response = await GET(request)
+    await GET(request)
 
     expect(mockExchangeCodeForSession).toHaveBeenCalledWith('bad-code')
     expect(mockNextResponseRedirect).toHaveBeenCalledWith('http://localhost:3000/sign-in?error=auth_callback_error')
@@ -73,7 +73,7 @@ describe('Auth Callback Route', () => {
       new URL('http://localhost:3000/api/auth/callback')
     )
 
-    const response = await GET(request)
+    await GET(request)
 
     expect(mockExchangeCodeForSession).not.toHaveBeenCalled()
     expect(mockNextResponseRedirect).toHaveBeenCalledWith('http://localhost:3000/sign-in?error=auth_callback_error')
