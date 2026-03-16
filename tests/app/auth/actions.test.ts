@@ -4,7 +4,7 @@ import {
   signUpAction,
   forgotPasswordAction,
   resetPasswordAction,
-} from '../actions'
+} from '@/app/(auth)/actions'
 import { redirect } from 'next/navigation'
 
 // Mock dependencies

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { GET } from '../route'
+import { GET } from '@/app/api/auth/callback/route'
 import { NextRequest } from 'next/server'
 
 // Mock the response to be able to read its properties instead of it just being an empty object
