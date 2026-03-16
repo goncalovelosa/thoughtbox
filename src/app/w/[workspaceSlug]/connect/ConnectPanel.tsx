@@ -1,8 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 const MCP_SERVER_URL = 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp'
+
+const PLACEHOLDER_KEY = '<YOUR_API_KEY>'
 
 function buildConfig(apiKey: string): string {
   return JSON.stringify(
@@ -22,35 +25,36 @@ function buildConfig(apiKey: string): string {
   )
 }
 
-export function ConnectPanel({ apiKey }: { apiKey: string | null }) {
+export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
   const [copied, setCopied] = useState(false)
+  const configJson = buildConfig(PLACEHOLDER_KEY)
 
   async function handleCopy() {
-    if (!apiKey) return
-    await navigator.clipboard.writeText(buildConfig(apiKey))
+    await navigator.clipboard.writeText(configJson)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (!apiKey) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-        <p className="text-sm font-medium text-amber-900">
-          API key not configured
-        </p>
-        <p className="mt-1 text-sm text-amber-700">
-          The <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs">THOUGHTBOX_API_KEY</code> environment
-          variable is not set. Ask your workspace admin to configure it.
-        </p>
-      </div>
-    )
-  }
-
-  const configJson = buildConfig(apiKey)
-
   return (
     <div className="space-y-6">
-      {/* Step 1: Config snippet */}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+        <p className="text-sm font-medium text-amber-900">
+          API key required
+        </p>
+        <p className="mt-1 text-sm text-amber-700">
+          Create an API key on the{' '}
+          <Link
+            href={`/w/${workspaceSlug}/api-keys`}
+            className="font-medium underline hover:text-amber-900"
+          >
+            API Keys
+          </Link>{' '}
+          page, then replace{' '}
+          <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs">{PLACEHOLDER_KEY}</code>{' '}
+          in the config below with your key.
+        </p>
+      </div>
+
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
@@ -76,7 +80,6 @@ export function ConnectPanel({ apiKey }: { apiKey: string | null }) {
         </div>
       </section>
 
-      {/* Step 2: Instructions */}
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-6 py-4">
           <h2 className="text-sm font-semibold text-slate-900">

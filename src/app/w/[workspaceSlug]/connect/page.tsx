@@ -6,8 +6,7 @@ export const metadata: Metadata = { title: 'Connect' }
 type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ConnectPage({ params }: Props) {
-  await params
-  const apiKey = process.env.THOUGHTBOX_API_KEY ?? null
+  const { workspaceSlug } = await params
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -22,7 +21,7 @@ export default async function ConnectPage({ params }: Props) {
         </p>
       </div>
 
-      <ConnectPanel apiKey={apiKey} />
+      <ConnectPanel workspaceSlug={workspaceSlug} />
     </div>
   )
 }
