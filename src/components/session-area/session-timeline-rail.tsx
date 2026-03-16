@@ -11,7 +11,6 @@ type Props = {
 const LANE_WIDTH = 20
 const ROW_HEIGHT = 48 // Assuming a relatively fixed height for the visual rail layout
 const LANE_OFFSET = 30
-const DOT_RADIUS = 4
 
 export function SessionTimelineRail({ rows, maxLane }: Props) {
   const width = LANE_OFFSET + ((maxLane + 1) * LANE_WIDTH)

@@ -22,11 +22,12 @@ describe('Session View Models (Spec 09)', () => {
       const raw: RawSessionRecord = {
         id: 'sess_123456789',
         title: ' My Test Session ',
-        tags: ['test', 'demo'],
+        tags: ['one', 'two'],
         createdAt: '2026-03-16T10:00:00Z',
-        completedAt: '2026-03-16T10:01:30Z',
+        completedAt: '2026-03-16T10:05:00Z',
+        updatedAt: '2026-03-16T10:05:00Z',
         status: 'completed',
-        thoughts: [{} as any, {} as any] // 2 thoughts
+        thoughts: [{}, {}] as RawThoughtRecord[] // 2 thoughts
       }
 
       const summary = createSessionSummaryVM(raw, 'my-workspace')
@@ -35,12 +36,12 @@ describe('Session View Models (Spec 09)', () => {
       expect(summary.title).toBe('My Test Session')
       expect(summary.thoughtCount).toBe(2)
       expect(summary.href).toBe('/w/my-workspace/runs/sess_123456789')
-      expect(summary.durationLabel).toBe('90.0s')
+      expect(summary.durationLabel).toBe('300.0s')
 
       const detail = createSessionDetailVM(raw)
       expect(detail.id).toBe('sess_123456789')
-      expect(detail.tags).toEqual(['test', 'demo'])
-      expect(detail.durationLabel).toBe('90.0s')
+      expect(detail.tags).toEqual(['one', 'two'])
+      expect(detail.durationLabel).toBe('300.0s')
       expect(detail.isLiveCapable).toBe(false)
     })
 
@@ -99,7 +100,7 @@ describe('Session View Models (Spec 09)', () => {
           success: true,
           reversible: 'yes',
           tool: 'write_file',
-          target: 'test.ts'
+          target: 'test.txt'
         }
       }
 
