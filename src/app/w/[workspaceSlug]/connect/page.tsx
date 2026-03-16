@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { ConnectPanel } from './ConnectPanel'
 
 export const metadata: Metadata = { title: 'Connect' }
@@ -8,8 +7,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ConnectPage({ params }: Props) {
   await params
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const apiKey = process.env.THOUGHTBOX_API_KEY ?? null
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -24,7 +22,7 @@ export default async function ConnectPage({ params }: Props) {
         </p>
       </div>
 
-      <ConnectPanel accessToken={session?.access_token ?? null} />
+      <ConnectPanel apiKey={apiKey} />
     </div>
   )
 }

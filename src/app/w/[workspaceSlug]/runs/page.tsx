@@ -5,25 +5,23 @@ export const metadata: Metadata = { title: 'Runs' }
 type Props = { params: Promise<{ workspaceSlug: string }> }
 
 const statusColors: Record<string, string> = {
-  succeeded: 'bg-green-100 text-green-700',
-  running: 'bg-blue-100 text-blue-700',
-  failed: 'bg-red-100 text-red-700',
+  completed: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20',
+  active: 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20',
+  abandoned: 'bg-rose-100 text-rose-700 ring-1 ring-rose-500/20',
 }
 
 // Placeholder rows shown until real data is available (WS-04/WS-05)
 const mockRuns = [
   {
     id: 'run_placeholder_1',
-    project: 'my-research',
-    status: 'succeeded',
+    status: 'completed',
     thoughts: 12,
     started: '2026-03-13 12:00 UTC',
     duration: '3.2s',
   },
   {
     id: 'run_placeholder_2',
-    project: 'my-research',
-    status: 'failed',
+    status: 'abandoned',
     thoughts: 2,
     started: '2026-03-13 11:45 UTC',
     duration: '0.8s',
@@ -71,9 +69,6 @@ export default async function RunsPage({ params }: Props) {
                 Run ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Project
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -92,9 +87,6 @@ export default async function RunsPage({ params }: Props) {
               <tr key={run.id} className="hover:bg-slate-50 transition-colors">
                 <td className="whitespace-nowrap px-6 py-4 font-mono text-xs text-slate-600">
                   {run.id}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-700">
-                  {run.project}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4">
                   <span

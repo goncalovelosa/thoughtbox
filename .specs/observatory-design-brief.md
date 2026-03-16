@@ -73,36 +73,107 @@ The table rows are not clickable — there is no run detail page yet.
 
 ## 3. The Observatory Reference Implementation
 
-A standalone HTML file (`observatory.html`, 1850 lines) exists in the sibling `thoughtbox` repo. It is a **reference implementation** — a self-contained prototype that connects to a local Thoughtbox MCP server via WebSocket and visualizes reasoning in real time. We are not porting this code. We are using it as design inspiration.
+The observatory reference implementation lives inside this repo at `thoughtbox/src/observatory/ui/observatory.html` (2678 lines). It is a standalone HTML file that connects to a local Thoughtbox MCP server via WebSocket and visualizes reasoning in real time. We are not porting this code — we are using it as design reference.
 
 ### What the observatory does visually
 
-**Session selector**: Horizontal row of pill-shaped tabs. Active tab has emerald background with a shimmer animation. Inactive tabs are dark gray.
+**GitHub dark theme**: Uses GitHub's dark mode design tokens throughout:
+```
+--color-canvas-default: #0d1117  (background)
+--color-canvas-subtle:  #161b22  (surface)
+--color-canvas-inset:   #010409  (recessed areas)
+--color-border-default: #30363d
+--color-fg-default:     #e6edf3  (primary text)
+--color-fg-muted:       #8b949e  (secondary text)
+--color-accent-fg:      #58a6ff  (links, action_report, progress)
+--color-success-fg:     #3fb950  (success, main lane)
+--color-danger-fg:      #f85149  (failure, errors)
+--color-attention-fg:   #d29922  (warnings, assumption_update)
+--color-done-fg:        #a371f7  (decision_frame, branch lanes)
+--color-sponsors-fg:    #db61a2  (belief_snapshot)
+```
 
-**SVG graph view**: Thoughts are rendered as rounded rectangle nodes in a snake grid (rows of 10, left-to-right). The graph uses three colors:
-- **Emerald** (`#10b981` / `#059669`) for main chain thoughts
-- **Purple** (`#7c3aed`) for branch thoughts
-- **Amber** (`#f59e0b`) for branch stub indicators (small circles above origin nodes)
+**5-tab layout**: Sessions, Problems, Proposals, Activity, Digest. Only the **Sessions** tab is relevant to us.
 
-Nodes are connected by bezier curve paths with gradient strokes and glow effects. Same-row connections have a gentle upward bow. Cross-row connections use S-curves. Branch stubs connect with straight vertical lines.
+#### Sessions view — the git-log commit list
 
-Users can click a branch stub to drill into that branch (showing only branch thoughts with a back button), or click any thought node to see its detail.
+The Sessions view is a vertical list of thoughts styled like `git log --graph`. It has two side-by-side columns:
 
-**Detail view**: Replaces the graph entirely. Shows a back button, a progress bar ("Thought N of M"), and the thought content rendered as a JSON code block on a dark background with a subtle emerald glow effect.
+1. **Left: SVG graph rail** — A narrow SVG column showing branch lanes as colored vertical lines with dots at each thought position. The main chain occupies lane 0 (green). Each branch gets its own lane (purple, blue, amber, pink, red — cycling through `laneColors`). Fork lines are bezier curves from the main lane to the branch lane at the point of divergence.
 
-**Dark theme**: Near-black background (`#030712`), emerald accent throughout, ambient pulsing orbs, custom scrollbar styling. Very "GitHub dark" in feel.
+   Layout constants: `rowHeight: 48px`, `laneWidth: 20px`, `laneOffset: 30px`. Each thought gets a 4px radius colored dot. Vertical lane lines connect the first to last thought in each lane. Fork curves use cubic beziers: `M fromX,fromY C fromX+10,fromY+20 toX-10,toY-20 toX,toY`.
 
-### What the observatory does NOT have
+2. **Right: Commit rows** — Each thought is a `CommitRow` list item containing:
+   - **Message**: First 120 chars of thought content (first line only), preceded by a branch label (`BranchName` pill) if on a branch, and a `TypeIndicator` pill if the thought has a non-reasoning `thoughtType`.
+   - **Meta**: Short hash (first 7 chars of ID) + relative timestamp ("2m ago", "1h ago").
+   - Clicking a row navigates to the commit detail view.
 
-The observatory treats all thoughts as homogeneous — there are no thought types, no structured cards, no decision frames, no action reports. Every thought is displayed as raw JSON. There is no git-log-style list view, no SVG lane/rail graph, no timestamp gap separators.
+**Timestamp gap separators**: Between any two thoughts with >5 minutes gap, a `TimestampGap` element is inserted — a horizontal line with a centered label like "5m gap" or "1h 23m gap".
+
+**Session selector**: Button row at the top for switching between sessions. Active session is highlighted.
+
+#### Commit detail view
+
+Clicking a commit row shows `renderCommitDetail()`:
+
+- **Back button**: "Back to sessions"
+- **Header**: "Thought #N" + branch label pill + type badge pill
+- **Meta row**: Short hash + relative time + "Step N of M"
+- **Structured card**: If the thought has a `thoughtType`, a type-specific card renders above the raw content (see below)
+- **Raw content**: The thought text in a monospace code block
+- **MCP metadata**: Collapsible `<details>` showing thoughtNumber, totalThoughts, nextThoughtNeeded, branchId, branchFromThought, thoughtType as formatted JSON
+
+#### Structured thought type cards
+
+`renderStructuredCard()` dispatches on `thought.thoughtType` to render type-specific cards. All cards share a `ThoughtCard` wrapper with a header (containing type badge + metadata badges) and a body:
+
+**DecisionCard** (`decision_frame`):
+- Header: Purple "Decision" type badge + confidence badge (high=green, medium=amber, low=red)
+- Body: Options list — each option is a row with a circular indicator (checkmark if selected, empty if not), label text, and optional reason. Selected options have a green-tinted background.
+
+**ActionCard** (`action_report`):
+- Header: Blue "Action" badge + success/failure result badge (green checkmark or red X) + reversibility badge ("Reversible" / "Irreversible" / "Partially reversible" in a muted outline pill)
+- Body: Metadata row showing tool name and target. Optional side effects list below.
+
+**ProgressCard** (`progress`):
+- Header: Blue "Progress" badge + status badge (Pending=gray, In Progress=blue, Done=green, Blocked=red)
+- Body: Task description text + optional note in muted text.
+
+**BeliefCard** (`belief_snapshot`):
+- Header: Pink "Beliefs" badge
+- Body: Entity list (name -> state pairs). Optional constraints line. Optional risks line in danger color.
+
+**AssumptionCard** (`assumption_update`):
+- Header: Amber "Assumption" badge
+- Body: Assumption text, then a status transition display: `oldStatus -> newStatus` with color-coded status labels (believed=green, uncertain=amber, refuted=red). Optional trigger explanation. Optional downstream affected thoughts list.
+
+**ContextCard** (`context_snapshot`):
+- Header: Gray "Context" badge
+- Body: Key-value grid showing model ID, system prompt hash, tools available, constraints, data sources accessed.
+
+#### Badge and card CSS patterns
+
+All badges share the same shape: `inline-flex, padding: 2px 8px, font-size: 11px, font-weight: 600, border-radius: 16px, uppercase`. Each type gets a distinct `background: rgba(color, 0.15)` with matching text color from the design tokens.
+
+Cards use `ThoughtCard` with border-radius 8px, `border: 1px solid var(--color-border-default)`, subtle background. Header and body are separated by padding.
 
 ### What we take from it
 
-- The **color vocabulary**: emerald for main chain, purple for branches, amber for branch points
-- The **navigation pattern**: list view -> click to detail view -> back to list
-- The **progress indicator**: "Thought N of M" with a fill bar
-- The **dark-on-dark aesthetic** for code/thought content blocks (even within our light-theme app)
-- The **branch visualization concept**: showing where reasoning forked and which paths were explored
+- The **git-log layout**: Vertical list with SVG graph rail on the left showing branch lanes — this is the primary visualization pattern
+- The **typed card system**: 6 distinct card renderers with consistent badge/pill styling — this is how we differentiate thought types
+- The **timestamp gap separators**: Visual breaks in the timeline for significant pauses
+- The **commit detail pattern**: Header with badges -> structured card -> raw content -> collapsible metadata
+- The **color vocabulary per thought type**: Purple for decisions, blue for actions/progress, pink for beliefs, amber for assumptions, gray for context/reasoning
+- The **branch lane colors**: Green for main, then cycling through purple, blue, amber, pink, red
+- The **navigation pattern**: List view -> click to detail -> back to list
+
+### What we do NOT take
+
+- The WebSocket client and real-time streaming
+- The Problems, Proposals, Activity, Digest tabs (Hub collaboration features)
+- Agent avatars and role-colored pills (multi-agent features)
+- The GitHub dark theme verbatim (we adapt to our Tailwind design system)
+- The hash-based router (we use Next.js App Router)
 
 ## 4. The Data Model
 
@@ -126,6 +197,45 @@ type Thought = {
   // Branch metadata (optional)
   branchId?: string             // Branch identifier
   branchFromThought?: number    // Origin thought number
+
+  // Structured thought type (optional — absent for historical untyped thoughts)
+  thoughtType?: 'reasoning' | 'decision_frame' | 'action_report'
+    | 'belief_snapshot' | 'assumption_update' | 'context_snapshot' | 'progress'
+
+  // Type-specific metadata (present when thoughtType is set)
+  confidence?: 'high' | 'medium' | 'low'
+  options?: { label: string; selected: boolean; reason?: string }[]
+  actionResult?: {
+    success: boolean
+    reversible: 'yes' | 'no' | 'partial'
+    tool: string
+    target: string
+    sideEffects?: string[]
+  }
+  beliefs?: {
+    entities: { name: string; state: string }[]
+    constraints?: string[]
+    risks?: string[]
+  }
+  assumptionChange?: {
+    text: string
+    oldStatus: string
+    newStatus: 'believed' | 'uncertain' | 'refuted'
+    trigger?: string
+    downstream?: number[]
+  }
+  contextData?: {
+    toolsAvailable?: string[]
+    systemPromptHash?: string
+    modelId?: string
+    constraints?: string[]
+    dataSourcesAccessed?: string[]
+  }
+  progressData?: {
+    task: string
+    status: 'pending' | 'in_progress' | 'done' | 'blocked'
+    note?: string
+  }
 }
 ```
 
