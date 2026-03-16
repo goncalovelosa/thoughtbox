@@ -49,6 +49,12 @@ CREATE TABLE workspaces (
 
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 
+-- Add FK from profiles.default_workspace_id -> workspaces.id
+-- (profiles created before workspaces, so we add the constraint here)
+ALTER TABLE profiles
+  ADD CONSTRAINT profiles_default_workspace_id_fkey
+  FOREIGN KEY (default_workspace_id) REFERENCES workspaces(id);
+
 CREATE TRIGGER trigger_workspaces_updated_at
   BEFORE UPDATE ON workspaces
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
