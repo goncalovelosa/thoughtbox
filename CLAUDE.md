@@ -11,14 +11,14 @@ Deployed to Google Cloud Run via Docker (`output: 'standalone'`).
 ## Commands
 
 ```bash
-npm install              # install dependencies
-npm run dev              # dev server on localhost:3000
-npm run build            # production build (standalone output)
-npm start                # run standalone server (node .next/standalone/server.js)
-npm run lint             # eslint (next/core-web-vitals + next/typescript)
-npx tsc --noEmit         # type check
-npx vitest               # run tests
-npx vitest run <file>    # run a single test file
+pnpm install             # install dependencies
+pnpm dev                 # dev server on localhost:3000
+pnpm build               # production build (standalone output)
+pnpm start               # run standalone server (node .next/standalone/server.js)
+pnpm lint                # eslint (next/core-web-vitals + next/typescript)
+pnpm tsc --noEmit        # type check
+pnpm vitest              # run tests
+pnpm vitest run <file>   # run a single test file
 ```
 
 ### Docker (mirrors Cloud Run)
