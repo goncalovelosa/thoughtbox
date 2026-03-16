@@ -6,26 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Thoughtbox web app — a unified Next.js 15 application serving both the public marketing site and the authenticated product dashboard. Thoughtbox gives AI agents persistent, queryable memory via MCP. This repo is the web frontend; the MCP server itself lives in a sibling repo.
 
-Deployed to Google Cloud Run via Docker (`output: 'standalone'`).
+Deployed to Vercel.
 
 ## Commands
 
 ```bash
 pnpm install             # install dependencies
 pnpm dev                 # dev server on localhost:3000
-pnpm build               # production build (standalone output)
-pnpm start               # run standalone server (node .next/standalone/server.js)
+pnpm build               # production build
+pnpm start               # run production server locally
 pnpm lint                # eslint (next/core-web-vitals + next/typescript)
 pnpm tsc --noEmit        # type check
 pnpm vitest              # run tests
 pnpm vitest run <file>   # run a single test file
-```
-
-### Docker (mirrors Cloud Run)
-
-```bash
-docker build -t thoughtbox-webpage .
-docker run -p 8080:8080 --env-file .env.local thoughtbox-webpage
 ```
 
 ## Stack
@@ -69,7 +62,7 @@ The middleware creates its own Supabase client inline to refresh sessions on eve
 - **Next.js 15 async params**: Dynamic route params are `Promise` — always `await params` before destructuring.
 - **Server Components by default**: Only files with `'use client'` are Client Components. Auth forms use `useActionState` for progressive enhancement.
 - **Path alias**: `@/*` maps to `./src/*` (tsconfig paths).
-- **`/health`**: Route Handler at `src/app/health/route.ts` (not under `/api/`), returns `{ status: "ok" }` for Cloud Run health checks.
+- **`/health`**: Route Handler at `src/app/health/route.ts` (not under `/api/`), returns `{ status: "ok" }` for uptime monitoring.
 - **`/app`**: Redirect-only page that sends authenticated users to `/w/demo/dashboard`.
 
 ### Environment Variables
@@ -77,7 +70,7 @@ The middleware creates its own Supabase client inline to refresh sessions on eve
 Copy `.env.example` to `.env.local`. Required:
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase project credentials
 - `SUPABASE_SERVICE_ROLE_KEY` — server-side only
-- `REDIS_URL` — ISR cache handler for multi-instance Cloud Run
+- `REDIS_URL` — (optional) ISR cache handler for multi-instance deployments
 
 ### What's Not Yet Implemented
 
