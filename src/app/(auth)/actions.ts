@@ -41,7 +41,7 @@ export async function signInAction(
     redirect('/app')
   }
 
-  const workspaceSlug = (profile.workspaces as { slug: string }).slug
+  const workspaceSlug = (profile.workspaces as unknown as { slug: string }).slug
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
 
