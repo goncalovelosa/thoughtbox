@@ -131,6 +131,6 @@ export async function resetPasswordAction(
     .eq('user_id', user.id)
     .single()
 
-  const workspaceSlug = (profile?.workspaces as { slug: string } | null)?.slug || 'dashboard'
+  const workspaceSlug = (profile?.workspaces as unknown as { slug: string } | null)?.slug ?? 'dashboard'
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
