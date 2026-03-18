@@ -10,7 +10,7 @@ const mockCreateServerClient = vi.fn(() => ({
 }))
 
 vi.mock('@supabase/ssr', () => ({
-  createServerClient: (...args: any[]) => mockCreateServerClient(...args),
+  createServerClient: (...args: any[]) => (mockCreateServerClient as any)(...args),
 }))
 
 // Mock NextResponse
