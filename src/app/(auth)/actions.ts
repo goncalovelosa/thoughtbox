@@ -20,13 +20,29 @@ export async function signInAction(
   const password = formData.get('password') as string
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-  if (error) {
-    return { error: error.message }
+  if (authError) {
+    return { error: authError.message }
   }
 
-  redirect('/w/demo/dashboard')
+  if (!user) return { error: 'Authentication failed' }
+
+  // Resolve user's default workspace slug
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('default_workspace_id, workspaces!profiles_default_workspace_id_fkey(slug)')
+    .eq('user_id', user.id)
+    .single()
+
+  if (profileError || !profile?.workspaces) {
+    console.error('Failed to resolve workspace for user:', profileError)
+    // Fallback to a generic app home if workspace lookup fails
+    redirect('/app')
+  }
+
+  const workspaceSlug = (profile.workspaces as unknown as { slug: string }).slug
+  redirect(`/w/${workspaceSlug}/dashboard`)
 }
 
 // ── Sign Up ───────────────────────────────────────────────────────────────────
@@ -100,11 +116,21 @@ export async function resetPasswordAction(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.updateUser({ password })
+  const { data: { user }, error: authError } = await supabase.auth.updateUser({ password })
 
-  if (error) {
-    return { error: error.message }
+  if (authError) {
+    return { error: authError.message }
   }
 
-  redirect('/w/demo/dashboard')
+  if (!user) return { error: 'Authentication failed' }
+
+  // Resolve user's default workspace slug
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('workspaces!profiles_default_workspace_id_fkey(slug)')
+    .eq('user_id', user.id)
+    .single()
+
+  const workspaceSlug = (profile?.workspaces as unknown as { slug: string } | null)?.slug ?? 'dashboard'
+  redirect(`/w/${workspaceSlug}/dashboard`)
 }

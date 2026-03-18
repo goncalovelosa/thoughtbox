@@ -4,7 +4,11 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createApiKeyAction, type CreateKeyState } from './actions'
 
-export function CreateKeyDialog() {
+type CreateKeyDialogProps = {
+  workspaceSlug: string
+}
+
+export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
   const [open, setOpen] = useState(false)
   const [state, formAction, pending] = useActionState<CreateKeyState, FormData>(
     createApiKeyAction,
@@ -82,6 +86,7 @@ export function CreateKeyDialog() {
               </>
             ) : (
               <form action={formAction}>
+                <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
                 <h2 className="text-lg font-semibold text-slate-900">
                   Create API key
                 </h2>

@@ -1,24 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import type { ThoughtDetailVM, ThoughtRowVM } from '@/lib/session/view-models'
+import type { RawThoughtRecord } from '@/lib/session/view-models'
+import { useSessionRealtime } from '@/lib/session/use-session-realtime'
 import { SessionTraceToolbar } from './session-trace-toolbar'
 import { SessionTimeline } from './session-timeline'
 import { ThoughtDetailPanel } from './thought-detail-panel'
 
 type Props = {
-  rows: ThoughtRowVM[]
-  details: Record<string, ThoughtDetailVM>
+  initialThoughts: RawThoughtRecord[]
+  workspaceId: string
+  sessionId: string
 }
 
-export function SessionTraceExplorer({ rows, details }: Props) {
+export function SessionTraceExplorer({ initialThoughts, workspaceId, sessionId }: Props) {
+  const { rows, details, isLive } = useSessionRealtime(initialThoughts, workspaceId, sessionId)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
       {/* Left Column: Trace List */}
       <div className="w-full rounded-2xl border border-slate-800 bg-slate-950 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
-        <SessionTraceToolbar />
+        <SessionTraceToolbar isLive={isLive} />
         
         <div className="flex-1 overflow-y-auto relative">
           <SessionTimeline 

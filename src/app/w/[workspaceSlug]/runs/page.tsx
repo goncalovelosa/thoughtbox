@@ -3,7 +3,7 @@ import { SessionsIndexHeader } from '@/components/session-area/sessions-index-he
 import { SessionsIndexControls } from '@/components/session-area/sessions-index-controls'
 import { SessionsTableShell } from '@/components/session-area/sessions-table-shell'
 import { createSessionSummaryVM, type RawSessionRecord } from '@/lib/session/view-models'
-import { createMcpClient } from '@/lib/supabase/mcp'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Runs' }
 
@@ -13,7 +13,7 @@ export default async function RunsPage({ params }: Props) {
   const { workspaceSlug } = await params
   
   // Data fetch from Supabase
-  const supabase = createMcpClient(workspaceSlug)
+  const supabase = await createClient()
   
   const { data: rawSessions, error } = await supabase
     .from('sessions')

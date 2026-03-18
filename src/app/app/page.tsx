@@ -1,12 +1,20 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
-/**
- * /app — entry point for authenticated users.
- *
- * In production this will redirect to the user's first workspace.
- * For now redirects to the demo workspace placeholder.
- * Auth middleware and dynamic workspace resolution are added in WS-07 / ADR-FE-02.
- */
-export default function AppPage() {
-  redirect('/w/demo/dashboard')
+export default async function AppPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) redirect("/sign-in");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("workspaces!profiles_default_workspace_id_fkey(slug)")
+    .eq("user_id", user.id)
+    .single();
+
+  const ws = profile?.workspaces as unknown as { slug: string } | null;
+  if (ws?.slug) redirect(`/w/${ws.slug}/dashboard`);
+
+  redirect("/sign-in");
 }
