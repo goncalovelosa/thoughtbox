@@ -7,7 +7,7 @@ import {
   type RawSessionRecord,
   type RawThoughtRecord
 } from '@/lib/session/view-models'
-import { createMcpClient } from '@/lib/supabase/mcp'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Session' }
 
@@ -16,7 +16,7 @@ type Props = { params: Promise<{ workspaceSlug: string, runId: string }> }
 export default async function SessionDetailPage({ params }: Props) {
   const { workspaceSlug, runId } = await params
 
-  const supabase = createMcpClient(workspaceSlug)
+  const supabase = await createClient()
   
   // Fetch session details - ensure we get workspace_id for realtime
   const { data: sessionRow, error: sessionError } = await supabase
