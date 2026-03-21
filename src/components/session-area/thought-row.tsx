@@ -1,6 +1,7 @@
 'use client'
 
 import type { ThoughtRowVM } from '@/lib/session/view-models'
+import { BADGE_BASE, THOUGHT_TYPE_BADGE, REVISION_BADGE } from '@/lib/session/badge-styles'
 
 type Props = {
   row: ThoughtRowVM
@@ -9,21 +10,8 @@ type Props = {
 }
 
 export function ThoughtRow({ row, isSelected, onClick }: Props) {
-  // Determine Type Badge colors
-  const getTypeBadgeStyles = (type: string) => {
-    switch (type) {
-      case 'decision_frame': return 'bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20'
-      case 'action_report': return 'bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/20'
-      case 'progress': return 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/20'
-      case 'belief_snapshot': return 'bg-pink-500/15 text-pink-300 ring-1 ring-pink-500/20'
-      case 'assumption_update': return 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20'
-      case 'context_snapshot': return 'bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/20'
-      default: return 'bg-slate-700/50 text-slate-200 ring-1 ring-slate-600'
-    }
-  }
-
   return (
-    <div 
+    <div
       className="group grid grid-cols-[84px_minmax(0,1fr)] items-start gap-3 px-4 py-3 cursor-pointer"
       onClick={onClick}
     >
@@ -33,24 +21,24 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
       </div>
 
       <div className={`rounded-xl border px-3 py-2 transition-colors ${
-        isSelected 
-          ? 'border-brand-500/30 bg-brand-500/10 ring-1 ring-brand-500/20' 
+        isSelected
+          ? 'border-brand-500/30 bg-brand-500/10 ring-1 ring-brand-500/20'
           : 'border-transparent bg-transparent group-hover:bg-slate-900/70'
       }`}>
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-1.5">
           {row.branchLabel && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-slate-800 text-slate-300">
+            <span className={`${BADGE_BASE} bg-slate-800 text-slate-300`}>
               {row.branchLabel}
             </span>
           )}
           {row.isTyped && row.displayType !== 'reasoning' && (
-            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${getTypeBadgeStyles(row.displayType)}`}>
+            <span className={`${BADGE_BASE} ${THOUGHT_TYPE_BADGE[row.displayType]}`}>
               {row.displayType.replace('_', ' ')}
             </span>
           )}
           {row.isRevision && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20">
+            <span className={`${BADGE_BASE} ${REVISION_BADGE}`}>
               Revision
             </span>
           )}

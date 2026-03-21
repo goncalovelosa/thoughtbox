@@ -1,6 +1,7 @@
 'use client'
 
 import type { ThoughtDetailVM } from '@/lib/session/view-models'
+import { BADGE_BASE, THOUGHT_TYPE_BADGE, THOUGHT_TYPE_LABEL } from '@/lib/session/badge-styles'
 
 type Props = {
   detail: ThoughtDetailVM
@@ -22,7 +23,7 @@ export function ThoughtCard({ detail }: Props) {
   const renderHeader = (badgeStyles: string, label: string) => (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
       <div className="flex items-center gap-2">
-        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${badgeStyles}`}>
+        <span className={`${BADGE_BASE} ${badgeStyles}`}>
           {label}
         </span>
         
@@ -215,19 +216,8 @@ export function ThoughtCard({ detail }: Props) {
     }
   }
 
-  const getBadgeForType = () => {
-    switch (detail.displayType) {
-      case 'decision_frame': return ['bg-violet-500/15 text-violet-300 ring-1 ring-violet-500/20', 'Decision']
-      case 'action_report': return ['bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/20', 'Action']
-      case 'progress': return ['bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/20', 'Progress']
-      case 'belief_snapshot': return ['bg-pink-500/15 text-pink-300 ring-1 ring-pink-500/20', 'Beliefs']
-      case 'assumption_update': return ['bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20', 'Assumption']
-      case 'context_snapshot': return ['bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/20', 'Context']
-      default: return ['bg-slate-700/50 text-slate-200 ring-1 ring-slate-600', 'Reasoning']
-    }
-  }
-
-  const [badgeStyles, label] = getBadgeForType()
+  const badgeStyles = THOUGHT_TYPE_BADGE[detail.displayType]
+  const label = THOUGHT_TYPE_LABEL[detail.displayType]
 
   return (
     <div className="border-b border-slate-800 px-5 py-4 last:border-b-0">
