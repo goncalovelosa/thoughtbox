@@ -85,7 +85,7 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
                   )}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 font-mono text-sm text-slate-600">
-                  {key.key_prefix}...
+                  {key.prefix}...
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                   {formatDistanceToNow(new Date(key.created_at), { addSuffix: true })}
