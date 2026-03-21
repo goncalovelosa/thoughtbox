@@ -40,3 +40,4 @@ thoughtbox-session-spec-pack/
 .vercel
 .env*.local
 .mcp.jsonlogs/
+.mcp.json
