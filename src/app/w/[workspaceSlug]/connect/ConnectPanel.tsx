@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-
-const MCP_SERVER_URL = 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp'
+import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 const PLACEHOLDER_KEY = '<YOUR_API_KEY>'
 
@@ -13,7 +12,7 @@ function buildConfig(apiKey: string): string {
       mcpServers: {
         thoughtbox: {
           type: 'http',
-          url: MCP_SERVER_URL,
+          url: THOUGHTBOX_MCP_URL,
           headers: {
             Authorization: `Bearer ${apiKey}`,
           },
@@ -27,12 +26,22 @@ function buildConfig(apiKey: string): string {
 
 export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState<string | null>(null)
   const configJson = buildConfig(PLACEHOLDER_KEY)
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(configJson)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API unavailable')
+      }
+      await navigator.clipboard.writeText(configJson)
+      setCopyError(null)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+      setCopyError('Copy failed. Select the config below and copy it manually.')
+    }
   }
 
   return (
@@ -77,6 +86,9 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
           <pre className="rounded-lg bg-slate-900 p-4 text-sm leading-relaxed text-slate-100 font-mono">
             {configJson}
           </pre>
+          {copyError && (
+            <p className="mt-3 text-xs text-amber-700">{copyError}</p>
+          )}
         </div>
       </section>
 

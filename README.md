@@ -55,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Route | Description |
 |---|---|
-| `/app` | Redirects to `/w/demo/dashboard` |
+| `/app` | Redirects to the default workspace dashboard when available; otherwise shows a workspace recovery state |
 | `/w/[workspaceSlug]/dashboard` | Workspace overview |
 | `/w/[workspaceSlug]/projects` | Projects list |
 | `/w/[workspaceSlug]/runs` | MCP session run history |
