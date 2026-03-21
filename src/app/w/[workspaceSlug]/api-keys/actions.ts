@@ -57,7 +57,7 @@ export async function createApiKeyAction(
 
   const { error: insertError } = await supabase.from("api_keys").insert({
     name,
-    key_prefix: keyPrefix,
+    prefix: keyPrefix,
     key_hash: keyHash,
     created_by_user_id: user.id,
     workspace_id: workspace.id,
@@ -108,7 +108,7 @@ export async function listApiKeys(): Promise<ApiKeyRow[]> {
   const { data, error } = await supabase
     .from("api_keys")
     .select(
-      "id, name, key_prefix, status, last_used_at, created_at, revoked_at",
+      "id, name, prefix, status, last_used_at, created_at, revoked_at",
     )
     .eq("created_by_user_id", user.id)
     .order("created_at", { ascending: false });

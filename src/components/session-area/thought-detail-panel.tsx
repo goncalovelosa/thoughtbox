@@ -1,6 +1,7 @@
 'use client'
 
 import type { ThoughtDetailVM } from '@/lib/session/view-models'
+import { BADGE_BASE, REVISION_BADGE } from '@/lib/session/badge-styles'
 import { ThoughtCard } from './thought-card'
 import { ThoughtMetadataDisclosure } from './thought-metadata-disclosure'
 
@@ -25,12 +26,12 @@ export function ThoughtDetailPanel({ detail }: Props) {
           <h2 className="text-lg font-semibold text-white flex items-center gap-3">
             Thought #{detail.thoughtNumber}
             {detail.branchLabel && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-slate-800 text-slate-300">
+              <span className={`${BADGE_BASE} bg-slate-800 text-slate-300`}>
                 {detail.branchLabel}
               </span>
             )}
             {detail.isRevision && (
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20">
+              <span className={`${BADGE_BASE} ${REVISION_BADGE}`}>
                 Revision
               </span>
             )}
