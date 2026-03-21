@@ -13,7 +13,7 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
   return (
     <div
       data-thought-id={row.id}
-      className="group grid grid-cols-[84px_minmax(0,1fr)] items-start gap-3 px-4 py-3 cursor-pointer"
+      className="group grid grid-cols-[84px_minmax(0,1fr)] items-start gap-3 px-4 py-3 min-h-[48px] cursor-pointer"
       onClick={onClick}
     >
       {/* SVG Rail goes here, but we'll mock it for now until timeline is built */}

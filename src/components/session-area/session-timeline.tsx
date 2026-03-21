@@ -26,7 +26,7 @@ export function SessionTimeline({ rows, selectedId, onSelect }: Props) {
   return (
     <div className="relative flex min-w-max">
       <div className="sticky left-0 z-10 bg-slate-950">
-        <SessionTimelineRail rows={rows} maxLane={maxLane} />
+        <SessionTimelineRail rows={rows} maxLane={maxLane} selectedId={selectedId} />
       </div>
       
       <div className="flex-1 py-4 flex flex-col relative z-0">
