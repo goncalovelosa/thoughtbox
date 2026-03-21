@@ -12,6 +12,7 @@ type Props = {
 export function ThoughtRow({ row, isSelected, onClick }: Props) {
   return (
     <div
+      data-thought-id={row.id}
       className="group grid grid-cols-[84px_minmax(0,1fr)] items-start gap-3 px-4 py-3 cursor-pointer"
       onClick={onClick}
     >
