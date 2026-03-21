@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { SessionDetailVM } from '@/lib/session/view-models'
+import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styles'
 
 type Props = {
   session: SessionDetailVM
@@ -28,21 +29,9 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
           <span className="font-mono text-[12px] leading-5">{session.id}</span>
           <span>•</span>
           
-          {session.status === 'active' && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/20">
-              Active
-            </span>
-          )}
-          {session.status === 'completed' && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20">
-              Completed
-            </span>
-          )}
-          {session.status === 'abandoned' && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/20">
-              Abandoned
-            </span>
-          )}
+          <span className={`${BADGE_BASE} ${STATUS_BADGE[session.status]}`}>
+            {STATUS_LABEL[session.status]}
+          </span>
           
           <span>•</span>
           <span>Started {session.startedAtLabel}</span>
