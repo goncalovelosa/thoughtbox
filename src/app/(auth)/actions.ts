@@ -53,6 +53,12 @@ export async function signUpAction(
 ): Promise<AuthFormState> {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const firstName = (formData.get('firstName') as string | null)?.trim() ?? ''
+  const lastName = (formData.get('lastName') as string | null)?.trim() ?? ''
+
+  if (password.length < 12) {
+    return { error: 'Password must be at least 12 characters.' }
+  }
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
@@ -64,6 +70,10 @@ export async function signUpAction(
     password,
     options: {
       emailRedirectTo: `${siteUrl}/api/auth/callback`,
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+      },
     },
   })
 
@@ -131,6 +141,9 @@ export async function resetPasswordAction(
     .eq('user_id', user.id)
     .single()
 
-  const workspaceSlug = (profile?.workspaces as unknown as { slug: string } | null)?.slug ?? 'dashboard'
+  const workspaceSlug = (profile?.workspaces as unknown as { slug: string } | null)?.slug
+  if (!workspaceSlug) {
+    redirect('/sign-in')
+  }
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
