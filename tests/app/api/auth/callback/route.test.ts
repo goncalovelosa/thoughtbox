@@ -15,21 +15,34 @@ vi.mock('next/server', async (importOriginal) => {
 })
 
 const mockExchangeCodeForSession = vi.fn()
+const mockSingle = vi.fn()
+const mockEq = vi.fn(() => ({ single: mockSingle }))
+const mockSelect = vi.fn(() => ({ eq: mockEq }))
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
     auth: {
       exchangeCodeForSession: mockExchangeCodeForSession,
     },
+    from: vi.fn(() => ({
+      select: mockSelect,
+    })),
   })),
 }))
 
 describe('Auth Callback Route', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSingle.mockResolvedValue({
+      data: { workspaces: { slug: 'demo' } },
+      error: null,
+    })
   })
 
   it('exchanges code and redirects to next if successful', async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null })
+    mockExchangeCodeForSession.mockResolvedValueOnce({
+      data: { user: { id: 'user-123' } },
+      error: null,
+    })
     
     const request = new NextRequest(
       new URL('http://localhost:3000/api/auth/callback?code=123456&next=/my-page')
@@ -43,7 +56,10 @@ describe('Auth Callback Route', () => {
   })
 
   it('exchanges code and redirects to default dashboard if successful but no next param', async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: null })
+    mockExchangeCodeForSession.mockResolvedValueOnce({
+      data: { user: { id: 'user-123' } },
+      error: null,
+    })
     
     const request = new NextRequest(
       new URL('http://localhost:3000/api/auth/callback?code=123456')
@@ -56,7 +72,10 @@ describe('Auth Callback Route', () => {
   })
 
   it('redirects to sign-in with error if exchange fails', async () => {
-    mockExchangeCodeForSession.mockResolvedValueOnce({ error: { message: 'Invalid code' } })
+    mockExchangeCodeForSession.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: 'Invalid code' },
+    })
 
     const request = new NextRequest(
       new URL('http://localhost:3000/api/auth/callback?code=bad-code')

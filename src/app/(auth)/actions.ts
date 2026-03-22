@@ -1,5 +1,6 @@
 'use server'
 
+import { getSiteUrl } from '@/lib/thoughtbox-config'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -60,9 +61,7 @@ export async function signUpAction(
     return { error: 'Password must be at least 12 characters.' }
   }
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `https://${process.env.VERCEL_URL ?? 'localhost:3000'}`
+  const siteUrl = getSiteUrl()
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
@@ -92,9 +91,7 @@ export async function forgotPasswordAction(
 ): Promise<AuthFormState> {
   const email = formData.get('email') as string
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `https://${process.env.VERCEL_URL ?? 'localhost:3000'}`
+  const siteUrl = getSiteUrl()
 
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, {

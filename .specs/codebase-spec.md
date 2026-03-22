@@ -68,7 +68,7 @@ thoughtbox-webpage-2026/
     │   │       └── callback/
     │   │           └── route.ts  # GET /api/auth/callback — Supabase PKCE exchange
     │   ├── app/
-    │   │   └── page.tsx          # /app — redirects to /w/demo/dashboard
+    │   │   └── page.tsx          # /app — redirects to default workspace or shows recovery state
     │   ├── (public)/             # Route group — wraps public marketing pages
     │   │   ├── layout.tsx        # PublicNav + PublicFooter wrapper
     │   │   ├── page.tsx          # / — homepage (hero, code preview, features, CTA)
@@ -194,14 +194,14 @@ All are `'use server'` and use the `AuthFormState` discriminated union type.
 
 | Action | Supabase call | Success path |
 |---|---|---|
-| `signInAction` | `auth.signInWithPassword` | `redirect('/w/demo/dashboard')` |
+| `signInAction` | `auth.signInWithPassword` | Redirects to resolved default workspace dashboard |
 | `signUpAction` | `auth.signUp` with `emailRedirectTo` | Returns `{ success: true }` (email confirmation flow) |
 | `forgotPasswordAction` | `auth.resetPasswordForEmail` | Returns `{ success: true }` |
-| `resetPasswordAction` | `auth.updateUser({ password })` | `redirect('/w/demo/dashboard')` |
+| `resetPasswordAction` | `auth.updateUser({ password })` | Redirects to resolved default workspace dashboard |
 
 Password validation in `resetPasswordAction`: min 12 chars, must match confirm field.
 
-The `emailRedirectTo` and `resetPasswordForEmail.redirectTo` values are computed from `NEXT_PUBLIC_SITE_URL` → `VERCEL_URL` → `localhost:3000` fallback chain.
+The `emailRedirectTo` and `resetPasswordForEmail.redirectTo` values are computed from `NEXT_PUBLIC_SITE_URL` → `VERCEL_URL` → `http://localhost:3000` fallback chain.
 
 ### 5.3 Global Sign-Out (`src/app/actions.ts`)
 
@@ -209,7 +209,7 @@ The `emailRedirectTo` and `resetPasswordForEmail.redirectTo` values are computed
 
 ### 5.4 Auth Callback Route (`src/app/api/auth/callback/route.ts`)
 
-`GET /api/auth/callback` — exchanges an OAuth/PKCE code for a session, then redirects to `next` param (default `/w/demo/dashboard`). On error, redirects to `/sign-in?error=auth_callback_error`.
+`GET /api/auth/callback` — exchanges an OAuth/PKCE code for a session, then redirects to `next` param or the resolved default workspace dashboard. If no workspace is resolved, it falls back to `/app`. On error, redirects to `/sign-in?error=auth_callback_error`.
 
 ### 5.5 Supabase Client Utilities (`src/lib/supabase/`)
 

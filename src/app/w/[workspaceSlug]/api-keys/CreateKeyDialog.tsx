@@ -15,6 +15,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
     null,
   )
   const [copied, setCopied] = useState(false)
+  const [copyError, setCopyError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -27,14 +28,25 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
   function handleClose() {
     setOpen(false)
     setCopied(false)
+    setCopyError(null)
     if (hasKey) router.refresh()
   }
 
   async function handleCopy() {
     if (!state?.plainKey) return
-    await navigator.clipboard.writeText(state.plainKey)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API unavailable')
+      }
+      await navigator.clipboard.writeText(state.plainKey)
+      setCopyError(null)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      inputRef.current?.select()
+      setCopied(false)
+      setCopyError('Copy failed. The key is selected so you can copy it manually.')
+    }
   }
 
   return (
@@ -77,6 +89,9 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
+                {copyError && (
+                  <p className="mt-3 text-sm text-amber-700">{copyError}</p>
+                )}
                 <button
                   onClick={handleClose}
                   className="mt-4 w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"

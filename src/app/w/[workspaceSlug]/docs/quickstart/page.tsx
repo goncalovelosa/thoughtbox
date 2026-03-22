@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 export const metadata: Metadata = { title: 'Quickstart' }
 
@@ -32,9 +33,6 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
             <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">tbx_</code>{' '}
             and is shown only once.
           </p>
-          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-700">
-            Key issuance coming soon (ADR-AUTH-02). Once available, your key will appear on the API Keys page.
-          </div>
         </StepCard>
 
         <StepCard number={2} title="Configure your MCP client">
@@ -49,7 +47,7 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
             <code>{`{
   "mcpServers": {
     "thoughtbox": {
-      "url": "https://api.thoughtbox.dev/mcp",
+      "url": "${THOUGHTBOX_MCP_URL}",
       "headers": {
         "Authorization": "Bearer tbx_YOUR_API_KEY"
       }

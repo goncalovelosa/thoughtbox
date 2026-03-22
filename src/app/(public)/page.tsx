@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 export const metadata: Metadata = {
   title: 'Thoughtbox — Persistent memory for AI agents',
@@ -92,7 +93,7 @@ export default function HomePage() {
 {
   "mcpServers": {
     "thoughtbox": {
-      "url": "https://api.thoughtbox.dev/mcp",
+      "url": "${THOUGHTBOX_MCP_URL}",
       "headers": {
         "Authorization": "Bearer tbx_YOUR_API_KEY"
       }
