@@ -1,43 +1,51 @@
 
 ## Development Workflow (Source of Truth)
 
-**Use `/workflow` to execute the full development lifecycle.** It sequences 8 stages: ideation → spec + ADR → plan → implement → review → revision → compound → reflection.
+Every unit of work runs through two mandatory skills. Two additional protocols activate conditionally.
 
-The conductor skill dispatches to stage-specific skills at each step. Run `/workflow <idea>` to start a new workflow, or `/workflow` to resume an in-progress one.
+### Mandatory Skills
+
+**`bead-workflow`** — The process for every task, bug, or feature without exception. Enforces claim → hypothesize → implement → test → validate → close → pause. Hooks block violations at the tool level — this is not advisory.
+
+Read `.claude/skills/bead-workflow/SKILL.md` before starting any work.
+
+**`hdd`** — Hypothesis-Driven Development for architectural decisions, new features, protocol implementations, and behavior-changing refactors. Produces a staging ADR + spec pair that must be validated before accepting. Code is an implementation artifact; ADRs are the source of truth.
+
+Read `.claude/skills/hdd/SKILL.md` when the work requires an architectural decision.
+
+### Conditional Protocols
+
+**`ulysses-protocol`** — Activates when 2 consecutive surprises occur on a bead. A surprise-gated debugging framework that prevents hallucinated progress through pre-committed recovery actions and falsifiable hypotheses. The `bead-workflow` enforcer writes the `reflect-required` sentinel; Ulysses clears it.
+
+Invoke only when stuck: `.claude/skills/ulysses-protocol/SKILL.md`
+
+**`theseus-protocol`** — Use when the task is a refactor (structure changes, behavior preserved). Prevents Refactoring Fugue State via scope locking, adversarial Cassandra audits, and hard reversibility. Do not use for feature work or bug fixes.
+
+Invoke only for refactoring tasks: `.claude/skills/theseus-protocol/SKILL.md`
 
 ### Key Rules (always apply)
 
 1. **Specs go in `.specs/`** (not `specs/`). ADRs use the HDD lifecycle: `.adr/staging/` → `.adr/accepted/` or `.adr/rejected/`.
 2. **Code and spec updates in the same commit.** If you change code that a spec describes, update the spec in the same commit.
 3. **Atomic commits.** One sub-agent = one bead = one unit of work = one commit, made after review validates the work.
-4. **Sub-agent summaries use the structured format** defined in the `/workflow` conductor skill (Claims, Hypothesis Alignment, Tests, Known Gaps, Risks).
+4. **Sub-agent summaries state**: Claims, Hypothesis Alignment, Tests run, Known Gaps, Risks.
 5. **Default: human is NOT in the loop.** Operate autonomously up to the escalation thresholds defined in `agentic-dev-team/agentic-dev-team-spec.md`. Escalate only when those thresholds are met.
 6. **Orchestrators don't do manual work.** Deploy sub-agents or agent teams. Protect your context window.
 
-### Stage Skills
-
-| Stage | Skill | Description |
-|-------|-------|-------------|
-| 1. Ideation | `/workflow-ideation` | Evaluate whether idea is worth implementing |
-| 2. Dev-Time Docs | `/hdd` | Create spec and ADR via HDD process |
-| 3. Planning | `/workflows-plan` | Plan implementation approach |
-| 4. Implementation | `/workflows-work` | Execute the plan with sub-agents |
-| 5. Review | `/workflows-review` | Verify claims and test hypotheses |
-| 6. Revision | `/workflow-revision` | Fix review findings, loop until pass |
-| 7. Compound | `/workflows-compound` | Capture learnings |
-| 8. Reflection | `/workflow-reflection` | Finalize ADRs, close issues, merge |
-
 ### References
 
-- Workflow conductor: `.claude/skills/workflow/SKILL.md`
-- Workflow rationale and failure modes: `docs/WORKFLOW-MASTER-DESCRIPTION.md`
-- HDD process: `.claude/commands/hdd/hdd.md`
+- Bead workflow: `.claude/skills/bead-workflow/SKILL.md`
+- HDD process: `.claude/skills/hdd/SKILL.md`
+- Ulysses protocol: `.claude/skills/ulysses-protocol/SKILL.md`
+- Theseus protocol: `.claude/skills/theseus-protocol/SKILL.md`
 - Agent team structure: `agentic-dev-team/agentic-dev-team-spec.md`
 - Escalation thresholds: `agentic-dev-team/agentic-dev-team-spec.md` § Escalation Threshold Definition
 
 ## Branch Rules for Agents
 
-The full branching strategy (GitHub Flow) is defined in `docs/WORKFLOW-MASTER-DESCRIPTION.md` § Branching Strategy. These are the agent-specific enforcement rules:
+This project uses **GitHub Flow**: short-lived feature branches off `main`, one PR per unit of work, merge when green. No long-lived integration branches. See `docs/WORKFLOW-MASTER-DESCRIPTION.md` § Branching Strategy for full rationale.
+
+Agent-specific enforcement rules:
 
 1. **Before first commit: verify branch scope matches work.**
    - `git branch --show-current` — check where you are
@@ -189,10 +197,11 @@ Notes:
 
 If the user invokes one of these names, or the task clearly matches one, open the matching local file and follow it directly:
 
-- Workflow lifecycle: `workflow`, `workflow-ideation`, `workflow-brainstorming`, `workflows-plan`, `workflows-work`, `workflows-review`, `workflow-revision`, `workflows-compound`, `workflow-reflection`
-- HDD and implementation: `hdd`, `implement`
-- Research and knowledge: `research-task`, `knowledge`, `synthesize`, `distill`, `capture-learning`, `session-review`, `assumptions`, `eval`, `taste`, `diagram`
-- Coordination and autonomy: `team`, `hub-collab`, `deploy-team-hub`, `experiment`, `ulc-loop`, `loop-status`, `status`, `escalate`, `claude-prompt`
+- **Mandatory workflow**: `bead-workflow` (every task), `hdd` (architectural decisions and new features)
+- **Conditional protocols**: `ulysses-protocol` (2+ consecutive surprises on a bead), `theseus-protocol` (refactoring tasks)
+- **Implementation**: `implement`
+- **Research and knowledge**: `research-task`, `knowledge`, `synthesize`, `distill`, `capture-learning`, `session-review`, `assumptions`, `eval`, `taste`, `diagram`
+- **Coordination and autonomy**: `team`, `hub-collab`, `deploy-team-hub`, `experiment`, `ulc-loop`, `loop-status`, `status`, `escalate`, `claude-prompt`
 
 Primary path pattern:
 - `.claude/skills/<skill-name>/SKILL.md`
