@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type { RawThoughtRecord } from '@/lib/session/view-models'
 import { useSessionRealtime } from '@/lib/session/use-session-realtime'
@@ -30,6 +30,13 @@ export function SessionTraceExplorer({
   const router = useRouter()
   const pathname = usePathname()
   const hasAppliedDefault = useRef(false)
+  const [search, setSearch] = useState('')
+
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (q === '') return rows
+    return rows.filter((r) => r.searchIndexText.includes(q))
+  }, [rows, search])
 
   const thoughtParam = searchParams.get('thought')
 
@@ -63,6 +70,32 @@ export function SessionTraceExplorer({
     [rows, setThoughtParam],
   )
 
+  // Keyboard navigation: arrow up/down to move selection
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (filteredRows.length === 0) return
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+      e.preventDefault()
+
+      const currentIdx = selectedId
+        ? filteredRows.findIndex((r) => r.id === selectedId)
+        : -1
+
+      let nextIdx: number
+      if (e.key === 'ArrowDown') {
+        nextIdx = currentIdx < filteredRows.length - 1 ? currentIdx + 1 : 0
+      } else {
+        nextIdx = currentIdx > 0 ? currentIdx - 1 : filteredRows.length - 1
+      }
+
+      const nextRow = filteredRows[nextIdx]
+      if (nextRow) {
+        setThoughtParam(nextRow.thoughtNumber)
+      }
+    },
+    [filteredRows, selectedId, setThoughtParam],
+  )
+
   // Apply default selection when no param is present and rows are loaded
   useEffect(() => {
     if (rows.length === 0 || thoughtParam || hasAppliedDefault.current) return
@@ -85,12 +118,20 @@ export function SessionTraceExplorer({
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
       {/* Left Column: Trace List */}
-      <div className="w-full rounded-2xl border border-slate-800 bg-slate-950 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
-        <SessionTraceToolbar isLive={isLive} />
+      <div
+        className="w-full rounded-2xl border border-slate-800 bg-slate-950 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+      >
+        <SessionTraceToolbar
+          isLive={isLive}
+          search={search}
+          onSearchChange={setSearch}
+        />
 
         <div className="flex-1 overflow-y-auto relative">
           <SessionTimeline
-            rows={rows}
+            rows={filteredRows}
             selectedId={selectedId}
             onSelect={handleSelect}
           />

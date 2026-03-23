@@ -40,3 +40,12 @@ export const THOUGHT_TYPE_LABEL: Record<ThoughtDisplayType, string> = {
 
 export const REVISION_BADGE =
   'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20'
+
+export const LANE_DOT_COLOR: Record<string, string> = {
+  'sessionLane-main': 'bg-sessionLane-main',
+  'sessionLane-branch1': 'bg-sessionLane-branch1',
+  'sessionLane-branch2': 'bg-sessionLane-branch2',
+  'sessionLane-branch3': 'bg-sessionLane-branch3',
+  'sessionLane-branch4': 'bg-sessionLane-branch4',
+  'sessionLane-branch5': 'bg-sessionLane-branch5',
+}
