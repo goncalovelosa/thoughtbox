@@ -25,7 +25,7 @@ export default async function DashboardPage({ params }: Props) {
 
   const workspaceId = workspace.id
 
-  const [sessionsResult, thoughtCountResult, apiKeyCountResult] =
+  const [sessionsResult, thoughtCountResult, apiKeyCountResult, totalRunsResult] =
     await Promise.all([
       supabase
         .from('sessions')
@@ -42,12 +42,14 @@ export default async function DashboardPage({ params }: Props) {
         .select('id', { count: 'exact', head: true })
         .eq('workspace_id', workspaceId)
         .eq('status', 'active'),
+      supabase
+        .from('sessions')
+        .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', workspaceId),
     ])
 
   const recentSessions = sessionsResult.data ?? []
-  const totalRuns = recentSessions.length > 0
-    ? (await supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId)).count ?? 0
-    : 0
+  const totalRuns = totalRunsResult.count ?? 0
 
   const stats = [
     { label: 'Thoughts captured', value: String(thoughtCountResult.count ?? 0), sub: 'total' },
