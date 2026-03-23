@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styles'
 import { format } from 'date-fns'
@@ -14,25 +15,38 @@ export default async function DashboardPage({ params }: Props) {
 
   const supabase = await createClient()
 
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('slug', workspaceSlug)
+    .single()
+
+  if (!workspace) notFound()
+
+  const workspaceId = workspace.id
+
   const [sessionsResult, thoughtCountResult, apiKeyCountResult] =
     await Promise.all([
       supabase
         .from('sessions')
         .select('id, title, status, thought_count, created_at, updated_at')
+        .eq('workspace_id', workspaceId)
         .order('updated_at', { ascending: false })
         .limit(5),
       supabase
         .from('thoughts')
-        .select('id', { count: 'exact', head: true }),
+        .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', workspaceId),
       supabase
         .from('api_keys')
         .select('id', { count: 'exact', head: true })
+        .eq('workspace_id', workspaceId)
         .eq('status', 'active'),
     ])
 
   const recentSessions = sessionsResult.data ?? []
   const totalRuns = recentSessions.length > 0
-    ? (await supabase.from('sessions').select('id', { count: 'exact', head: true })).count ?? 0
+    ? (await supabase.from('sessions').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId)).count ?? 0
     : 0
 
   const stats = [

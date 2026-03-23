@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { SessionsIndexHeader } from '@/components/session-area/sessions-index-header'
 import { SessionsIndexClient } from '@/components/session-area/sessions-index-client'
 import { createSessionSummaryVM, type RawSessionRecord } from '@/lib/session/view-models'
@@ -10,24 +11,29 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function RunsPage({ params }: Props) {
   const { workspaceSlug } = await params
-  
-  // Data fetch from Supabase
+
   const supabase = await createClient()
-  
+
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('slug', workspaceSlug)
+    .single()
+
+  if (!workspace) notFound()
+
   const { data: rawSessions, error } = await supabase
     .from('sessions')
     .select('*')
+    .eq('workspace_id', workspace.id)
     .order('updated_at', { ascending: false })
     .limit(100)
-    
+
   if (error) {
     console.error('Failed to fetch sessions:', error)
-    // Could render an error state component here instead, but for now fallback to empty array
   }
 
-  // Normalize to View Models
   const sessions = (rawSessions || []).map(row => {
-    // Adapter mapping from snake_case DB columns to camelCase RawSessionRecord
     const raw: RawSessionRecord = {
       id: row.id,
       title: row.title,
@@ -35,17 +41,15 @@ export default async function RunsPage({ params }: Props) {
       createdAt: row.created_at,
       completedAt: row.completed_at,
       updatedAt: row.updated_at,
-      status: row.status || 'abandoned', // Note: database schema doesn't define status yet, this may need migration
-      // thoughts array is not needed for the summary VM, it relies on thought_count if thoughts is undefined
+      status: row.status || 'abandoned',
     }
-    
+
     const vm = createSessionSummaryVM(raw, workspaceSlug)
-    
-    // Override the thoughtCount in the VM with the denormalized DB column if available
+
     if (row.thought_count != null) {
       vm.thoughtCount = row.thought_count
     }
-    
+
     return vm
   })
 
