@@ -1,7 +1,7 @@
 'use client'
 
 import type { ThoughtRowVM } from '@/lib/session/view-models'
-import { BADGE_BASE, THOUGHT_TYPE_BADGE, REVISION_BADGE } from '@/lib/session/badge-styles'
+import { BADGE_BASE, THOUGHT_TYPE_BADGE, REVISION_BADGE, LANE_DOT_COLOR } from '@/lib/session/badge-styles'
 
 type Props = {
   row: ThoughtRowVM
@@ -18,7 +18,7 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
     >
       {/* SVG Rail goes here, but we'll mock it for now until timeline is built */}
       <div className="flex justify-center pt-2">
-        <div className={`w-2 h-2 rounded-full bg-${row.laneColorToken}`} />
+        <div className={`w-2 h-2 rounded-full ${LANE_DOT_COLOR[row.laneColorToken]}`} />
       </div>
 
       <div className={`rounded-xl border px-3 py-2 transition-colors ${
@@ -46,7 +46,7 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
         </div>
 
         {/* Content */}
-        <div className="text-sm font-medium leading-5 text-slate-100 line-clamp-1">
+        <div className="text-sm font-medium leading-5 text-slate-100 line-clamp-1" title={row.previewText}>
           {row.previewText || <span className="text-slate-500 italic">Empty thought</span>}
         </div>
 

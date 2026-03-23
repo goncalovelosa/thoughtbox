@@ -35,7 +35,7 @@ export function SessionsTableShell({ sessions }: Props) {
             <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               Started
             </th>
-            <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 min-w-[5rem]">
               Duration
             </th>
           </tr>
