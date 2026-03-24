@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 const PLACEHOLDER_KEY = '<YOUR_API_KEY>'
 

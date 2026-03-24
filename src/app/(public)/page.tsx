@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Brain, Network, Search, Key, FolderOpen, BarChart3 } from 'lucide-react'
-import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 export const metadata: Metadata = {
   title: 'Thoughtbox — Persistent memory for AI agents',
@@ -54,17 +53,16 @@ export default function HomePage() {
         <div className="absolute inset-0 -z-10 dots-pattern" />
         <div className="mx-auto max-w-4xl text-center">
           <div className="inline-flex items-center gap-2 rounded-none border border-foreground bg-background px-4 py-1.5 text-sm font-medium text-foreground">
-            <span className="h-1.5 w-1.5 rounded-none bg-background" />
+            <span className="h-1.5 w-1.5 rounded-none bg-foreground" />
             Now in early access
           </div>
-          <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-            Persistent memory
+          <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl uppercase">
+            Observable Agency
             <br />
-            <span className="text-foreground hover:underline-thick">for AI agents</span>
+            <span className="text-foreground hover:underline-thick">for AI Systems</span>
           </h1>
-          <p className="mt-6 text-xl text-foreground sm:text-2xl">
-            Thoughtbox gives your AI agents a queryable external memory via the Model Context
-            Protocol. Capture thoughts, build knowledge graphs, and trace every reasoning step.
+          <p className="mt-6 text-xl text-foreground sm:text-2xl font-medium tracking-wide">
+            Thoughtbox is an intention ledger for agents that lets you evaluate AI&apos;s decisions against its decision-making.
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
@@ -86,18 +84,16 @@ export default function HomePage() {
       {/* Code preview */}
       <section className="border-y border-foreground bg-background px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-foreground">
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-foreground">
             Connect in seconds
           </p>
-          <pre className="overflow-x-auto rounded-none bg-background p-6 font-mono text-sm leading-relaxed text-foreground">
+          <pre className="overflow-x-auto rounded-none border-2 border-foreground bg-background p-6 font-mono text-sm leading-relaxed text-foreground">
             <code>{`# Add Thoughtbox to your MCP client config
 {
   "mcpServers": {
     "thoughtbox": {
-      "url": "${THOUGHTBOX_MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer tbx_YOUR_API_KEY"
-      }
+      "type": "http",
+      "url": "https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp?key=tbx_YOUR_API_KEY"
     }
   }
 }`}</code>

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 export const metadata: Metadata = { title: 'Quickstart' }
 

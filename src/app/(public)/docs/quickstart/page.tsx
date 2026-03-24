@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
 
 export const metadata: Metadata = {
   title: 'Quickstart — Documentation',
@@ -54,10 +53,8 @@ export default function QuickstartPage() {
             <CodeBlock>{`{
   "mcpServers": {
     "thoughtbox": {
-      "url": "${THOUGHTBOX_MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer tbx_YOUR_API_KEY"
-      }
+      "type": "http",
+      "url": "https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp?key=tbx_YOUR_API_KEY"
     }
   }
 }`}</CodeBlock>
@@ -67,13 +64,12 @@ export default function QuickstartPage() {
           </Step>
 
           {/* Step 3 */}
-          <Step number={3} title="Create your first project">
+          <Step number={3} title="Use the MCP tools">
             <p className="text-foreground">
-              In your MCP client, ask your agent to call the <code className="rounded bg-background px-1.5 py-0.5 font-mono text-sm">create_project</code> tool:
+              In your MCP client, ask your agent to use Thoughtbox:
             </p>
             <CodeBlock>{`# Example prompt to your agent:
-"Use thoughtbox to create a project called 'my-research'.
- Then capture this thought: 'Thoughtbox is connected and working.'"`}</CodeBlock>
+"Use thoughtbox to capture this thought: 'Thoughtbox is connected and working.'"`}</CodeBlock>
             <p className="mt-4 text-foreground">
               The agent will call the Thoughtbox MCP tools and you should see the run appear in your{' '}
               <strong>Runs</strong> dashboard within seconds.
