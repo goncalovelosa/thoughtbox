@@ -32,11 +32,11 @@ export default async function ProjectsPage({ params }: Props) {
           <p className="text-3xl">📁</p>
           <p className="text-lg font-semibold text-foreground">No projects yet</p>
           <p className="max-w-sm text-sm text-foreground">
-            Projects are created when your MCP client first calls{' '}
+            Projects are created when your MCP client first calls the{' '}
             <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-              create_project
+              thoughtbox
             </code>
-            . Connect your agent to get started.
+            {' '}tool. Connect your agent to get started.
           </p>
           <Link
             href={`/w/${workspaceSlug}/docs/quickstart`}

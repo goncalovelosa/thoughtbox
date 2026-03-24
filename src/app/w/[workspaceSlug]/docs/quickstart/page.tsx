@@ -46,10 +46,8 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
             <code>{`{
   "mcpServers": {
     "thoughtbox": {
-      "url": "${THOUGHTBOX_MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer tbx_YOUR_API_KEY"
-      }
+      "type": "http",
+      "url": "https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp?key=tbx_YOUR_API_KEY"
     }
   }
 }`}</code>
@@ -65,17 +63,12 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
           </p>
           <pre className="mt-3 overflow-x-auto rounded-none bg-background px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
             <code>{`# Example prompt:
-"Use thoughtbox to create a project called 'my-research'.
- Then capture this thought: 'Thoughtbox is connected.'"`}</code>
+"Use thoughtbox to capture this thought: 'Thoughtbox is connected.'"`}</code>
           </pre>
           <p className="mt-3 text-sm text-foreground">
             Your agent will call the MCP tools. The run should appear in{' '}
             <Link href={runsHref} className="text-foreground hover:underline-thick hover:underline font-medium">
               Runs
-            </Link>{' '}
-            and the project in{' '}
-            <Link href={projectsHref} className="text-foreground hover:underline-thick hover:underline font-medium">
-              Projects
             </Link>{' '}
             within seconds.
           </p>
