@@ -10,10 +10,10 @@ export default async function AccountSettingsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Account settings</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-foreground">Account settings</h1>
+        <p className="mt-1 text-sm text-foreground">
           Manage your personal profile and security settings.{' '}
-          <span className="italic text-slate-400">Auth wired up in ADR-FE-02.</span>
+          <span className="italic text-foreground">Auth wired up in ADR-FE-02.</span>
         </p>
       </div>
 
@@ -41,7 +41,7 @@ export default async function AccountSettingsPage({ params }: Props) {
 
       {/* Danger zone */}
       <Section title="Danger zone">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5">
+        <div className="rounded-none border border-red-200 bg-red-50 p-5">
           <p className="font-semibold text-red-900">Delete account</p>
           <p className="mt-1 text-sm text-red-700">
             Permanently delete your account and all associated data. This action cannot be
@@ -49,7 +49,7 @@ export default async function AccountSettingsPage({ params }: Props) {
           </p>
           <button
             disabled
-            className="mt-4 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 opacity-50 cursor-not-allowed hover:bg-red-50 transition-colors"
+            className="mt-4 rounded-none border border-red-300 bg-background px-4 py-2 text-sm font-semibold text-red-700 opacity-50 cursor-not-allowed hover:bg-red-50 transition-colors"
           >
             Delete my account
           </button>
@@ -61,8 +61,8 @@ export default async function AccountSettingsPage({ params }: Props) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="mb-5 text-base font-semibold text-slate-900 border-b border-slate-100 pb-3">
+    <div className="mb-8 rounded-none border border-foreground bg-background p-6 shadow-sm">
+      <h2 className="mb-5 text-base font-semibold text-foreground border-b border-foreground pb-3">
         {title}
       </h2>
       <div className="flex flex-col gap-4">{children}</div>
@@ -81,12 +81,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700">{label}</label>
+      <label className="block text-sm font-medium text-foreground">{label}</label>
       <input
         type={type}
         disabled
         placeholder={placeholder}
-        className="mt-1.5 block w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-500 placeholder-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground placeholder-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
       />
     </div>
   )
@@ -96,7 +96,7 @@ function SaveButton({ label = 'Save changes' }: { label?: string }) {
   return (
     <button
       disabled
-      className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white opacity-50 cursor-not-allowed"
+      className="rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold text-background opacity-50 cursor-not-allowed"
     >
       {label}
     </button>

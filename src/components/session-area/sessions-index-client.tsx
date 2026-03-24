@@ -49,14 +49,14 @@ export function SessionsIndexClient({ sessions }: Props) {
       />
 
       {filtered.length === 0 && isFiltered ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-sm p-12 text-center">
-          <h3 className="text-lg font-medium text-slate-200">
+        <div className="rounded-none border border-foreground bg-background/80 shadow-sm p-12 text-center">
+          <h3 className="text-lg font-medium text-foreground">
             No sessions match these filters
           </h3>
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 text-sm font-medium text-brand-400 hover:text-brand-300"
+            className="mt-3 text-sm font-medium text-foreground hover:text-foreground"
           >
             Clear filters
           </button>

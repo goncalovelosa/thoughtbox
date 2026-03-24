@@ -67,10 +67,10 @@ export default function PricingPage() {
       <div className="mx-auto max-w-6xl">
         {/* Heading */}
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
             Simple, transparent pricing
           </h1>
-          <p className="mt-4 text-lg text-slate-500">
+          <p className="mt-4 text-lg text-foreground">
             Start free. Upgrade when you need more. No surprise charges.
           </p>
         </div>
@@ -80,15 +80,15 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-2xl p-8 ${
+              className={`relative flex flex-col rounded-none p-8 ${
                 plan.highlighted
-                  ? 'bg-brand-600 text-white shadow-xl ring-2 ring-brand-600'
-                  : 'border border-slate-200 bg-white text-slate-900 shadow-sm'
+                  ? 'bg-foreground text-background border-2 border-foreground text-background shadow-xl ring-2 ring-foreground'
+                  : 'border border-foreground bg-background text-foreground shadow-sm'
               }`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-amber-400 px-4 py-1 text-xs font-bold text-amber-900">
+                  <span className="rounded-none bg-amber-400 px-4 py-1 text-xs font-bold text-amber-900">
                     Most popular
                   </span>
                 </div>
@@ -96,20 +96,20 @@ export default function PricingPage() {
 
               <div>
                 <h2
-                  className={`text-lg font-semibold ${plan.highlighted ? 'text-brand-100' : 'text-slate-700'}`}
+                  className={`text-lg font-semibold ${plan.highlighted ? 'text-foreground' : 'text-foreground'}`}
                 >
                   {plan.name}
                 </h2>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold">{plan.price}</span>
                   <span
-                    className={`text-sm ${plan.highlighted ? 'text-brand-200' : 'text-slate-400'}`}
+                    className={`text-sm ${plan.highlighted ? 'text-foreground' : 'text-foreground'}`}
                   >
                     / {plan.period}
                   </span>
                 </div>
                 <p
-                  className={`mt-3 text-sm ${plan.highlighted ? 'text-brand-200' : 'text-slate-500'}`}
+                  className={`mt-3 text-sm ${plan.highlighted ? 'text-foreground' : 'text-foreground'}`}
                 >
                   {plan.description}
                 </p>
@@ -119,7 +119,7 @@ export default function PricingPage() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm">
                     <svg
-                      className={`mt-0.5 h-4 w-4 shrink-0 ${plan.highlighted ? 'text-brand-200' : 'text-brand-500'}`}
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${plan.highlighted ? 'text-foreground' : 'text-foreground'}`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -131,7 +131,7 @@ export default function PricingPage() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className={plan.highlighted ? 'text-white' : 'text-slate-700'}>
+                    <span className={plan.highlighted ? 'text-background' : 'text-foreground'}>
                       {feature}
                     </span>
                   </li>
@@ -140,10 +140,10 @@ export default function PricingPage() {
 
               <Link
                 href={plan.ctaHref}
-                className={`mt-10 block rounded-xl px-6 py-3 text-center text-sm font-semibold transition-colors ${
+                className={`mt-10 block rounded-none px-6 py-3 text-center text-sm font-semibold transition-colors ${
                   plan.highlighted
-                    ? 'bg-white text-brand-700 hover:bg-brand-50'
-                    : 'bg-brand-600 text-white hover:bg-brand-700'
+                    ? 'bg-background text-foreground hover:bg-background'
+                    : 'bg-foreground text-background border-2 border-foreground text-background hover:bg-background'
                 }`}
               >
                 {plan.cta}
@@ -153,13 +153,13 @@ export default function PricingPage() {
         </div>
 
         {/* FAQ teaser */}
-        <p className="mt-16 text-center text-sm text-slate-400">
+        <p className="mt-16 text-center text-sm text-foreground">
           Questions?{' '}
-          <Link href="/support" className="text-brand-600 hover:underline">
+          <Link href="/support" className="text-foreground hover:underline-thick hover:underline">
             Contact us
           </Link>{' '}
           or read the{' '}
-          <Link href="/docs" className="text-brand-600 hover:underline">
+          <Link href="/docs" className="text-foreground hover:underline-thick hover:underline">
             docs
           </Link>
           .

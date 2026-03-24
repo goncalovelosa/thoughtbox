@@ -46,7 +46,7 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+      <div className="rounded-none border border-amber-200 bg-amber-50 px-5 py-4">
         <p className="text-sm font-medium text-amber-900">
           API key required
         </p>
@@ -64,26 +64,26 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
         </p>
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+      <section className="rounded-none border border-foreground bg-background shadow-sm">
+        <div className="flex items-center justify-between border-b border-foreground px-6 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-semibold text-foreground">
               1. Copy your MCP config
             </h2>
-            <p className="mt-0.5 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-foreground">
               Paste this into your MCP client&apos;s configuration
               file.
             </p>
           </div>
           <button
             onClick={handleCopy}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors"
           >
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
         <div className="overflow-x-auto p-6">
-          <pre className="rounded-lg bg-slate-900 p-4 text-sm leading-relaxed text-slate-100 font-mono">
+          <pre className="rounded-none bg-background p-4 text-sm leading-relaxed text-foreground font-mono">
             {configJson}
           </pre>
           {copyError && (
@@ -92,39 +92,39 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-6 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">
+      <section className="rounded-none border border-foreground bg-background shadow-sm">
+        <div className="border-b border-foreground px-6 py-4">
+          <h2 className="text-sm font-semibold text-foreground">
             2. Add to your MCP client
           </h2>
         </div>
-        <div className="px-6 py-4 space-y-4 text-sm text-slate-600">
+        <div className="px-6 py-4 space-y-4 text-sm text-foreground">
           <div>
-            <p className="font-medium text-slate-900">Claude Code</p>
+            <p className="font-medium text-foreground">Claude Code</p>
             <p className="mt-1">
               Add the config above to{' '}
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
                 .claude/settings.json
               </code>{' '}
               or{' '}
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
                 .mcp.json
               </code>{' '}
               under the{' '}
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
                 mcpServers
               </code>{' '}
               key, then restart Claude Code.
             </p>
           </div>
           <div>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium text-foreground">
               Other MCP clients
             </p>
             <p className="mt-1">
               Consult your client&apos;s docs for where MCP server
               configs are stored. The shape is the same:{' '}
-              <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
                 {'{ "type": "http", "url": "...", "headers": { ... } }'}
               </code>
             </p>
@@ -132,7 +132,7 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
         </div>
       </section>
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-foreground">
         Your API key authenticates your MCP client to the Thoughtbox
         server. Never share it publicly.
       </p>

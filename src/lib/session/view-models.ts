@@ -250,12 +250,12 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
   laneAssignments.set('__main__', 0)
   
   const laneColors = [
-    'sessionLane-main',
-    'sessionLane-branch1',
-    'sessionLane-branch2',
-    'sessionLane-branch3',
-    'sessionLane-branch4',
-    'sessionLane-branch5'
+    'primary',
+    'secondary',
+    'secondary',
+    'secondary',
+    'secondary',
+    'secondary'
   ]
 
   let nextAvailableLane = 1

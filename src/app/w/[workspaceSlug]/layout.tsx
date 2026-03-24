@@ -17,7 +17,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const { workspaceSlug } = await params
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
       <WorkspaceSidebar workspaceSlug={workspaceSlug} />
 

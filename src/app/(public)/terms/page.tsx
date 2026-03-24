@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-      <div className="mt-2 text-slate-600 leading-relaxed">{children}</div>
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div className="mt-2 text-foreground leading-relaxed">{children}</div>
     </div>
   )
 }
@@ -17,10 +17,10 @@ export default function TermsPage() {
   return (
     <div className="px-6 py-16">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Terms of Service</h1>
-        <p className="mt-3 text-sm text-slate-400">Last updated: March 2026</p>
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Terms of Service</h1>
+        <p className="mt-3 text-sm text-foreground">Last updated: March 2026</p>
 
-        <div className="mt-10 space-y-8 text-slate-700">
+        <div className="mt-10 space-y-8 text-foreground">
           <Section title="1. Acceptance of terms">
             <p>
               By accessing or using Thoughtbox (&quot;the Service&quot;), you agree to be bound by
@@ -62,7 +62,7 @@ export default function TermsPage() {
           <Section title="6. Data and privacy">
             <p>
               Your use of the Service is also governed by our{' '}
-              <a href="/privacy" className="text-brand-600 hover:underline">
+              <a href="/privacy" className="text-foreground hover:underline-thick hover:underline">
                 Privacy Policy
               </a>
               . You retain ownership of data you submit to the Service.
@@ -107,7 +107,7 @@ export default function TermsPage() {
           <Section title="12. Contact">
             <p>
               Questions about these Terms?{' '}
-              <a href="mailto:legal@thoughtbox.dev" className="text-brand-600 hover:underline">
+              <a href="mailto:legal@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
                 legal@thoughtbox.dev
               </a>
             </p>

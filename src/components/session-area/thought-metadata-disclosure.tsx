@@ -35,10 +35,10 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
   }
 
   return (
-    <div className="border-t border-slate-800 px-5 py-4">
+    <div className="border-t border-foreground px-5 py-4">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+        className="flex items-center gap-2 text-xs font-medium text-foreground hover:text-foreground transition-colors"
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -56,8 +56,8 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
       </button>
 
       {isOpen && (
-        <div className="mt-3 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/80 p-4">
-          <pre className="font-mono text-[12px] leading-5 text-slate-400">
+        <div className="mt-3 overflow-x-auto rounded-none border border-foreground bg-background/80 p-4">
+          <pre className="font-mono text-[12px] leading-5 text-foreground">
             {JSON.stringify(payload, null, 2)}
           </pre>
         </div>

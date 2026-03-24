@@ -160,7 +160,7 @@ describe('Session View Models (Spec 09)', () => {
       }
       const { rows } = createThoughtViewModels([raw])
       expect(rows[0].laneIndex).toBe(0)
-      expect(rows[0].laneColorToken).toBe('sessionLane-main')
+      expect(rows[0].laneColorToken).toBe('primary')
     })
 
     it('assigns branches to subsequent lanes deterministically', () => {
@@ -187,10 +187,10 @@ describe('Session View Models (Spec 09)', () => {
       }))
 
       const { rows } = createThoughtViewModels(thoughts)
-      expect(rows[0].laneColorToken).toBe('sessionLane-main')
-      expect(rows[1].laneColorToken).toBe('sessionLane-branch1')
-      expect(rows[5].laneColorToken).toBe('sessionLane-branch5')
-      expect(rows[6].laneColorToken).toBe('sessionLane-main') // wraps around
+      expect(rows[0].laneColorToken).toBe('primary')
+      expect(rows[1].laneColorToken).toBe('secondary')
+      expect(rows[5].laneColorToken).toBe('secondary')
+      expect(rows[6].laneColorToken).toBe('primary') // wraps around
     })
   })
   

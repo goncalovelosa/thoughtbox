@@ -12,7 +12,7 @@ type Props = {
 export function ThoughtDetailPanel({ detail }: Props) {
   if (!detail) {
     return (
-      <div className="p-12 text-center text-sm text-slate-500 my-auto">
+      <div className="p-12 text-center text-sm text-foreground my-auto">
         Select a thought to view details
       </div>
     )
@@ -21,12 +21,12 @@ export function ThoughtDetailPanel({ detail }: Props) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header */}
-      <div className="border-b border-slate-800 px-5 py-4 shrink-0 bg-slate-900/95 backdrop-blur sticky top-0 z-10">
+      <div className="border-b border-foreground px-5 py-4 shrink-0 bg-background/95 backdrop-blur sticky top-0 z-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-background flex items-center gap-3">
             Thought #{detail.thoughtNumber}
             {detail.branchLabel && (
-              <span className={`${BADGE_BASE} bg-slate-800 text-slate-300`}>
+              <span className={`${BADGE_BASE} bg-background text-foreground`}>
                 {detail.branchLabel}
               </span>
             )}
@@ -37,7 +37,7 @@ export function ThoughtDetailPanel({ detail }: Props) {
             )}
           </h2>
           
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-foreground">
             <span className="font-mono">{detail.shortId}</span>
             <span>•</span>
             <span title={detail.absoluteTimeLabel}>{detail.relativeTimeLabel}</span>

@@ -32,14 +32,14 @@ function RevokeButton({ keyId }: { keyId: string }) {
 export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
   if (keys.length === 0) {
     return (
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-none border border-foreground bg-background shadow-sm">
         <table className="min-w-full divide-y divide-slate-100">
-          <thead className="bg-slate-50">
+          <thead className="bg-background">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Prefix</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Created</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Last used</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Prefix</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Created</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Last used</th>
               <th className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -47,8 +47,8 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
             <tr>
               <td colSpan={5} className="px-6 py-14 text-center">
                 <p className="text-2xl">🔑</p>
-                <p className="mt-2 font-medium text-slate-700">No API keys yet</p>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-2 font-medium text-foreground">No API keys yet</p>
+                <p className="mt-1 text-sm text-foreground">
                   Create your first key to start authenticating MCP requests.
                 </p>
               </td>
@@ -60,14 +60,14 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-none border border-foreground bg-background shadow-sm">
       <table className="min-w-full divide-y divide-slate-100">
-        <thead className="bg-slate-50">
+        <thead className="bg-background">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Prefix</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Created</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Last used</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Name</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Prefix</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Created</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground">Last used</th>
             <th className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
           </tr>
         </thead>
@@ -76,21 +76,21 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
             const isRevoked = key.status === 'revoked'
             return (
               <tr key={key.id} className={isRevoked ? 'opacity-50' : undefined}>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-900">
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                   {key.name}
                   {isRevoked && (
-                    <span className="ml-2 inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                    <span className="ml-2 inline-flex items-center rounded-none bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
                       Revoked
                     </span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-6 py-4 font-mono text-sm text-slate-600">
+                <td className="whitespace-nowrap px-6 py-4 font-mono text-sm text-foreground">
                   {key.prefix}...
                 </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                   {formatDistanceToNow(new Date(key.created_at), { addSuffix: true })}
                 </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                   {key.last_used_at
                     ? formatDistanceToNow(new Date(key.last_used_at), { addSuffix: true })
                     : 'Never'}
@@ -98,7 +98,7 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
                 <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                   {!isRevoked && <RevokeButton keyId={key.id} />}
                   {isRevoked && key.revoked_at && (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-foreground">
                       {formatDistanceToNow(new Date(key.revoked_at), { addSuffix: true })}
                     </span>
                   )}

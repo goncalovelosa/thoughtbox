@@ -12,7 +12,7 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
     <div className="mb-6 flex flex-col gap-4">
       <Link 
         href={`/w/${workspaceSlug}/runs`}
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white"
+        className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-background"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -21,11 +21,11 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
       </Link>
 
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-background">
           {session.title || `Session ${session.shortId}`}
         </h1>
         
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-400">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-foreground">
           <span className="font-mono text-[12px] leading-5">{session.id}</span>
           <span>•</span>
           
