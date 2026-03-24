@@ -11,10 +11,7 @@ function buildConfig(apiKey: string): string {
       mcpServers: {
         thoughtbox: {
           type: 'http',
-          url: THOUGHTBOX_MCP_URL,
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-          },
+          url: 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp?key=' + apiKey,
         },
       },
     },
