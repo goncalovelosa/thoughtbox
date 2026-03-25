@@ -11,9 +11,11 @@ type Props = {
   onNext?: () => void
   hasPrev?: boolean
   hasNext?: boolean
+  positionIndex?: number
+  totalCount?: number
 }
 
-export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext }: Props) {
+export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, positionIndex, totalCount }: Props) {
   if (!detail) {
     return (
       <div className="p-12 text-center text-sm text-foreground my-auto">
@@ -50,9 +52,14 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext }:
                   <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
+              {positionIndex != null && totalCount != null && (
+                <span className="text-xs font-mono text-foreground/60 tabular-nums">
+                  {positionIndex + 1}/{totalCount}
+                </span>
+              )}
             </div>
 
-            <h2 className="text-lg font-semibold text-background flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-3">
               Thought #{detail.thoughtNumber}
               {detail.branchLabel && (
                 <span className={`${BADGE_BASE} bg-background text-foreground`}>
@@ -76,12 +83,8 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext }:
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div>
         <ThoughtCard detail={detail} />
-
-        {/* Fill remaining space to push disclosure down if needed */}
-        <div className="flex-1" />
-
         <ThoughtMetadataDisclosure detail={detail} />
       </div>
     </div>

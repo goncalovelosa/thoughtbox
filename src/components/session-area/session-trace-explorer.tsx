@@ -143,6 +143,8 @@ export function SessionTraceExplorer({
       <div className="w-full sticky top-6 rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
         <ThoughtDetailPanel
           detail={selectedId ? details[selectedId] : null}
+          positionIndex={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) : undefined}
+          totalCount={filteredRows.length}
           hasPrev={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) > 0 : false}
           hasNext={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) < filteredRows.length - 1 : false}
           onPrev={() => {
