@@ -23,7 +23,7 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
     debugMeta
   } = detail
 
-  const payload = {
+  const raw = {
     id,
     thoughtNumber,
     totalThoughts,
@@ -33,6 +33,11 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
     displayType,
     ...debugMeta
   }
+
+  // Filter out null/undefined fields to reduce noise
+  const payload = Object.fromEntries(
+    Object.entries(raw).filter(([, v]) => v != null)
+  )
 
   return (
     <div className="border-t border-foreground px-5 py-4">

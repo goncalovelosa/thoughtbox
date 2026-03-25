@@ -26,19 +26,19 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
         </h1>
         
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-foreground">
-          <span className="font-mono text-[12px] leading-5">{session.id}</span>
+          <span className="font-mono text-[12px] leading-5 text-foreground/50 cursor-help" title={session.id}>{session.shortId}</span>
           <span>•</span>
-          
+
           <span className={`${BADGE_BASE} ${STATUS_BADGE[session.status]}`}>
             {STATUS_LABEL[session.status]}
           </span>
-          
+
           <span>•</span>
           <span>Started {session.startedAtLabel}</span>
-          
+
           <span>•</span>
           <span>Duration: <span className="font-mono text-[12px] leading-5">{session.durationLabel}</span></span>
-          
+
           <span>•</span>
           <span>{session.thoughtCount} Thoughts</span>
         </div>

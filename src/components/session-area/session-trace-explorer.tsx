@@ -142,6 +142,18 @@ export function SessionTraceExplorer({
       <div className="w-full sticky top-6 rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
         <ThoughtDetailPanel
           detail={selectedId ? details[selectedId] : null}
+          hasPrev={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) > 0 : false}
+          hasNext={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) < filteredRows.length - 1 : false}
+          onPrev={() => {
+            if (!selectedId) return
+            const idx = filteredRows.findIndex((r) => r.id === selectedId)
+            if (idx > 0) setThoughtParam(filteredRows[idx - 1].thoughtNumber)
+          }}
+          onNext={() => {
+            if (!selectedId) return
+            const idx = filteredRows.findIndex((r) => r.id === selectedId)
+            if (idx < filteredRows.length - 1) setThoughtParam(filteredRows[idx + 1].thoughtNumber)
+          }}
         />
       </div>
     </div>

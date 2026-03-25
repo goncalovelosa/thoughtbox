@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { ThoughtDetailVM } from '@/lib/session/view-models'
 import { BADGE_BASE, THOUGHT_TYPE_BADGE, THOUGHT_TYPE_LABEL } from '@/lib/session/badge-styles'
 
@@ -216,8 +217,34 @@ export function ThoughtCard({ detail }: Props) {
     }
   }
 
-  const badgeStyles = THOUGHT_TYPE_BADGE[detail.displayType]
-  const label = THOUGHT_TYPE_LABEL[detail.displayType]
+  const badgeStyles = THOUGHT_TYPE_BADGE[detail.displayType] ?? ''
+  const label = THOUGHT_TYPE_LABEL[detail.displayType] ?? detail.displayType
+
+  return (
+    <TypedThoughtCard
+      detail={detail}
+      badgeStyles={badgeStyles}
+      label={label}
+      renderHeader={renderHeader}
+      renderBody={renderBody}
+    />
+  )
+}
+
+function TypedThoughtCard({
+  detail,
+  badgeStyles,
+  label,
+  renderHeader,
+  renderBody,
+}: {
+  detail: ThoughtDetailVM
+  badgeStyles: string
+  label: string
+  renderHeader: (badgeStyles: string, label: string) => React.ReactNode
+  renderBody: () => React.ReactNode
+}) {
+  const [showRaw, setShowRaw] = useState(false)
 
   return (
     <div className="border-b border-foreground px-5 py-4 last:border-b-0">
@@ -228,9 +255,30 @@ export function ThoughtCard({ detail }: Props) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
-        <pre className="whitespace-pre-wrap font-inherit">{detail.rawThought}</pre>
-      </div>
+      <button
+        onClick={() => setShowRaw(!showRaw)}
+        className="flex items-center gap-2 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          className={`transition-transform ${showRaw ? 'rotate-90' : ''}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+        Raw thought content
+      </button>
+
+      {showRaw && (
+        <div className="mt-2 overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
+          <pre className="whitespace-pre-wrap font-inherit">{detail.rawThought}</pre>
+        </div>
+      )}
     </div>
   )
 }

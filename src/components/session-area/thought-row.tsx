@@ -21,10 +21,10 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
         <div className={`w-2 h-2 rounded-none ${LANE_DOT_COLOR[row.laneColorToken]}`} />
       </div>
 
-      <div className={`rounded-none border px-3 py-2 transition-colors ${
+      <div className={`rounded-none border-2 px-3 py-2 transition-colors ${
         isSelected
-          ? 'border-foreground/30 bg-background/10 ring-1 ring-foreground/20'
-          : 'border-transparent bg-transparent group-hover:bg-background/70'
+          ? 'border-foreground bg-foreground/10'
+          : 'border-transparent bg-transparent group-hover:bg-foreground/5'
       }`}>
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-1.5">
@@ -46,13 +46,15 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
         </div>
 
         {/* Content */}
-        <div className="text-sm font-medium leading-5 text-foreground line-clamp-1" title={row.previewText}>
+        <div className="text-sm font-medium leading-5 text-foreground truncate" title={row.previewText}>
           {row.previewText || <span className="text-foreground italic">Empty thought</span>}
         </div>
 
         {/* Metadata */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground">
-          <span className="font-mono text-[12px]">{row.shortId}</span>
+          <span className="font-semibold text-foreground">#{row.thoughtNumber}</span>
+          <span>•</span>
+          <span className="font-mono text-[12px] text-foreground/50">{row.shortId}</span>
           <span>•</span>
           <span title={row.absoluteTimeLabel}>{row.relativeTimeLabel}</span>
         </div>
