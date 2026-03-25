@@ -111,7 +111,7 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
         href={item.href}
         className={`flex items-center gap-2.5 rounded-none px-3 py-2 text-sm font-medium transition-colors ${
           isActive
-            ? 'bg-background/10 text-background'
+            ? 'bg-background text-foreground'
             : 'text-foreground hover:bg-background/5 hover:text-foreground'
         }`}
       >

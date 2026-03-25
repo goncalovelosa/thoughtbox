@@ -15,10 +15,10 @@ export function PublicNav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-foreground bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b-4 border-foreground bg-background/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-foreground">
+        <Link href="/" className="flex items-center gap-2 font-black text-foreground">
           <span className="flex h-7 w-7 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-xs font-black text-background">
             T
           </span>
@@ -51,7 +51,7 @@ export function PublicNav() {
           </Link>
           <Link
             href="/sign-up"
-            className="rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2 text-sm font-bold uppercase tracking-wider hover-grow"
+            className="rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2 text-sm font-black uppercase tracking-wider hover-grow"
           >
             Get started
           </Link>
@@ -101,7 +101,7 @@ export function PublicNav() {
             </Link>
             <Link
               href="/sign-up"
-              className="block rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2.5 text-center text-sm font-bold uppercase tracking-wider hover-grow"
+              className="block rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2.5 text-center text-sm font-black uppercase tracking-wider hover-grow"
               onClick={() => setMenuOpen(false)}
             >
               Get started

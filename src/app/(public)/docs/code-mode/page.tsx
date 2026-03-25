@@ -5,14 +5,14 @@ import { mdxComponents } from '@/components/docs/mdx-components'
 import { DocLayout } from '@/components/docs/doc-layout'
 
 export const metadata: Metadata = {
-  title: 'Quickstart — Documentation',
+  title: 'Code Mode — Documentation',
 }
 
-export default async function QuickstartPage() {
-  const source = await loadDoc('quickstart')
+export default async function CodeModePage() {
+  const source = await loadDoc('code-mode')
 
   return (
-    <DocLayout breadcrumb="Quickstart">
+    <DocLayout breadcrumb="Code Mode">
       <MDXRemote source={source} components={mdxComponents} />
     </DocLayout>
   )
