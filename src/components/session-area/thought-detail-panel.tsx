@@ -71,12 +71,6 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext }:
             <span className="font-mono text-foreground/50">{detail.shortId}</span>
             <span>•</span>
             <span title={detail.absoluteTimeLabel}>{detail.relativeTimeLabel}</span>
-            {detail.totalThoughts && (
-              <>
-                <span>•</span>
-                <span>Step {detail.thoughtNumber} of {detail.totalThoughts}</span>
-              </>
-            )}
           </div>
         </div>
       </div>

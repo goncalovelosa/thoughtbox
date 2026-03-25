@@ -125,6 +125,7 @@ export function SessionTraceExplorer({
       >
         <SessionTraceToolbar
           isLive={isLive}
+          sessionStatus={sessionStatus}
           search={search}
           onSearchChange={setSearch}
         />

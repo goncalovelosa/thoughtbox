@@ -9,7 +9,7 @@ type Props = {
 
 export function SessionDetailHeader({ session, workspaceSlug }: Props) {
   return (
-    <div className="mb-6 flex flex-col gap-4">
+    <div className="mb-6 flex flex-col gap-4 sticky top-0 z-20 bg-background py-4 -mt-4">
       <Link 
         href={`/w/${workspaceSlug}/runs`}
         className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-background"

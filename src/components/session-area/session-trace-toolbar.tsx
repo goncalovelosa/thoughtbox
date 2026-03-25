@@ -2,15 +2,19 @@
 
 type Props = {
   isLive?: boolean
+  sessionStatus: 'active' | 'completed' | 'abandoned'
   search: string
   onSearchChange: (value: string) => void
 }
 
 export function SessionTraceToolbar({
   isLive,
+  sessionStatus,
   search,
   onSearchChange,
 }: Props) {
+  // Only show live indicator for active sessions
+  const showLiveIndicator = sessionStatus === 'active'
   return (
     <div className="sticky top-0 z-10 border-b border-foreground bg-background/95 backdrop-blur px-4 py-3 flex items-center justify-between">
       <div className="flex flex-wrap items-center gap-3">
@@ -23,7 +27,7 @@ export function SessionTraceToolbar({
         />
       </div>
 
-      {isLive != null && (
+      {showLiveIndicator && isLive != null && (
         <div className={`flex items-center gap-2 px-3 py-1 rounded-none border ${
           isLive
             ? 'bg-emerald-500/10 border-emerald-500/20'
