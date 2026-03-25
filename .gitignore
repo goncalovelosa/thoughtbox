@@ -45,3 +45,4 @@ thoughtbox-session-spec-pack/
 # Dolt database files (added by bd init)
 .dolt/
 *.db
+Calibrate/

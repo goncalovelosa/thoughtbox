@@ -14,7 +14,7 @@ type Props = {
 export function SessionTimeline({ rows, selectedId, onSelect }: Props) {
   if (rows.length === 0) {
     return (
-      <div className="p-12 text-center text-sm text-slate-500">
+      <div className="p-12 text-center text-sm text-foreground">
         No thoughts match the current filters.
       </div>
     )
@@ -25,7 +25,7 @@ export function SessionTimeline({ rows, selectedId, onSelect }: Props) {
 
   return (
     <div className="relative flex min-w-max">
-      <div className="sticky left-0 z-10 bg-slate-950">
+      <div className="sticky left-0 z-10 bg-background">
         <SessionTimelineRail rows={rows} maxLane={maxLane} selectedId={selectedId} />
       </div>
       

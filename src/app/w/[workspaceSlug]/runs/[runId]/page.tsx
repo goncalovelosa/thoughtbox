@@ -86,7 +86,7 @@ export default async function SessionDetailPage({ params }: Props) {
   }))
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-8 bg-slate-950 min-h-[calc(100vh-theme(spacing.16))] text-slate-100">
+    <div className="mx-auto max-w-[1600px] px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))] text-foreground">
       <SessionDetailHeader session={sessionVM} workspaceSlug={workspaceSlug} />
       
       <SessionTraceExplorer

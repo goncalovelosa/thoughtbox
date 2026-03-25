@@ -109,10 +109,10 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
     return (
       <Link
         href={item.href}
-        className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        className={`flex items-center gap-2.5 rounded-none px-3 py-2 text-sm font-medium transition-colors ${
           isActive
-            ? 'bg-white/10 text-white'
-            : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+            ? 'bg-background text-foreground'
+            : 'text-foreground hover:bg-background/5 hover:text-foreground'
         }`}
       >
         {item.icon}
@@ -122,17 +122,17 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
   }
 
   return (
-    <aside className="flex h-full w-[var(--sidebar-width)] flex-col bg-slate-900 text-white">
+    <aside className="flex h-full w-[var(--sidebar-width)] flex-col bg-background text-background">
       {/* Workspace header */}
       <div className="flex items-center gap-2 border-b border-white/10 px-4 py-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-500 text-xs font-black text-white uppercase">
+        <div className="flex h-7 w-7 items-center justify-center rounded-none bg-background text-xs font-black text-background uppercase">
           {workspaceSlug.charAt(0)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="truncate text-sm font-semibold text-white capitalize">
+          <p className="truncate text-sm font-semibold text-background capitalize">
             {workspaceSlug}
           </p>
-          <p className="text-xs text-slate-400">Workspace</p>
+          <p className="text-xs text-foreground">Workspace</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
           ))}
         </ul>
 
-        <p className="mt-6 mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        <p className="mt-6 mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-foreground">
           Account
         </p>
         <ul className="flex flex-col gap-0.5">
@@ -171,9 +171,9 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
         {/* Account link */}
         <Link
           href={`${base}/settings/account`}
-          className="mt-2 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
+          className="mt-2 flex items-center gap-2.5 rounded-none px-3 py-2 text-sm text-foreground hover:bg-background/5 hover:text-foreground transition-colors"
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-white">
+          <span className="flex h-6 w-6 items-center justify-center rounded-none bg-background text-xs font-semibold text-background">
             U
           </span>
           <span className="flex-1 truncate">Account</span>

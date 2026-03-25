@@ -1,0 +1,52 @@
+# Quickstart
+
+Get from zero to your first recorded thought in under 60 seconds.
+
+## 1. Get an API key
+
+Log in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai), go to **Settings > API Keys**, and create a new key. Copy it immediately — it won't be shown again.
+
+Your key looks like this: `tbx_a1b2c3d4_xK9mP2...`
+
+## 2. Add the MCP config
+
+Open your project's `.mcp.json` file (create it if it doesn't exist) and add:
+
+```json
+{
+  "mcpServers": {
+    "thoughtbox": {
+      "type": "http",
+      "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY_HERE"
+    }
+  }
+}
+```
+
+Replace `tbx_YOUR_KEY_HERE` with the key you just copied.
+
+<Callout type="info">
+  This connects Claude Code to the hosted Thoughtbox server. The key in the URL authenticates every request.
+</Callout>
+
+## 3. Send your first thought
+
+In Claude Code, say:
+
+> Use thoughtbox to record a reasoning thought: "I'm testing Thoughtbox for the first time."
+
+Claude will call `thoughtbox_execute` and record a thought with type `reasoning` in a new session.
+
+## 4. See it in the dashboard
+
+Go to [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai) and open **Sessions**. Your new session appears with one thought inside it.
+
+![A session in the Thoughtbox dashboard showing recorded thoughts](/docs/assets/screenshot-one.png)
+
+That's it. Thoughtbox is recording your agent's reasoning.
+
+## What's next?
+
+- [Sessions & Thoughts](/docs/sessions-and-thoughts) — understand the data model
+- [Code Mode](/docs/code-mode) — learn the two-tool interface your agent uses
+- [Authentication](/docs/authentication) — manage and rotate your API keys

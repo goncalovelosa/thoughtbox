@@ -18,18 +18,18 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
     >
       {/* SVG Rail goes here, but we'll mock it for now until timeline is built */}
       <div className="flex justify-center pt-2">
-        <div className={`w-2 h-2 rounded-full ${LANE_DOT_COLOR[row.laneColorToken]}`} />
+        <div className={`w-2 h-2 rounded-none ${LANE_DOT_COLOR[row.laneColorToken]}`} />
       </div>
 
-      <div className={`rounded-xl border px-3 py-2 transition-colors ${
+      <div className={`rounded-none border-2 px-3 py-2 transition-colors min-w-0 overflow-hidden ${
         isSelected
-          ? 'border-brand-500/30 bg-brand-500/10 ring-1 ring-brand-500/20'
-          : 'border-transparent bg-transparent group-hover:bg-slate-900/70'
+          ? 'border-foreground bg-foreground/10'
+          : 'border-transparent bg-transparent group-hover:bg-foreground/5'
       }`}>
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-1.5">
           {row.branchLabel && (
-            <span className={`${BADGE_BASE} bg-slate-800 text-slate-300`}>
+            <span className={`${BADGE_BASE} bg-background text-foreground`}>
               {row.branchLabel}
             </span>
           )}
@@ -46,13 +46,15 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
         </div>
 
         {/* Content */}
-        <div className="text-sm font-medium leading-5 text-slate-100 line-clamp-1" title={row.previewText}>
-          {row.previewText || <span className="text-slate-500 italic">Empty thought</span>}
+        <div className="text-sm font-medium leading-5 text-foreground truncate" title={row.previewText}>
+          {row.previewText || <span className="text-foreground italic">Empty thought</span>}
         </div>
 
         {/* Metadata */}
-        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <span className="font-mono text-[12px]">{row.shortId}</span>
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground">
+          <span className="font-semibold text-foreground">#{row.thoughtNumber}</span>
+          <span>•</span>
+          <span className="font-mono text-[12px] text-foreground/50">{row.shortId}</span>
           <span>•</span>
           <span title={row.absoluteTimeLabel}>{row.relativeTimeLabel}</span>
         </div>

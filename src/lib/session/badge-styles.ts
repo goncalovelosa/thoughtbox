@@ -24,8 +24,8 @@ export const THOUGHT_TYPE_BADGE: Record<ThoughtDisplayType, string> = {
   progress: 'bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/20',
   belief_snapshot: 'bg-pink-500/15 text-pink-300 ring-1 ring-pink-500/20',
   assumption_update: 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20',
-  context_snapshot: 'bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/20',
-  reasoning: 'bg-slate-700/50 text-slate-200 ring-1 ring-slate-600',
+  context_snapshot: 'bg-background text-foreground ring-1 ring-ring/20',
+  reasoning: 'bg-background text-foreground ring-1 ring-ring',
 }
 
 export const THOUGHT_TYPE_LABEL: Record<ThoughtDisplayType, string> = {
@@ -42,10 +42,5 @@ export const REVISION_BADGE =
   'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/20'
 
 export const LANE_DOT_COLOR: Record<string, string> = {
-  'sessionLane-main': 'bg-sessionLane-main',
-  'sessionLane-branch1': 'bg-sessionLane-branch1',
-  'sessionLane-branch2': 'bg-sessionLane-branch2',
-  'sessionLane-branch3': 'bg-sessionLane-branch3',
-  'sessionLane-branch4': 'bg-sessionLane-branch4',
-  'sessionLane-branch5': 'bg-sessionLane-branch5',
+  'primary': 'bg-primary',
 }

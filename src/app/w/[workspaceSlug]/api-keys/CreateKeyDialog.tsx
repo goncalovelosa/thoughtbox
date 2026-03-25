@@ -53,7 +53,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+        className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background transition-colors"
       >
         + Create key
       </button>
@@ -61,15 +61,15 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-background"
             onClick={handleClose}
             onKeyDown={(e) => { if (e.key === 'Escape') handleClose() }}
             role="presentation"
           />
-          <div className="relative w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-none border border-foreground bg-background p-6 shadow-xl">
             {hasKey ? (
               <>
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-foreground">
                   Key created
                 </h2>
                 <p className="mt-2 text-sm text-amber-700 font-medium">
@@ -80,11 +80,11 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                     ref={inputRef}
                     readOnly
                     value={state.plainKey}
-                    className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-900"
+                    className="flex-1 rounded-none border border-foreground bg-background px-3 py-2 font-mono text-sm text-foreground"
                   />
                   <button
                     onClick={handleCopy}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="rounded-none border border-foreground px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
                   >
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
@@ -94,7 +94,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                 )}
                 <button
                   onClick={handleClose}
-                  className="mt-4 w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+                  className="mt-4 w-full rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background transition-colors"
                 >
                   Done
                 </button>
@@ -102,10 +102,10 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
             ) : (
               <form action={formAction}>
                 <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-foreground">
                   Create API key
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-foreground">
                   Give your key a descriptive name so you can identify it later.
                 </p>
                 <input
@@ -113,7 +113,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                   required
                   maxLength={64}
                   placeholder="e.g. Production MCP server"
-                  className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="mt-4 w-full rounded-none border border-foreground px-3 py-2 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
                 />
                 {state?.error && (
                   <p className="mt-2 text-sm text-red-600">{state.error}</p>
@@ -122,14 +122,14 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="rounded-none border border-foreground px-4 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={pending}
-                    className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                    className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background disabled:opacity-50 transition-colors"
                   >
                     {pending ? 'Creating...' : 'Create'}
                   </button>

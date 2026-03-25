@@ -38,20 +38,20 @@ export function WorkspaceTopBar({ workspaceSlug }: WorkspaceTopBarProps) {
   const title = deriveTitle(pathname)
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
-      <h1 className="text-sm font-semibold text-slate-900">{title}</h1>
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-foreground bg-background px-6">
+      <h1 className="text-sm font-semibold text-foreground">{title}</h1>
 
       <div className="flex items-center gap-3">
         {/* Help link */}
         <Link
           href="/support"
-          className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
+          className="text-xs text-foreground hover:text-foreground transition-colors"
         >
           Help
         </Link>
 
         {/* Workspace indicator */}
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 capitalize">
+        <span className="rounded-none border border-foreground bg-background px-3 py-1 text-xs font-medium text-foreground capitalize">
           {workspaceSlug}
         </span>
 
@@ -59,7 +59,7 @@ export function WorkspaceTopBar({ workspaceSlug }: WorkspaceTopBarProps) {
         <form action={signOut}>
           <button
             type="submit"
-            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors"
           >
             Sign out
           </button>

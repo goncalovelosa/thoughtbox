@@ -1,0 +1,70 @@
+# Authentication
+
+Every request to Thoughtbox is authenticated with an API key. Keys are scoped to a workspace — all sessions, thoughts, and knowledge created with a key belong to that workspace.
+
+## API key format
+
+Keys follow this format:
+
+```
+tbx_<prefix>_<secret>
+```
+
+The `tbx_` prefix identifies it as a Thoughtbox key. The middle segment is a fast-lookup index. The rest is the secret, which is bcrypt-hashed on our end — the raw key is never stored.
+
+## Creating a key
+
+1. Log in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai)
+2. Go to **Settings > API Keys**
+3. Click **Create Key**
+4. Copy the key immediately
+
+<Callout type="warning">
+  The full key is only shown once at creation. If you lose it, revoke it and create a new one.
+</Callout>
+
+## Using your key
+
+The simplest way is in your MCP config URL:
+
+```json
+{
+  "mcpServers": {
+    "thoughtbox": {
+      "type": "http",
+      "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY"
+    }
+  }
+}
+```
+
+You can also pass it as an HTTP header:
+
+```
+Authorization: Bearer tbx_YOUR_KEY
+```
+
+If both are present, the header takes precedence.
+
+## Rotating a key
+
+1. Create a new key (you can have multiple active keys)
+2. Update your MCP config with the new key
+3. Verify the new key works
+4. Revoke the old key
+
+There's no downtime — both keys work simultaneously until you revoke the old one.
+
+## Revoking a key
+
+In **Settings > API Keys**, click **Revoke** next to the key. It stops working immediately. Revocation flips a status flag — the key record is preserved for audit purposes, but it will never authenticate again.
+
+## Workspace scoping
+
+Each API key resolves to a workspace. This means:
+
+- All data created with a key belongs to that workspace
+- Different keys for the **same** workspace see the same sessions and thoughts
+- Keys for **different** workspaces are fully isolated
+
+This lets you give different agents or team members their own keys while sharing the same reasoning history.

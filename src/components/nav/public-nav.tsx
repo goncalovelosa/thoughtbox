@@ -15,11 +15,11 @@ export function PublicNav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b-4 border-foreground bg-background/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-slate-900">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-xs font-black text-white">
+        <Link href="/" className="flex items-center gap-2 font-black text-foreground">
+          <span className="flex h-7 w-7 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-xs font-black text-background">
             T
           </span>
           Thoughtbox
@@ -31,8 +31,8 @@ export function PublicNav() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-brand-600 ${
-                  pathname === link.href ? 'text-brand-600' : 'text-slate-600'
+                className={`text-sm font-medium transition-colors hover:text-foreground hover:underline-thick ${
+                  pathname === link.href ? 'text-foreground hover:underline-thick' : 'text-foreground'
                 }`}
               >
                 {link.label}
@@ -45,13 +45,13 @@ export function PublicNav() {
         <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/sign-in"
-            className="text-sm font-medium text-slate-700 hover:text-brand-600 transition-colors"
+            className="text-sm font-medium text-foreground hover:text-foreground hover:underline-thick transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/sign-up"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
+            className="rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2 text-sm font-black uppercase tracking-wider hover-grow"
           >
             Get started
           </Link>
@@ -59,7 +59,7 @@ export function PublicNav() {
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden rounded-md p-2 text-slate-600 hover:bg-slate-100 transition-colors"
+          className="md:hidden rounded-none p-2 text-foreground hover:bg-background transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -77,13 +77,13 @@ export function PublicNav() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-slate-200 bg-white px-6 pb-4 md:hidden">
+        <div className="border-t border-foreground bg-background px-6 pb-4 md:hidden">
           <ul className="flex flex-col gap-1 pt-3">
             {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="block rounded-none px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
@@ -91,17 +91,17 @@ export function PublicNav() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4">
+          <div className="mt-4 flex flex-col gap-2 border-t border-foreground pt-4">
             <Link
               href="/sign-in"
-              className="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="block rounded-none px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               Sign in
             </Link>
             <Link
               href="/sign-up"
-              className="block rounded-lg bg-brand-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+              className="block rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2.5 text-center text-sm font-black uppercase tracking-wider hover-grow"
               onClick={() => setMenuOpen(false)}
             >
               Get started

@@ -119,12 +119,13 @@ export function SessionTraceExplorer({
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
       {/* Left Column: Trace List */}
       <div
-        className="w-full rounded-2xl border border-slate-800 bg-slate-950 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
+        className="w-full rounded-none border border-foreground bg-background shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
         <SessionTraceToolbar
           isLive={isLive}
+          sessionStatus={sessionStatus}
           search={search}
           onSearchChange={setSearch}
         />
@@ -139,9 +140,23 @@ export function SessionTraceExplorer({
       </div>
 
       {/* Right Column: Selected Thought Detail */}
-      <div className="w-full sticky top-6 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+      <div className="w-full sticky top-6 rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
         <ThoughtDetailPanel
           detail={selectedId ? details[selectedId] : null}
+          positionIndex={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) : undefined}
+          totalCount={filteredRows.length}
+          hasPrev={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) > 0 : false}
+          hasNext={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) < filteredRows.length - 1 : false}
+          onPrev={() => {
+            if (!selectedId) return
+            const idx = filteredRows.findIndex((r) => r.id === selectedId)
+            if (idx > 0) setThoughtParam(filteredRows[idx - 1].thoughtNumber)
+          }}
+          onNext={() => {
+            if (!selectedId) return
+            const idx = filteredRows.findIndex((r) => r.id === selectedId)
+            if (idx < filteredRows.length - 1) setThoughtParam(filteredRows[idx + 1].thoughtNumber)
+          }}
         />
       </div>
     </div>

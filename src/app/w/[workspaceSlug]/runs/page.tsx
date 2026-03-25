@@ -54,7 +54,7 @@ export default async function RunsPage({ params }: Props) {
   })
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 bg-slate-950 min-h-[calc(100vh-theme(spacing.16))]">
+    <div className="mx-auto max-w-5xl px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))]">
       <SessionsIndexHeader />
       <SessionsIndexClient sessions={sessions} />
     </div>

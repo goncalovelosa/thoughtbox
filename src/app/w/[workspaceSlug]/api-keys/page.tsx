@@ -15,15 +15,15 @@ export default async function ApiKeysPage({ params }: Props) {
     <div className="mx-auto max-w-4xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">API Keys</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-foreground">API Keys</h1>
+          <p className="mt-1 text-sm text-foreground">
             Manage keys used to authenticate MCP and REST API requests.
           </p>
         </div>
         <CreateKeyDialog workspaceSlug={workspaceSlug} />
       </div>
 
-      <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+      <div className="mb-6 rounded-none border border-blue-200 bg-blue-50 px-5 py-4">
         <p className="text-sm font-medium text-blue-900">Key format</p>
         <p className="mt-1 text-sm text-blue-700">
           Keys are prefixed <code className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs">tbx_</code> and
@@ -34,7 +34,7 @@ export default async function ApiKeysPage({ params }: Props) {
 
       <ApiKeyTable keys={keys} />
 
-      <p className="mt-4 text-xs text-slate-400">
+      <p className="mt-4 text-xs text-foreground">
         Keys are stored as bcrypt hashes. The plaintext is shown only at creation time.
       </p>
     </div>

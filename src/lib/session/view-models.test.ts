@@ -36,12 +36,12 @@ describe('Session View Models (Spec 09)', () => {
       expect(summary.title).toBe('My Test Session')
       expect(summary.thoughtCount).toBe(2)
       expect(summary.href).toBe('/w/my-workspace/runs/sess_123456789')
-      expect(summary.durationLabel).toBe('300.0s')
+      expect(summary.durationLabel).toBe('5m')
 
       const detail = createSessionDetailVM(raw)
       expect(detail.id).toBe('sess_123456789')
       expect(detail.tags).toEqual(['one', 'two'])
-      expect(detail.durationLabel).toBe('300.0s')
+      expect(detail.durationLabel).toBe('5m')
       expect(detail.isLiveCapable).toBe(false)
     })
 
@@ -71,7 +71,7 @@ describe('Session View Models (Spec 09)', () => {
       }
 
       const detail = createSessionDetailVM(active)
-      expect(detail.durationLabel).toBe('60.0s')
+      expect(detail.durationLabel).toBe('1m')
       expect(detail.isLiveCapable).toBe(true)
     })
   })
@@ -160,7 +160,7 @@ describe('Session View Models (Spec 09)', () => {
       }
       const { rows } = createThoughtViewModels([raw])
       expect(rows[0].laneIndex).toBe(0)
-      expect(rows[0].laneColorToken).toBe('sessionLane-main')
+      expect(rows[0].laneColorToken).toBe('primary')
     })
 
     it('assigns branches to subsequent lanes deterministically', () => {
@@ -187,10 +187,10 @@ describe('Session View Models (Spec 09)', () => {
       }))
 
       const { rows } = createThoughtViewModels(thoughts)
-      expect(rows[0].laneColorToken).toBe('sessionLane-main')
-      expect(rows[1].laneColorToken).toBe('sessionLane-branch1')
-      expect(rows[5].laneColorToken).toBe('sessionLane-branch5')
-      expect(rows[6].laneColorToken).toBe('sessionLane-main') // wraps around
+      expect(rows[0].laneColorToken).toBe('primary')
+      expect(rows[1].laneColorToken).toBe('secondary')
+      expect(rows[5].laneColorToken).toBe('secondary')
+      expect(rows[6].laneColorToken).toBe('primary') // wraps around
     })
   })
   

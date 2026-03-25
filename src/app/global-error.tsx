@@ -15,20 +15,20 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center font-sans">
+      <body className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center font-sans">
         <p className="text-sm font-semibold uppercase tracking-widest text-red-600">
           Critical Error
         </p>
-        <h1 className="mt-4 text-3xl font-bold text-slate-900">Something went wrong</h1>
-        <p className="mt-3 text-slate-500">
+        <h1 className="mt-4 text-3xl font-bold text-foreground">Something went wrong</h1>
+        <p className="mt-3 text-foreground">
           A critical error has occurred. Our team has been notified.
         </p>
         {error.digest && (
-          <p className="mt-2 font-mono text-xs text-slate-400">Error ID: {error.digest}</p>
+          <p className="mt-2 font-mono text-xs text-foreground">Error ID: {error.digest}</p>
         )}
         <button
           onClick={reset}
-          className="mt-8 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+          className="mt-8 rounded-none bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-background shadow-sm hover:bg-indigo-700 transition-colors"
         >
           Try again
         </button>

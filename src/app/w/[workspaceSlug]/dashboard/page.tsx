@@ -60,10 +60,10 @@ export default async function DashboardPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 capitalize">
+        <h1 className="text-2xl font-bold text-foreground capitalize">
           {workspaceSlug} dashboard
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-foreground">
           Overview of your workspace activity.
         </p>
       </div>
@@ -73,13 +73,13 @@ export default async function DashboardPage({ params }: Props) {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="rounded-none border border-foreground bg-background p-5 shadow-sm"
           >
-            <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+            <p className="text-xs font-medium uppercase tracking-wider text-foreground">
               {stat.label}
             </p>
-            <p className="mt-2 text-3xl font-bold text-slate-900">{stat.value}</p>
-            <p className="mt-0.5 text-xs text-slate-400">{stat.sub}</p>
+            <p className="mt-2 text-3xl font-bold text-foreground">{stat.value}</p>
+            <p className="mt-0.5 text-xs text-foreground">{stat.sub}</p>
           </div>
         ))}
       </div>
@@ -107,12 +107,12 @@ export default async function DashboardPage({ params }: Props) {
       </div>
 
       {/* Recent runs */}
-      <div className="mt-8 rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">Recent runs</h2>
+      <div className="mt-8 rounded-none border border-foreground bg-background shadow-sm">
+        <div className="flex items-center justify-between border-b border-foreground px-6 py-4">
+          <h2 className="text-sm font-semibold text-foreground">Recent runs</h2>
           <Link
             href={`${base}/runs`}
-            className="text-xs text-brand-600 hover:text-brand-700 transition-colors"
+            className="text-xs text-foreground hover:underline-thick hover:text-foreground transition-colors"
           >
             View all →
           </Link>
@@ -121,13 +121,13 @@ export default async function DashboardPage({ params }: Props) {
         {recentSessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
             <p className="text-2xl">📋</p>
-            <p className="font-medium text-slate-700">No runs yet</p>
-            <p className="text-sm text-slate-400">
+            <p className="font-medium text-foreground">No runs yet</p>
+            <p className="text-sm text-foreground">
               Runs appear here once your MCP client connects and makes its first call.
             </p>
             <Link
               href={`${base}/docs/quickstart`}
-              className="mt-3 rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-700 transition-colors"
+              className="mt-3 rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-xs font-semibold text-background hover:bg-background transition-colors"
             >
               See quickstart guide
             </Link>
@@ -140,13 +140,13 @@ export default async function DashboardPage({ params }: Props) {
                 <li key={session.id}>
                   <Link
                     href={`${base}/runs/${session.id}`}
-                    className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition-colors"
+                    className="flex items-center justify-between px-6 py-3 hover:bg-background transition-colors"
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="text-sm font-medium text-slate-900 truncate">
+                      <span className="text-sm font-medium text-foreground truncate">
                         {session.title || `Session ${session.id.slice(0, 7)}`}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-foreground">
                         {format(new Date(session.created_at), 'MMM d, HH:mm')}
                         {' · '}
                         {session.thought_count ?? 0} thoughts
@@ -180,12 +180,12 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-brand-200 transition-all"
+      className="flex flex-col gap-3 rounded-none border border-foreground bg-background p-5 shadow-sm hover:shadow-md hover:border-foreground transition-all"
     >
       <span className="text-2xl">{icon}</span>
       <div>
-        <p className="font-semibold text-slate-900">{title}</p>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <p className="font-semibold text-foreground">{title}</p>
+        <p className="mt-1 text-sm text-foreground">{description}</p>
       </div>
     </Link>
   )

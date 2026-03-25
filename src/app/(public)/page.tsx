@@ -1,47 +1,35 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { THOUGHTBOX_MCP_URL } from '@/lib/thoughtbox-config'
+import { GitBranch, Code2, Network, PlayCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Thoughtbox — Persistent memory for AI agents',
+  title: 'Thoughtbox — Observable agency for AI systems',
 }
 
 const features = [
   {
-    title: 'Persistent thought capture',
+    title: 'Replayable reasoning traces',
     description:
-      'Store thoughts, ideas, and reasoning steps with rich metadata. Query them back instantly with semantic search.',
-    icon: '🧠',
+      'Every session is a numbered, timestamped chain of thoughts. Reconstruct exactly what the agent was reasoning about when it took any action.',
+    icon: <PlayCircle className="h-8 w-8 text-foreground" />,
   },
   {
-    title: 'Knowledge graphs',
+    title: 'Branch visualization',
     description:
-      'Build and traverse entity graphs automatically as your agents think. Surface hidden connections.',
-    icon: '🕸️',
+      'See where the agent explored alternatives, forked into parallel paths, and converged on a decision. Topology is visible, not hidden.',
+    icon: <GitBranch className="h-8 w-8 text-foreground" />,
   },
   {
-    title: 'Full run tracing',
+    title: 'Code Mode',
     description:
-      'Every MCP session is logged from start to finish. Inspect the exact sequence of thoughts that led to any conclusion.',
-    icon: '🔍',
+      'Two MCP tools replace dozens. Agents write JavaScript against the tb SDK to search, record, and analyze — no context window bloat.',
+    icon: <Code2 className="h-8 w-8 text-foreground" />,
   },
   {
-    title: 'API key management',
+    title: 'Knowledge graph',
     description:
-      'Issue, rotate, and revoke keys per workspace. Fine-grained control without complexity.',
-    icon: '🔑',
-  },
-  {
-    title: 'Multi-project workspaces',
-    description:
-      'Organize memory across projects. Each project gets its own isolated context, all in one workspace.',
-    icon: '📁',
-  },
-  {
-    title: 'Usage & billing transparency',
-    description:
-      'See exactly what you\'ve used, when, and how much it costs. No surprise invoices.',
-    icon: '📊',
+      'Entities, relations, and observations accumulate across sessions. Prior experience surfaces automatically to new agents.',
+    icon: <Network className="h-8 w-8 text-foreground" />,
   },
 ]
 
@@ -49,54 +37,51 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-white px-6 py-24 sm:py-32">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_#eef2ff_0%,_transparent_60%)]" />
+      <section className="relative overflow-hidden bg-background px-6 py-24 sm:py-32">
+        <div className="absolute inset-0 -z-10 dots-pattern" />
         <div className="mx-auto max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-            Now in early access
+          <div className="inline-flex items-center gap-2 rounded-none border-2 border-foreground bg-background px-4 py-1.5 text-sm font-black uppercase tracking-wider text-foreground">
+            <span className="h-1.5 w-1.5 rounded-none bg-foreground" />
+            Founding beta — now open
           </div>
-          <h1 className="mt-8 text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
-            Persistent memory
+          <h1 className="mt-8 text-5xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl uppercase">
+            Observable Agency
             <br />
-            <span className="text-brand-600">for AI agents</span>
+            <span className="text-foreground">for AI Systems</span>
           </h1>
-          <p className="mt-6 text-xl text-slate-600 sm:text-2xl">
-            Thoughtbox gives your AI agents a queryable external memory via the Model Context
-            Protocol. Capture thoughts, build knowledge graphs, and trace every reasoning step.
+          <p className="mt-6 text-xl text-foreground sm:text-2xl font-medium tracking-wide">
+            Thoughtbox is an intention ledger. When an agent causes a failure, you get the black box recording — what it was reasoning, what it considered, and why it decided what it did.
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
-              href="/sign-up"
-              className="rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
+              href="/pricing"
+              className="rounded-none border-4 border-foreground bg-foreground text-background px-8 py-3.5 text-base font-black uppercase tracking-wider hover-grow"
             >
-              Get started free
+              Join the founding beta
             </Link>
             <Link
               href="/docs/quickstart"
-              className="rounded-xl border border-slate-200 px-8 py-3.5 text-base font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="border-4 border-foreground bg-background text-foreground px-8 py-3.5 text-base font-black uppercase tracking-wider hover-grow"
             >
-              Read the quickstart →
+              Read the quickstart
             </Link>
           </div>
         </div>
       </section>
 
       {/* Code preview */}
-      <section className="border-y border-slate-200 bg-slate-900 px-6 py-16">
+      <section className="border-y-4 border-foreground bg-background px-6 py-16">
         <div className="mx-auto max-w-3xl">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400">
+          <p className="mb-4 text-xs font-black uppercase tracking-widest text-foreground">
             Connect in seconds
           </p>
-          <pre className="overflow-x-auto rounded-xl bg-black/40 p-6 font-mono text-sm leading-relaxed text-slate-200">
+          <pre className="overflow-x-auto rounded-none border-4 border-foreground bg-background p-6 font-mono text-sm leading-relaxed text-foreground">
             <code>{`# Add Thoughtbox to your MCP client config
 {
   "mcpServers": {
     "thoughtbox": {
-      "url": "${THOUGHTBOX_MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer tbx_YOUR_API_KEY"
-      }
+      "type": "http",
+      "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_API_KEY"
     }
   }
 }`}</code>
@@ -108,22 +93,22 @@ export default function HomePage() {
       <section className="px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-              Everything your agents need to remember
+            <h2 className="text-3xl font-black text-foreground sm:text-4xl">
+              The audit trail your agents are missing
             </h2>
-            <p className="mt-4 text-lg text-slate-500">
-              Built specifically for LLM agent workflows. No generic note-taking tools.
+            <p className="mt-4 text-lg text-foreground">
+              Agents are ephemeral. Thoughtbox captures the reasoning that would otherwise disappear when the session ends.
             </p>
           </div>
-          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid gap-8 sm:grid-cols-2">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm"
+                className="rounded-none border-4 border-foreground bg-background p-8 shadow-sm"
               >
                 <div className="text-3xl">{feature.icon}</div>
-                <h3 className="mt-4 text-base font-semibold text-slate-900">{feature.title}</h3>
-                <p className="mt-2 text-sm text-slate-500 leading-relaxed">{feature.description}</p>
+                <h3 className="mt-4 text-base font-black uppercase text-foreground">{feature.title}</h3>
+                <p className="mt-2 text-sm text-foreground leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -131,16 +116,16 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-brand-600 px-6 py-20 text-center text-white">
-        <h2 className="text-3xl font-bold">Ready to give your agents a memory?</h2>
-        <p className="mt-4 text-brand-200">
-          Sign up in 60 seconds. No credit card required on the free plan.
+      <section className="bg-foreground text-background border-4 border-foreground px-6 py-20 text-center">
+        <h2 className="text-3xl font-black text-background">Know why your agents did what they did</h2>
+        <p className="mt-4 text-background/80">
+          $99 one-time for founding beta access. Hosted workspace, founder-assisted onboarding, and early input into the product.
         </p>
         <Link
-          href="/sign-up"
-          className="mt-8 inline-block rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-brand-700 shadow-sm hover:bg-brand-50 transition-colors"
+          href="/pricing"
+          className="mt-8 inline-block rounded-none border-4 border-background bg-background px-8 py-3.5 text-base font-black uppercase tracking-wider text-foreground shadow-sm hover:bg-background/90 transition-colors"
         >
-          Create your workspace
+          Join the founding beta
         </Link>
       </section>
     </>

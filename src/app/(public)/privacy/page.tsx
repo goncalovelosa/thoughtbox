@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-      <div className="mt-2 leading-relaxed text-slate-600">{children}</div>
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div className="mt-2 leading-relaxed text-foreground">{children}</div>
     </div>
   )
 }
@@ -17,8 +17,8 @@ export default function PrivacyPage() {
   return (
     <div className="px-6 py-16">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Privacy Policy</h1>
-        <p className="mt-3 text-sm text-slate-400">Last updated: March 2026</p>
+        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Privacy Policy</h1>
+        <p className="mt-3 text-sm text-foreground">Last updated: March 2026</p>
 
         <div className="mt-10 space-y-8">
           <Section title="1. What we collect">
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
             <p>
               You may request access to, correction of, or deletion of your personal data at any
               time by emailing{' '}
-              <a href="mailto:privacy@thoughtbox.dev" className="text-brand-600 hover:underline">
+              <a href="mailto:privacy@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
                 privacy@thoughtbox.dev
               </a>
               . Account deletion removes all personally identifiable information within 30 days.
@@ -108,7 +108,7 @@ export default function PrivacyPage() {
           <Section title="10. Contact">
             <p>
               Privacy questions:{' '}
-              <a href="mailto:privacy@thoughtbox.dev" className="text-brand-600 hover:underline">
+              <a href="mailto:privacy@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
                 privacy@thoughtbox.dev
               </a>
             </p>

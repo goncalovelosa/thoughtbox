@@ -30,33 +30,33 @@ export default function SupportPage() {
   return (
     <div className="px-6 py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+        <h1 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl uppercase">
           How can we help?
         </h1>
-        <p className="mt-4 text-lg text-slate-500">
+        <p className="mt-4 text-lg text-foreground">
           Check the resources below, or reach out directly — we typically respond within one business day.
         </p>
 
         {/* Contact */}
-        <div className="mt-10 rounded-2xl border border-brand-200 bg-brand-50 p-8">
-          <h2 className="text-lg font-semibold text-slate-900">Email support</h2>
-          <p className="mt-2 text-slate-600">
+        <div className="mt-10 rounded-none border-4 border-foreground bg-background p-8">
+          <h2 className="text-lg font-black uppercase text-foreground">Email support</h2>
+          <p className="mt-2 text-foreground">
             For account issues, billing questions, or anything not covered in the docs:
           </p>
           <a
             href="mailto:support@thoughtbox.dev"
-            className="mt-4 inline-block rounded-xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+            className="mt-4 inline-block rounded-none bg-foreground text-background border-4 border-foreground px-6 py-3 text-sm font-black uppercase tracking-wider text-background hover:bg-background transition-colors"
           >
             support@thoughtbox.dev
           </a>
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-foreground">
             Pro and Enterprise customers receive priority responses.
           </p>
         </div>
 
         {/* Self-serve resources */}
         <div className="mt-12">
-          <h2 className="text-left text-sm font-semibold uppercase tracking-widest text-slate-400">
+          <h2 className="text-left text-sm font-semibold uppercase tracking-widest text-foreground">
             Self-serve resources
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -64,11 +64,11 @@ export default function SupportPage() {
               <Link
                 key={resource.title}
                 href={resource.href}
-                className="flex flex-col items-start gap-2 rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:shadow-md transition-shadow"
+                className="flex flex-col items-start gap-2 rounded-none border-4 border-foreground bg-background p-5 text-left shadow-sm hover:shadow-md transition-shadow"
               >
                 <span className="text-2xl">{resource.icon}</span>
-                <span className="font-semibold text-slate-900">{resource.title}</span>
-                <span className="text-sm text-slate-500">{resource.description}</span>
+                <span className="font-black uppercase text-foreground">{resource.title}</span>
+                <span className="text-sm text-foreground">{resource.description}</span>
               </Link>
             ))}
           </div>
