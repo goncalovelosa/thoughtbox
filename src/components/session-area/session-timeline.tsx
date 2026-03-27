@@ -9,9 +9,10 @@ type Props = {
   rows: ThoughtRowVM[]
   selectedId: string | null
   onSelect: (id: string) => void
+  searchQuery?: string
 }
 
-export function SessionTimeline({ rows, selectedId, onSelect }: Props) {
+export function SessionTimeline({ rows, selectedId, onSelect, searchQuery }: Props) {
   if (rows.length === 0) {
     return (
       <div className="p-12 text-center text-sm text-foreground">
@@ -35,10 +36,11 @@ export function SessionTimeline({ rows, selectedId, onSelect }: Props) {
             {row.showGapBefore && row.gapLabel && (
               <TimestampGap label={row.gapLabel} />
             )}
-            <ThoughtRow 
-              row={row} 
-              isSelected={row.id === selectedId} 
-              onClick={() => onSelect(row.id)} 
+            <ThoughtRow
+              row={row}
+              isSelected={row.id === selectedId}
+              onClick={() => onSelect(row.id)}
+              searchQuery={searchQuery}
             />
           </div>
         ))}

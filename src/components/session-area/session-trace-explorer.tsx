@@ -2,17 +2,32 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import type { RawThoughtRecord } from '@/lib/session/view-models'
+import type {
+  RawThoughtRecord,
+  ThoughtDisplayType,
+  SessionDetailVM,
+} from '@/lib/session/view-models'
 import { useSessionRealtime } from '@/lib/session/use-session-realtime'
+import {
+  computeSearchResults,
+  type SearchMode,
+  type SearchResult,
+} from '@/lib/session/search-utils'
+import { groupByDecisions } from '@/lib/session/decision-grouping'
 import { SessionTraceToolbar } from './session-trace-toolbar'
 import { SessionTimeline } from './session-timeline'
+import { DecisionTimeline } from './decision-timeline'
 import { ThoughtDetailPanel } from './thought-detail-panel'
+import { ExportDropdown } from './export-dropdown'
+
+type ViewMode = 'full' | 'decisions'
 
 type Props = {
   initialThoughts: RawThoughtRecord[]
   workspaceId: string
   sessionId: string
   sessionStatus: 'active' | 'completed' | 'abandoned'
+  sessionVM: SessionDetailVM
 }
 
 export function SessionTraceExplorer({
@@ -20,6 +35,7 @@ export function SessionTraceExplorer({
   workspaceId,
   sessionId,
   sessionStatus,
+  sessionVM,
 }: Props) {
   const { rows, details, isLive } = useSessionRealtime(
     initialThoughts,
@@ -30,17 +46,90 @@ export function SessionTraceExplorer({
   const router = useRouter()
   const pathname = usePathname()
   const hasAppliedDefault = useRef(false)
+
+  // --- State ---
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [searchMode, setSearchMode] = useState<SearchMode>('content')
+  const [activeTypeFilters, setActiveTypeFilters] = useState<
+    Set<ThoughtDisplayType>
+  >(new Set())
+  const [viewMode, setViewMode] = useState<ViewMode>('full')
 
-  const filteredRows = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (q === '') return rows
-    return rows.filter((r) => r.searchIndexText.includes(q))
-  }, [rows, search])
+  // --- Debounce search ---
+  useEffect(() => {
+    if (search === '') {
+      setDebouncedSearch('')
+      return
+    }
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
+  // --- Type counts (from FULL rows, stable regardless of filters) ---
+  const typeCounts = useMemo(() => {
+    const counts: Record<ThoughtDisplayType, number> = {
+      reasoning: 0,
+      decision_frame: 0,
+      action_report: 0,
+      belief_snapshot: 0,
+      assumption_update: 0,
+      context_snapshot: 0,
+      progress: 0,
+    }
+    for (const row of rows) {
+      counts[row.displayType]++
+    }
+    return counts
+  }, [rows])
+
+  // --- Combined filter pipeline ---
+  const { filteredRows, searchResult } = useMemo((): {
+    filteredRows: typeof rows
+    searchResult: SearchResult | null
+  } => {
+    let result = rows
+
+    // [SPEC-001] Type filter (OR logic)
+    if (activeTypeFilters.size > 0) {
+      result = result.filter((r) => activeTypeFilters.has(r.displayType))
+    }
+
+    // [SPEC-002] Text search with match counting
+    const q = debouncedSearch.trim().toLowerCase()
+    if (q === '') {
+      return { filteredRows: result, searchResult: null }
+    }
+
+    const sr = computeSearchResults(result, details, q, searchMode)
+    const filtered = result.filter((r) => sr.matchingRowIds.has(r.id))
+
+    return { filteredRows: filtered, searchResult: sr }
+  }, [rows, details, activeTypeFilters, debouncedSearch, searchMode])
+
+  // --- Type filter handlers ---
+  const handleTypeFilterToggle = useCallback(
+    (type: ThoughtDisplayType) => {
+      setActiveTypeFilters((prev) => {
+        const next = new Set(prev)
+        if (next.has(type)) {
+          next.delete(type)
+        } else {
+          next.add(type)
+        }
+        return next
+      })
+    },
+    [],
+  )
+
+  const handleTypeFilterClear = useCallback(() => {
+    setActiveTypeFilters(new Set())
+  }, [])
+
+  // --- Thought selection ---
   const thoughtParam = searchParams.get('thought')
 
-  // Resolve selected thought ID from ?thought=<number> param
   const selectedId = (() => {
     if (!thoughtParam || rows.length === 0) return null
     const num = Number(thoughtParam)
@@ -49,7 +138,6 @@ export function SessionTraceExplorer({
     return match?.id ?? null
   })()
 
-  // Update URL param without full navigation
   const setThoughtParam = useCallback(
     (thoughtNumber: number) => {
       const params = new URLSearchParams(searchParams.toString())
@@ -59,7 +147,6 @@ export function SessionTraceExplorer({
     [searchParams, router, pathname],
   )
 
-  // Handle click on a thought row
   const handleSelect = useCallback(
     (id: string) => {
       const row = rows.find((r) => r.id === id)
@@ -70,7 +157,7 @@ export function SessionTraceExplorer({
     [rows, setThoughtParam],
   )
 
-  // Keyboard navigation: arrow up/down to move selection
+  // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (filteredRows.length === 0) return
@@ -96,7 +183,7 @@ export function SessionTraceExplorer({
     [filteredRows, selectedId, setThoughtParam],
   )
 
-  // Apply default selection when no param is present and rows are loaded
+  // Default selection
   useEffect(() => {
     if (rows.length === 0 || thoughtParam || hasAppliedDefault.current) return
     hasAppliedDefault.current = true
@@ -108,12 +195,14 @@ export function SessionTraceExplorer({
     }
   }, [rows, thoughtParam, sessionStatus, setThoughtParam])
 
-  // Scroll selected thought into view on initial load
+  // Scroll selected thought into view
   useEffect(() => {
     if (!selectedId) return
     const el = document.querySelector(`[data-thought-id="${selectedId}"]`)
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [selectedId])
+
+  const debouncedQuery = debouncedSearch.trim()
 
   return (
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
@@ -128,6 +217,13 @@ export function SessionTraceExplorer({
           sessionStatus={sessionStatus}
           search={search}
           onSearchChange={setSearch}
+          searchResult={searchResult}
+          searchMode={searchMode}
+          onSearchModeChange={setSearchMode}
+          activeTypeFilters={activeTypeFilters}
+          onTypeFilterToggle={handleTypeFilterToggle}
+          onTypeFilterClear={handleTypeFilterClear}
+          typeCounts={typeCounts}
         />
 
         <div className="flex-1 overflow-y-auto relative">
@@ -135,6 +231,7 @@ export function SessionTraceExplorer({
             rows={filteredRows}
             selectedId={selectedId}
             onSelect={handleSelect}
+            searchQuery={debouncedQuery}
           />
         </div>
       </div>
@@ -143,10 +240,23 @@ export function SessionTraceExplorer({
       <div className="w-full sticky top-6 rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
         <ThoughtDetailPanel
           detail={selectedId ? details[selectedId] : null}
-          positionIndex={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) : undefined}
+          positionIndex={
+            selectedId
+              ? filteredRows.findIndex((r) => r.id === selectedId)
+              : undefined
+          }
           totalCount={filteredRows.length}
-          hasPrev={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) > 0 : false}
-          hasNext={selectedId ? filteredRows.findIndex((r) => r.id === selectedId) < filteredRows.length - 1 : false}
+          hasPrev={
+            selectedId
+              ? filteredRows.findIndex((r) => r.id === selectedId) > 0
+              : false
+          }
+          hasNext={
+            selectedId
+              ? filteredRows.findIndex((r) => r.id === selectedId) <
+                filteredRows.length - 1
+              : false
+          }
           onPrev={() => {
             if (!selectedId) return
             const idx = filteredRows.findIndex((r) => r.id === selectedId)
@@ -155,8 +265,10 @@ export function SessionTraceExplorer({
           onNext={() => {
             if (!selectedId) return
             const idx = filteredRows.findIndex((r) => r.id === selectedId)
-            if (idx < filteredRows.length - 1) setThoughtParam(filteredRows[idx + 1].thoughtNumber)
+            if (idx < filteredRows.length - 1)
+              setThoughtParam(filteredRows[idx + 1].thoughtNumber)
           }}
+          searchQuery={debouncedQuery}
         />
       </div>
     </div>

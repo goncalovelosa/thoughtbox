@@ -13,9 +13,10 @@ type Props = {
   hasNext?: boolean
   positionIndex?: number
   totalCount?: number
+  searchQuery?: string
 }
 
-export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, positionIndex, totalCount }: Props) {
+export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, positionIndex, totalCount, searchQuery }: Props) {
   if (!detail) {
     return (
       <div className="p-12 text-center text-sm text-foreground my-auto">
@@ -84,7 +85,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
 
       {/* Main Content Area */}
       <div>
-        <ThoughtCard detail={detail} />
+        <ThoughtCard detail={detail} searchQuery={searchQuery} />
         <ThoughtMetadataDisclosure detail={detail} />
       </div>
     </div>

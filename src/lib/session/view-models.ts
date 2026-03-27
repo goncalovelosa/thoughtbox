@@ -95,6 +95,7 @@ export type SessionSummaryVM = {
   shortId: string
   title?: string
   status: 'active' | 'completed' | 'abandoned'
+  tags: string[]
   thoughtCount?: number
   startedAtISO: string
   startedAtLabel: string
@@ -117,6 +118,15 @@ export type SessionDetailVM = {
   isLiveCapable: boolean
 }
 
+export type ThoughtDisplayType =
+  | 'reasoning'
+  | 'decision_frame'
+  | 'action_report'
+  | 'belief_snapshot'
+  | 'assumption_update'
+  | 'context_snapshot'
+  | 'progress'
+
 export type ThoughtRowVM = {
   id: string
   thoughtNumber: number
@@ -126,8 +136,7 @@ export type ThoughtRowVM = {
   timestampISO: string
   relativeTimeLabel: string
   absoluteTimeLabel: string
-  displayType: 'reasoning' | 'decision_frame' | 'action_report' |
-    'belief_snapshot' | 'assumption_update' | 'context_snapshot' | 'progress'
+  displayType: ThoughtDisplayType
   isTyped: boolean
   isRevision: boolean
   revisesThought?: number
@@ -207,6 +216,7 @@ export function createSessionSummaryVM(raw: RawSessionRecord, workspaceSlug: str
     shortId,
     title: title || undefined,
     status: raw.status,
+    tags: raw.tags || [],
     thoughtCount,
     startedAtISO: raw.createdAt,
     startedAtLabel: format(startedAt, 'MMM d, yyyy HH:mm'),

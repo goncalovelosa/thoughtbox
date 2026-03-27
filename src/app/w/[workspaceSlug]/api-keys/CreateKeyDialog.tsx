@@ -113,7 +113,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                   required
                   maxLength={64}
                   placeholder="e.g. Production MCP server"
-                  className="mt-4 w-full rounded-none border border-foreground px-3 py-2 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                  className="mt-4 w-full rounded-none border border-foreground px-3 py-2 text-sm text-black placeholder:text-neutral-400 focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
                 />
                 {state?.error && (
                   <p className="mt-2 text-sm text-red-600">{state.error}</p>
