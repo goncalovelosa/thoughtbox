@@ -35,7 +35,7 @@ export function DecisionTimeline({
 
   return (
     <div className="py-4 space-y-2">
-      {data.groups.map((group, i) => (
+      {data.groups.map((group) => (
         <div key={group.decision.id}>
           {group.reasoningBefore.length > 0 && (
             <ReasoningGap
@@ -45,9 +45,10 @@ export function DecisionTimeline({
               searchQuery={searchQuery}
             />
           )}
-          <div
+          <button
+            type="button"
             data-thought-id={group.decision.id}
-            className={`mx-4 rounded-none border-2 transition-colors cursor-pointer ${
+            className={`mx-4 rounded-none border-2 transition-colors cursor-pointer w-[calc(100%-2rem)] text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
               selectedId === group.decision.id
                 ? 'border-foreground bg-foreground/5'
                 : 'border-foreground/30 hover:border-foreground/60'
@@ -58,7 +59,7 @@ export function DecisionTimeline({
               detail={group.decision}
               searchQuery={searchQuery}
             />
-          </div>
+          </button>
         </div>
       ))}
 
@@ -92,7 +93,8 @@ function ReasoningGap({
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className="w-full flex items-center gap-3 py-2 text-xs text-foreground/50 hover:text-foreground transition-colors"
+        aria-expanded={expanded}
+        className="w-full flex items-center gap-3 py-2 text-xs text-foreground/50 hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <div className="flex-1 border-t border-dashed border-foreground/20" />
         <span className="font-mono shrink-0">
@@ -106,7 +108,8 @@ function ReasoningGap({
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
-          className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`transition-transform motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"

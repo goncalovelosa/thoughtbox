@@ -14,6 +14,7 @@ import {
   type SearchResult,
 } from '@/lib/session/search-utils'
 import { groupByDecisions } from '@/lib/session/decision-grouping'
+import { detectPhases } from '@/lib/session/phase-detection'
 import { SessionTraceToolbar } from './session-trace-toolbar'
 import { SessionTimeline } from './session-timeline'
 import { DecisionTimeline } from './decision-timeline'
@@ -55,6 +56,9 @@ export function SessionTraceExplorer({
     Set<ThoughtDisplayType>
   >(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('full')
+  const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(
+    new Set(),
+  )
 
   // --- Debounce search ---
   useEffect(() => {
@@ -126,6 +130,50 @@ export function SessionTraceExplorer({
   const handleTypeFilterClear = useCallback(() => {
     setActiveTypeFilters(new Set())
   }, [])
+
+  // --- Decision grouping (SPEC-004) ---
+  const decisionGroups = useMemo(() => {
+    if (viewMode !== 'decisions') return null
+    return groupByDecisions(filteredRows, details)
+  }, [viewMode, filteredRows, details])
+
+  // --- Phase detection (SPEC-003) ---
+  const phases = useMemo(
+    () => detectPhases(rows, details),
+    [rows, details],
+  )
+
+  // Hide phases with zero visible thoughts after filtering
+  const visiblePhases = useMemo(() => {
+    if (phases.length === 0) return phases
+    const filteredIds = new Set(filteredRows.map((r) => r.id))
+    return phases.filter((phase) => {
+      for (let i = phase.startIndex; i <= phase.endIndex; i++) {
+        if (rows[i] && filteredIds.has(rows[i].id)) return true
+      }
+      return false
+    })
+  }, [phases, filteredRows, rows])
+
+  const handlePhaseToggle = useCallback((phaseId: string) => {
+    setCollapsedPhases((prev) => {
+      const next = new Set(prev)
+      if (next.has(phaseId)) {
+        next.delete(phaseId)
+      } else {
+        next.add(phaseId)
+      }
+      return next
+    })
+  }, [])
+
+  const hasActiveFilters =
+    activeTypeFilters.size > 0 || debouncedSearch.trim() !== ''
+
+  // Build the list of ThoughtDetailVMs for export
+  const exportThoughts = useMemo(() => {
+    return filteredRows.map((r) => details[r.id]).filter(Boolean)
+  }, [filteredRows, details])
 
   // --- Thought selection ---
   const thoughtParam = searchParams.get('thought')
@@ -224,15 +272,36 @@ export function SessionTraceExplorer({
           onTypeFilterToggle={handleTypeFilterToggle}
           onTypeFilterClear={handleTypeFilterClear}
           typeCounts={typeCounts}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          exportSlot={
+            <ExportDropdown
+              session={sessionVM}
+              thoughts={exportThoughts}
+              hasActiveFilters={hasActiveFilters}
+            />
+          }
         />
 
         <div className="flex-1 overflow-y-auto relative">
-          <SessionTimeline
-            rows={filteredRows}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            searchQuery={debouncedQuery}
-          />
+          {viewMode === 'decisions' && decisionGroups ? (
+            <DecisionTimeline
+              data={decisionGroups}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              searchQuery={debouncedQuery}
+            />
+          ) : (
+            <SessionTimeline
+              rows={filteredRows}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              searchQuery={debouncedQuery}
+              phases={viewMode === 'full' ? visiblePhases : []}
+              collapsedPhases={collapsedPhases}
+              onPhaseToggle={handlePhaseToggle}
+            />
+          )}
         </div>
       </div>
 

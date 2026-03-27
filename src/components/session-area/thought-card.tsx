@@ -278,8 +278,10 @@ function TypedThoughtCard({
       </div>
 
       <button
+        type="button"
         onClick={() => setShowRaw(!showRaw)}
-        className="flex items-center gap-2 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors"
+        aria-expanded={showRaw}
+        className="flex items-center gap-2 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -289,7 +291,8 @@ function TypedThoughtCard({
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
-          className={`transition-transform ${showRaw ? 'rotate-90' : ''}`}
+          className={`transition-transform motion-reduce:transition-none ${showRaw ? 'rotate-90' : ''}`}
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>

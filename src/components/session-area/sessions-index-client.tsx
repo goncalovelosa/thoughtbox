@@ -12,8 +12,17 @@ type Props = {
 export function SessionsIndexClient({ sessions }: Props) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('all')
+  const [activeTags, setActiveTags] = useState<string[]>([])
 
-  const isFiltered = search !== '' || status !== 'all'
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    for (const s of sessions) {
+      for (const t of s.tags) tagSet.add(t)
+    }
+    return [...tagSet].sort()
+  }, [sessions])
+
+  const isFiltered = search !== '' || status !== 'all' || activeTags.length > 0
 
   const filtered = useMemo(() => {
     let result = sessions
@@ -31,12 +40,25 @@ export function SessionsIndexClient({ sessions }: Props) {
       )
     }
 
+    if (activeTags.length > 0) {
+      result = result.filter((s) =>
+        activeTags.every((tag) => s.tags.includes(tag)),
+      )
+    }
+
     return result
-  }, [sessions, search, status])
+  }, [sessions, search, status, activeTags])
+
+  const handleTagToggle = (tag: string) => {
+    setActiveTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    )
+  }
 
   const clearFilters = () => {
     setSearch('')
     setStatus('all')
+    setActiveTags([])
   }
 
   return (
@@ -46,6 +68,10 @@ export function SessionsIndexClient({ sessions }: Props) {
         onSearchChange={setSearch}
         status={status}
         onStatusChange={setStatus}
+        allTags={allTags}
+        activeTags={activeTags}
+        onTagToggle={handleTagToggle}
+        onTagClear={() => setActiveTags([])}
       />
 
       {filtered.length === 0 && isFiltered ? (
@@ -62,7 +88,10 @@ export function SessionsIndexClient({ sessions }: Props) {
           </button>
         </div>
       ) : (
-        <SessionsTableShell sessions={filtered} />
+        <SessionsTableShell
+          sessions={filtered}
+          onTagClick={handleTagToggle}
+        />
       )}
     </>
   )

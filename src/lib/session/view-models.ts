@@ -320,7 +320,7 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
     lastTimestamp = currentTimestamp
 
     // Preview text (first line)
-    const previewText = raw.thought.split('\n')[0].substring(0, 120).trim() + (raw.thought.length > 120 ? '...' : '')
+    const previewText = raw.thought.split('\n')[0].substring(0, 120).trim() + (raw.thought.length > 120 ? '\u2026' : '')
 
     // Search index string
     const searchParts = [

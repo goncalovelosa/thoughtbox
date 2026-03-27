@@ -74,7 +74,9 @@ export function ExportDropdown({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-none border border-foreground/30 text-foreground/70 hover:text-foreground hover:border-foreground/50 transition-colors"
+        aria-expanded={open}
+        aria-haspopup="true"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-none border border-foreground/30 text-foreground/70 hover:text-foreground hover:border-foreground/50 transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -84,6 +86,7 @@ export function ExportDropdown({
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -95,36 +98,41 @@ export function ExportDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-none border border-foreground bg-background shadow-lg">
+        <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-none border border-foreground bg-background shadow-lg">
           <button
             type="button"
+            role="menuitem"
             onClick={handleMarkdown}
-            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors"
+            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors focus-visible:bg-foreground/10 focus-visible:outline-none"
           >
             Export Markdown
           </button>
           <button
             type="button"
+            role="menuitem"
             onClick={handleJSON}
-            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors border-t border-foreground/10"
+            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors border-t border-foreground/10 focus-visible:bg-foreground/10 focus-visible:outline-none"
           >
             Export JSON
           </button>
           <button
             type="button"
+            role="menuitem"
             onClick={handleClipboard}
-            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors border-t border-foreground/10"
+            className="w-full px-3 py-2 text-left text-xs text-foreground hover:bg-foreground/5 transition-colors border-t border-foreground/10 focus-visible:bg-foreground/10 focus-visible:outline-none"
           >
             Copy to clipboard
           </button>
         </div>
       )}
 
-      {toast && (
-        <div className="absolute right-0 top-full mt-10 z-20 px-3 py-1.5 rounded-none border border-foreground/30 bg-background text-xs text-foreground shadow-md whitespace-nowrap">
-          {toast}
-        </div>
-      )}
+      <div aria-live="polite" className="absolute right-0 top-full mt-10 z-20">
+        {toast && (
+          <div className="px-3 py-1.5 rounded-none border border-foreground/30 bg-background text-xs text-foreground shadow-md whitespace-nowrap">
+            {toast}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

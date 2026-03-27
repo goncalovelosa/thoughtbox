@@ -18,6 +18,8 @@ const ALL_TYPES: ThoughtDisplayType[] = [
   'progress',
 ]
 
+type ViewMode = 'full' | 'decisions'
+
 type Props = {
   isLive?: boolean
   sessionStatus: 'active' | 'completed' | 'abandoned'
@@ -30,6 +32,9 @@ type Props = {
   onTypeFilterToggle: (type: ThoughtDisplayType) => void
   onTypeFilterClear: () => void
   typeCounts: Record<ThoughtDisplayType, number>
+  viewMode: ViewMode
+  onViewModeChange: (mode: ViewMode) => void
+  exportSlot?: React.ReactNode
 }
 
 export function SessionTraceToolbar({
@@ -44,6 +49,9 @@ export function SessionTraceToolbar({
   onTypeFilterToggle,
   onTypeFilterClear,
   typeCounts,
+  viewMode,
+  onViewModeChange,
+  exportSlot,
 }: Props) {
   const showLiveIndicator = sessionStatus === 'active'
   const hasAnyNonReasoning = ALL_TYPES.some(
@@ -58,16 +66,17 @@ export function SessionTraceToolbar({
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search thoughts..."
+          placeholder="Search thoughts\u2026"
           className="h-9 w-full max-w-xs rounded-none border border-foreground bg-background px-3 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
         />
 
         {/* Search mode toggle */}
-        <div className="flex rounded-none border border-foreground/30 overflow-hidden">
+        <div role="group" aria-label="Search mode" className="flex rounded-none border border-foreground/30 overflow-hidden">
           <button
             type="button"
+            aria-pressed={searchMode === 'content'}
             onClick={() => onSearchModeChange('content')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
               searchMode === 'content'
                 ? 'bg-foreground/10 text-foreground border-r border-foreground/30'
                 : 'text-foreground/50 border-r border-foreground/30 hover:text-foreground'
@@ -77,8 +86,9 @@ export function SessionTraceToolbar({
           </button>
           <button
             type="button"
+            aria-pressed={searchMode === 'titles'}
             onClick={() => onSearchModeChange('titles')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
               searchMode === 'titles'
                 ? 'bg-foreground/10 text-foreground'
                 : 'text-foreground/50 hover:text-foreground'
@@ -88,7 +98,37 @@ export function SessionTraceToolbar({
           </button>
         </div>
 
+        {/* View mode toggle */}
+        <div role="group" aria-label="View mode" className="flex rounded-none border border-foreground/30 overflow-hidden">
+          <button
+            type="button"
+            aria-pressed={viewMode === 'full'}
+            onClick={() => onViewModeChange('full')}
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+              viewMode === 'full'
+                ? 'bg-foreground/10 text-foreground border-r border-foreground/30'
+                : 'text-foreground/50 border-r border-foreground/30 hover:text-foreground'
+            }`}
+          >
+            Full Trace
+          </button>
+          <button
+            type="button"
+            aria-pressed={viewMode === 'decisions'}
+            onClick={() => onViewModeChange('decisions')}
+            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+              viewMode === 'decisions'
+                ? 'bg-foreground/10 text-foreground'
+                : 'text-foreground/50 hover:text-foreground'
+            }`}
+          >
+            Decisions
+          </button>
+        </div>
+
         <div className="flex-1" />
+
+        {exportSlot}
 
         {showLiveIndicator && isLive != null && (
           <div
@@ -100,7 +140,7 @@ export function SessionTraceToolbar({
           >
             <div
               className={`w-2 h-2 rounded-none ${
-                isLive ? 'bg-emerald-500 animate-pulse' : 'bg-background0'
+                isLive ? 'bg-emerald-500 animate-pulse motion-reduce:animate-none' : 'bg-background0'
               }`}
             />
             <span
@@ -116,7 +156,7 @@ export function SessionTraceToolbar({
 
       {/* Match count */}
       {searchResult && (
-        <div className="px-4 pb-2 -mt-1">
+        <div className="px-4 pb-2 -mt-1" aria-live="polite">
           <span className="text-xs font-mono text-foreground/60">
             {searchResult.totalMatchCount === 0
               ? '0 matches'
@@ -131,7 +171,7 @@ export function SessionTraceToolbar({
           <button
             type="button"
             onClick={handleTypeFilterClear}
-            className={`${BADGE_BASE} transition-colors cursor-pointer ${
+            className={`${BADGE_BASE} transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
               activeTypeFilters.size === 0
                 ? 'bg-foreground/10 text-foreground ring-1 ring-foreground/30'
                 : 'bg-background text-foreground/50 ring-1 ring-foreground/20 hover:text-foreground'
@@ -150,7 +190,7 @@ export function SessionTraceToolbar({
                 type="button"
                 disabled={isDisabled}
                 onClick={() => onTypeFilterToggle(type)}
-                className={`${BADGE_BASE} transition-colors cursor-pointer ${
+                className={`${BADGE_BASE} transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
                   isActive
                     ? THOUGHT_TYPE_BADGE[type]
                     : isDisabled

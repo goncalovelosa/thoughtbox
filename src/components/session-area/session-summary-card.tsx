@@ -35,7 +35,8 @@ export function SessionSummaryCard({
       <button
         type="button"
         onClick={() => setExpanded((prev) => !prev)}
-        className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
+        aria-expanded={expanded}
+        className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <span className="uppercase tracking-wider text-xs font-semibold text-foreground/70">
           Session Overview
@@ -48,7 +49,8 @@ export function SessionSummaryCard({
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
-          className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+          className={`transition-transform motion-reduce:transition-none ${expanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
         >
           <path
             strokeLinecap="round"
@@ -60,7 +62,7 @@ export function SessionSummaryCard({
 
       {/* Body — collapsible */}
       <div
-        className="grid transition-[grid-template-rows] duration-200"
+        className="grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none"
         style={{
           gridTemplateRows: expanded ? '1fr' : '0fr',
         }}
@@ -139,7 +141,7 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="text-xs font-semibold uppercase tracking-wider text-foreground/50">
         {label}
       </span>
-      <span className="text-sm font-mono text-foreground">{value}</span>
+      <span className="text-sm font-mono text-foreground tabular-nums">{value}</span>
     </div>
   )
 }

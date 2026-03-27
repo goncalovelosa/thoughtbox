@@ -36,7 +36,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
               <button
                 onClick={onPrev}
                 disabled={!hasPrev}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
                 aria-label="Previous thought"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -46,7 +46,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
               <button
                 onClick={onNext}
                 disabled={!hasNext}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed"
+                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
                 aria-label="Next thought"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">

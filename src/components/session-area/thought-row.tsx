@@ -84,7 +84,7 @@ export function ThoughtRow({ row, isSelected, onClick, searchQuery }: Props) {
 
         {/* Metadata */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground">
-          <span className="font-semibold text-foreground">
+          <span className="font-semibold text-foreground tabular-nums">
             #{row.thoughtNumber}
           </span>
           <span>&bull;</span>
