@@ -9,6 +9,7 @@ const ROUTE_TITLES: Record<string, string> = {
   projects: 'Projects',
   runs: 'Runs',
   'api-keys': 'API Keys',
+  observability: 'Observability',
   usage: 'Usage',
   billing: 'Billing',
   account: 'Account settings',
@@ -29,13 +30,17 @@ function deriveTitle(pathname: string): string {
 
 interface WorkspaceTopBarProps {
   workspaceSlug: string
+  userEmail?: string
+  userDisplayName?: string
   /** Ignored — title is derived from the current path */
   pageTitle?: string
 }
 
-export function WorkspaceTopBar({ workspaceSlug }: WorkspaceTopBarProps) {
+export function WorkspaceTopBar({ userEmail, userDisplayName }: WorkspaceTopBarProps) {
   const pathname = usePathname()
   const title = deriveTitle(pathname)
+
+  const avatarInitial = (userDisplayName || userEmail || '?')[0].toUpperCase()
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-foreground bg-background px-6">
@@ -45,21 +50,31 @@ export function WorkspaceTopBar({ workspaceSlug }: WorkspaceTopBarProps) {
         {/* Help link */}
         <Link
           href="/support"
-          className="text-xs text-foreground hover:text-foreground transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Help
         </Link>
 
-        {/* Workspace indicator */}
-        <span className="rounded-none border border-foreground bg-background px-3 py-1 text-xs font-medium text-foreground capitalize">
-          {workspaceSlug}
-        </span>
+        {/* User identity */}
+        {userEmail && (
+          <div className="flex items-center gap-2">
+            <span
+              className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground bg-foreground text-background text-xs font-bold"
+              aria-label={`Signed in as ${userEmail}`}
+            >
+              {avatarInitial}
+            </span>
+            <span className="hidden sm:inline text-xs text-muted-foreground truncate max-w-[140px]" title={userEmail}>
+              {userDisplayName || userEmail}
+            </span>
+          </div>
+        )}
 
         {/* Sign out */}
         <form action={signOut}>
           <button
             type="submit"
-            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors"
+            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
           >
             Sign out
           </button>

@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+const MCP_SERVER_URL = 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp'
 const PLACEHOLDER_KEY = '<YOUR_API_KEY>'
+
+type ApiKeyOption = { id: string; name: string; prefix: string }
 
 function buildConfig(apiKey: string): string {
   return JSON.stringify(
@@ -11,7 +14,7 @@ function buildConfig(apiKey: string): string {
       mcpServers: {
         thoughtbox: {
           type: 'http',
-          url: 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp?key=' + apiKey,
+          url: `${MCP_SERVER_URL}?key=${apiKey}`,
         },
       },
     },
@@ -20,10 +23,21 @@ function buildConfig(apiKey: string): string {
   )
 }
 
-export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
+export function ConnectPanel({
+  workspaceSlug,
+  apiKeys = [],
+}: {
+  workspaceSlug: string
+  apiKeys?: ApiKeyOption[]
+}) {
+  const hasKeys = apiKeys.length > 0
+  const [selectedKeyId, setSelectedKeyId] = useState<string>(hasKeys ? apiKeys[0].id : '')
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState<string | null>(null)
-  const configJson = buildConfig(PLACEHOLDER_KEY)
+
+  const selectedKey = apiKeys.find(k => k.id === selectedKeyId)
+  const displayKey = selectedKey ? `tbx_${selectedKey.prefix}_…` : PLACEHOLDER_KEY
+  const configJson = buildConfig(displayKey)
 
   async function handleCopy() {
     try {
@@ -36,59 +50,87 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
       setTimeout(() => setCopied(false), 2000)
     } catch {
       setCopied(false)
-      setCopyError('Copy failed. Select the config below and copy it manually.')
+      setCopyError('Copy failed — select the config below and copy it manually.')
     }
   }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-none border border-amber-200 bg-amber-50 px-5 py-4">
-        <p className="text-sm font-medium text-amber-900">
-          API key required
-        </p>
-        <p className="mt-1 text-sm text-amber-700">
-          Create an API key on the{' '}
-          <Link
-            href={`/w/${workspaceSlug}/api-keys`}
-            className="font-medium underline hover:text-amber-900"
+      {/* Key selector / no-key warning */}
+      {hasKeys ? (
+        <div className="rounded-none border border-foreground bg-background px-5 py-4">
+          <label htmlFor="key-select" className="block text-sm font-medium text-foreground mb-2">
+            API key
+          </label>
+          <select
+            id="key-select"
+            value={selectedKeyId}
+            onChange={e => setSelectedKeyId(e.target.value)}
+            className="w-full rounded-none border border-foreground bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            autoComplete="off"
           >
-            API Keys
-          </Link>{' '}
-          page, then replace{' '}
-          <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs">{PLACEHOLDER_KEY}</code>{' '}
-          in the config below with your key.
-        </p>
-      </div>
+            {apiKeys.map(k => (
+              <option key={k.id} value={k.id}>
+                {k.name} (tbx_{k.prefix}_…)
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Select a key to embed it in the config below.{' '}
+            <Link href={`/w/${workspaceSlug}/api-keys`} className="underline hover:text-foreground transition-colors">
+              Manage keys →
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-none border border-foreground bg-muted px-5 py-4">
+          <p className="text-sm font-medium text-foreground">No API keys yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create a key on the{' '}
+            <Link href={`/w/${workspaceSlug}/api-keys`} className="font-medium underline hover:text-foreground transition-colors">
+              API Keys
+            </Link>{' '}
+            page, then return here to copy the config.
+          </p>
+        </div>
+      )}
 
-      <section className="rounded-none border border-foreground bg-background shadow-sm">
+      {/* Config block */}
+      <section className="rounded-none border border-foreground bg-background">
         <div className="flex items-center justify-between border-b border-foreground px-6 py-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
               1. Copy your MCP config
             </h2>
-            <p className="mt-0.5 text-xs text-foreground">
-              Paste this into your MCP client&apos;s configuration
-              file.
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Paste this into your MCP client&apos;s configuration file.
             </p>
           </div>
           <button
+            type="button"
             onClick={handleCopy}
-            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-background transition-colors"
+            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
           >
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
         <div className="overflow-x-auto p-6">
-          <pre className="rounded-none bg-background p-4 text-sm leading-relaxed text-foreground font-mono">
+          <pre className="rounded-none bg-muted p-4 text-sm leading-relaxed text-foreground font-mono">
             {configJson}
           </pre>
+          {!hasKeys && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Replace <code className="font-mono text-foreground">{PLACEHOLDER_KEY}</code> with your actual key before using.
+            </p>
+          )}
           {copyError && (
-            <p className="mt-3 text-xs text-amber-700">{copyError}</p>
+            <p className="mt-3 text-xs text-muted-foreground">{copyError}</p>
           )}
         </div>
       </section>
 
-      <section className="rounded-none border border-foreground bg-background shadow-sm">
+      {/* Add-to-client instructions */}
+      <section className="rounded-none border border-foreground bg-background">
         <div className="border-b border-foreground px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">
             2. Add to your MCP client
@@ -97,40 +139,32 @@ export function ConnectPanel({ workspaceSlug }: { workspaceSlug: string }) {
         <div className="px-6 py-4 space-y-4 text-sm text-foreground">
           <div>
             <p className="font-medium text-foreground">Claude Code</p>
-            <p className="mt-1">
+            <p className="mt-1 text-muted-foreground">
               Add the config above to{' '}
-              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
                 .claude/settings.json
               </code>{' '}
-              or{' '}
-              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-                .mcp.json
-              </code>{' '}
               under the{' '}
-              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
                 mcpServers
               </code>{' '}
-              key, then restart Claude Code.
+              key, then restart Claude Code. Roots you have open become projects in Thoughtbox automatically.
             </p>
           </div>
           <div>
-            <p className="font-medium text-foreground">
-              Other MCP clients
-            </p>
-            <p className="mt-1">
-              Consult your client&apos;s docs for where MCP server
-              configs are stored. The shape is the same:{' '}
-              <code className="rounded bg-background px-1.5 py-0.5 font-mono text-xs">
-                {'{ "type": "http", "url": "...", "headers": { ... } }'}
+            <p className="font-medium text-foreground">Cursor / Windsurf / other MCP clients</p>
+            <p className="mt-1 text-muted-foreground">
+              Consult your client&apos;s docs for the MCP config path. The shape is the same:{' '}
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                {'{ "type": "http", "url": "..." }'}
               </code>
             </p>
           </div>
         </div>
       </section>
 
-      <p className="text-xs text-foreground">
-        Your API key authenticates your MCP client to the Thoughtbox
-        server. Never share it publicly.
+      <p className="text-xs text-muted-foreground">
+        Your API key authenticates your MCP client to the Thoughtbox server. Never share it publicly.
       </p>
     </div>
   )

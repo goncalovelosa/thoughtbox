@@ -105,6 +105,7 @@ export default async function SessionDetailPage({ params }: Props) {
         workspaceId={sessionRow.workspace_id}
         sessionId={runId}
         sessionStatus={sessionVM.status}
+        sessionVM={sessionVM}
       />
     </div>
   )
