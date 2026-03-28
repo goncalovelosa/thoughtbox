@@ -47,12 +47,12 @@ export default async function SessionDetailPage({ params }: Props) {
   // Map Session
   const rawSession: RawSessionRecord = {
     id: sessionRow.id,
-    title: sessionRow.title,
-    tags: sessionRow.tags,
+    title: sessionRow.title ?? undefined,
+    tags: sessionRow.tags ?? undefined,
     createdAt: sessionRow.created_at,
-    completedAt: sessionRow.completed_at,
-    updatedAt: sessionRow.updated_at,
-    status: sessionRow.status || 'abandoned'
+    completedAt: sessionRow.completed_at ?? undefined,
+    updatedAt: sessionRow.updated_at ?? undefined,
+    status: (sessionRow.status || 'abandoned') as RawSessionRecord['status'],
   }
   const sessionVM = createSessionDetailVM(rawSession)
   
@@ -63,28 +63,28 @@ export default async function SessionDetailPage({ params }: Props) {
 
   const rawThoughts: RawThoughtRecord[] = (thoughtRows || []).map(row => ({
     id: row.id,
-    thoughtNumber: row.thought_number,
-    totalThoughts: row.total_thoughts,
+    thoughtNumber: row.thought_number ?? undefined,
+    totalThoughts: row.total_thoughts ?? undefined,
     thought: row.thought,
     timestamp: row.timestamp,
-    nextThoughtNeeded: row.next_thought_needed,
-    isRevision: row.is_revision,
-    revisesThought: row.revises_thought,
-    branchId: row.branch_id,
-    branchFromThought: row.branch_from_thought,
-    thoughtType: row.thought_type,
-    confidence: row.confidence,
-    options: row.options,
-    actionResult: row.action_result,
-    beliefs: row.beliefs,
-    assumptionChange: row.assumption_change,
-    contextData: row.context_data,
-    progressData: row.progress_data,
-    agentId: row.agent_id,
-    agentName: row.agent_name,
-    contentHash: row.content_hash,
-    parentHash: row.parent_hash,
-    critique: row.critique
+    nextThoughtNeeded: row.next_thought_needed ?? undefined,
+    isRevision: row.is_revision ?? undefined,
+    revisesThought: row.revises_thought ?? undefined,
+    branchId: row.branch_id ?? undefined,
+    branchFromThought: row.branch_from_thought ?? undefined,
+    thoughtType: row.thought_type as RawThoughtRecord['thoughtType'],
+    confidence: row.confidence as RawThoughtRecord['confidence'],
+    options: row.options as RawThoughtRecord['options'],
+    actionResult: row.action_result as RawThoughtRecord['actionResult'],
+    beliefs: row.beliefs as RawThoughtRecord['beliefs'],
+    assumptionChange: row.assumption_change as RawThoughtRecord['assumptionChange'],
+    contextData: row.context_data as RawThoughtRecord['contextData'],
+    progressData: row.progress_data as RawThoughtRecord['progressData'],
+    agentId: row.agent_id ?? undefined,
+    agentName: row.agent_name ?? undefined,
+    contentHash: row.content_hash ?? undefined,
+    parentHash: row.parent_hash ?? undefined,
+    critique: row.critique ?? undefined,
   }))
 
   const summary = computeSessionSummary(rawThoughts, rawSession.tags || [])

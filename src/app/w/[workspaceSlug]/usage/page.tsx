@@ -56,13 +56,12 @@ export default async function UsagePage({ params }: Props) {
       .eq('status', 'active'),
     supabase
       .from('sessions')
-      .select('project')
-      .eq('workspace_id', workspace.id)
-      .not('project', 'is', null),
+      .select('tags')
+      .eq('workspace_id', workspace.id),
   ])
 
-  const distinctProjects = new Set(
-    (projectResult.data ?? []).map(r => r.project as string).filter(Boolean),
+  const distinctTags = new Set(
+    (projectResult.data ?? []).flatMap(r => r.tags ?? []).filter(Boolean),
   ).size
 
   const stats: { label: string; value: string; sub: string }[] = [
@@ -82,9 +81,9 @@ export default async function UsagePage({ params }: Props) {
       sub: 'currently active',
     },
     {
-      label: 'Projects',
-      value: String(distinctProjects),
-      sub: 'distinct roots seen',
+      label: 'Tags',
+      value: String(distinctTags),
+      sub: 'distinct tags seen',
     },
   ]
 
