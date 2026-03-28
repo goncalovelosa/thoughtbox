@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -200,6 +220,62 @@ export type Database = {
           },
           {
             foreignKeyName: "observations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      otel_events: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          event_attrs: Json | null
+          event_name: string
+          event_type: string
+          id: string
+          metric_value: number | null
+          resource_attrs: Json | null
+          session_id: string | null
+          severity: string | null
+          timestamp_at: string
+          timestamp_ns: number
+          workspace_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          event_attrs?: Json | null
+          event_name: string
+          event_type: string
+          id?: string
+          metric_value?: number | null
+          resource_attrs?: Json | null
+          session_id?: string | null
+          severity?: string | null
+          timestamp_at: string
+          timestamp_ns: number
+          workspace_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          event_attrs?: Json | null
+          event_name?: string
+          event_type?: string
+          id?: string
+          metric_value?: number | null
+          resource_attrs?: Json | null
+          session_id?: string | null
+          severity?: string | null
+          timestamp_at?: string
+          timestamp_ns?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otel_events_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -534,6 +610,7 @@ export type Database = {
           options: Json | null
           parent_hash: string | null
           progress_data: Json | null
+          receipt_data: Json | null
           revises_thought: number | null
           session_id: string
           thought: string
@@ -562,6 +639,7 @@ export type Database = {
           options?: Json | null
           parent_hash?: string | null
           progress_data?: Json | null
+          receipt_data?: Json | null
           revises_thought?: number | null
           session_id: string
           thought: string
@@ -590,6 +668,7 @@ export type Database = {
           options?: Json | null
           parent_hash?: string | null
           progress_data?: Json | null
+          receipt_data?: Json | null
           revises_thought?: number | null
           session_id?: string
           thought?: string
@@ -699,6 +778,14 @@ export type Database = {
         | { Args: { target_path: string }; Returns: Json }
         | { Args: { target_path: string; ws_id?: string }; Returns: Json }
       is_workspace_member: { Args: { ws_id: string }; Returns: boolean }
+      otel_session_cost: {
+        Args: { p_session_id?: string; p_workspace_id: string }
+        Returns: {
+          data_points: number
+          model: string
+          total_cost: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -827,7 +914,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

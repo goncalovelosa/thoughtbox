@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { format, subDays, startOfDay } from 'date-fns'
@@ -8,16 +7,6 @@ import { Activity, BrainCircuit, Folder, Zap, Lock, Terminal, TrendingUp } from 
 export const metadata: Metadata = { title: 'Observability' }
 
 type Props = { params: Promise<{ workspaceSlug: string }> }
-
-function getProjectDisplayName(project: string): string {
-  try {
-    const normalized = project.startsWith('file://') ? project.slice(7) : project
-    const parts = normalized.split('/').filter(Boolean)
-    return parts[parts.length - 1] || project
-  } catch {
-    return project
-  }
-}
 
 export default async function ObservabilityPage({ params }: Props) {
   const { workspaceSlug } = await params
@@ -37,7 +26,7 @@ export default async function ObservabilityPage({ params }: Props) {
   const [allSessionsResult, thoughtCountResult] = await Promise.all([
     supabase
       .from('sessions')
-      .select('id, status, project, thought_count, created_at, updated_at')
+      .select('id, status, thought_count, created_at, updated_at, tags')
       .eq('workspace_id', workspace.id)
       .gte('created_at', since30d)
       .order('created_at', { ascending: true })
@@ -57,8 +46,8 @@ export default async function ObservabilityPage({ params }: Props) {
   const completedRuns = sessions.filter(s => s.status === 'completed').length
   const abandonedRuns = sessions.filter(s => s.status === 'abandoned').length
 
-  const projectSet = new Set(sessions.map(s => s.project).filter(Boolean))
-  const totalProjects = projectSet.size
+  const tagSet = new Set(sessions.flatMap(s => s.tags ?? []).filter(Boolean))
+  const totalTags = tagSet.size
 
   // Sessions per day — last 14 days
   const days: { date: string; label: string; shortLabel: string; count: number }[] = []
@@ -78,17 +67,18 @@ export default async function ObservabilityPage({ params }: Props) {
   }
   const maxDayCount = Math.max(...days.map(d => d.count), 1)
 
-  // Top projects by session count
-  const projectMap = new Map<string, number>()
+  // Top tags by session count
+  const tagMap = new Map<string, number>()
   for (const s of sessions) {
-    const key = s.project ?? '(unknown)'
-    projectMap.set(key, (projectMap.get(key) ?? 0) + 1)
+    for (const tag of s.tags ?? []) {
+      tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
+    }
   }
-  const topProjects = Array.from(projectMap.entries())
-    .map(([project, count]) => ({ project, displayName: getProjectDisplayName(project), count }))
+  const topTags = Array.from(tagMap.entries())
+    .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 6)
-  const maxProjectCount = Math.max(...topProjects.map(p => p.count), 1)
+  const maxTagCount = Math.max(...topTags.map(t => t.count), 1)
 
   // Status distribution percentages
   const statusTotal = totalRuns || 1
@@ -111,7 +101,7 @@ export default async function ObservabilityPage({ params }: Props) {
         <KpiCard label="Total runs" value={String(totalRuns)} sub="last 30 days" icon={<Zap className="h-4 w-4" aria-hidden="true" />} />
         <KpiCard label="Active" value={String(activeRuns)} sub="in progress" icon={<Activity className="h-4 w-4" aria-hidden="true" />} />
         <KpiCard label="Thoughts" value={String(totalThoughts)} sub="all time" icon={<BrainCircuit className="h-4 w-4" aria-hidden="true" />} />
-        <KpiCard label="Projects" value={String(totalProjects)} sub="active roots" icon={<Folder className="h-4 w-4" aria-hidden="true" />} />
+        <KpiCard label="Tags" value={String(totalTags)} sub="distinct tags" icon={<Folder className="h-4 w-4" aria-hidden="true" />} />
       </div>
 
       {/* Activity + Projects row */}
@@ -149,28 +139,27 @@ export default async function ObservabilityPage({ params }: Props) {
           )}
         </Panel>
 
-        {/* Top projects */}
-        <Panel title="Top projects" subtitle="By session count">
-          {topProjects.length === 0 ? (
-            <EmptyChart message="No project data yet." />
+        {/* Top tags */}
+        <Panel title="Top tags" subtitle="By session count">
+          {topTags.length === 0 ? (
+            <EmptyChart message="No tag data yet." />
           ) : (
             <div className="space-y-2.5 pt-1">
-              {topProjects.map((p) => (
-                <div key={p.project} className="flex items-center gap-3">
-                  <Link
-                    href={`/w/${workspaceSlug}/projects/${encodeURIComponent(p.project)}`}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors w-28 shrink-0 truncate text-right"
-                    title={p.project}
+              {topTags.map((t) => (
+                <div key={t.tag} className="flex items-center gap-3">
+                  <span
+                    className="text-xs text-muted-foreground w-28 shrink-0 truncate text-right"
+                    title={t.tag}
                   >
-                    {p.displayName}
-                  </Link>
+                    {t.tag}
+                  </span>
                   <div className="flex-1 bg-muted h-2">
                     <div
                       className="h-full bg-foreground transition-all duration-300"
-                      style={{ width: `${(p.count / maxProjectCount) * 100}%` }}
+                      style={{ width: `${(t.count / maxTagCount) * 100}%` }}
                     />
                   </div>
-                  <span className="text-xs text-foreground font-medium tabular-nums w-6 text-right">{p.count}</span>
+                  <span className="text-xs text-foreground font-medium tabular-nums w-6 text-right">{t.count}</span>
                 </div>
               ))}
             </div>

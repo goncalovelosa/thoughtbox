@@ -36,12 +36,12 @@ export default async function RunsPage({ params }: Props) {
   const sessions = (rawSessions || []).map(row => {
     const raw: RawSessionRecord = {
       id: row.id,
-      title: row.title,
-      tags: row.tags,
+      title: row.title ?? undefined,
+      tags: row.tags ?? undefined,
       createdAt: row.created_at,
-      completedAt: row.completed_at,
-      updatedAt: row.updated_at,
-      status: row.status || 'abandoned',
+      completedAt: row.completed_at ?? undefined,
+      updatedAt: row.updated_at ?? undefined,
+      status: (row.status || 'abandoned') as RawSessionRecord['status'],
     }
 
     const vm = createSessionSummaryVM(raw, workspaceSlug)
