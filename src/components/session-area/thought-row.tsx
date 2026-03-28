@@ -1,31 +1,41 @@
 'use client'
 
 import type { ThoughtRowVM } from '@/lib/session/view-models'
-import { BADGE_BASE, THOUGHT_TYPE_BADGE, REVISION_BADGE, LANE_DOT_COLOR } from '@/lib/session/badge-styles'
+import { highlightText } from '@/lib/session/search-utils'
+import {
+  BADGE_BASE,
+  THOUGHT_TYPE_BADGE,
+  REVISION_BADGE,
+  LANE_DOT_COLOR,
+} from '@/lib/session/badge-styles'
 
 type Props = {
   row: ThoughtRowVM
   isSelected: boolean
   onClick: () => void
+  searchQuery?: string
 }
 
-export function ThoughtRow({ row, isSelected, onClick }: Props) {
+export function ThoughtRow({ row, isSelected, onClick, searchQuery }: Props) {
   return (
     <div
       data-thought-id={row.id}
       className="group grid grid-cols-[84px_minmax(0,1fr)] items-start gap-3 px-4 py-3 min-h-[48px] cursor-pointer"
       onClick={onClick}
     >
-      {/* SVG Rail goes here, but we'll mock it for now until timeline is built */}
       <div className="flex justify-center pt-2">
-        <div className={`w-2 h-2 rounded-none ${LANE_DOT_COLOR[row.laneColorToken]}`} />
+        <div
+          className={`w-2 h-2 rounded-none ${LANE_DOT_COLOR[row.laneColorToken]}`}
+        />
       </div>
 
-      <div className={`rounded-none border-2 px-3 py-2 transition-colors min-w-0 overflow-hidden ${
-        isSelected
-          ? 'border-foreground bg-foreground/10'
-          : 'border-transparent bg-transparent group-hover:bg-foreground/5'
-      }`}>
+      <div
+        className={`rounded-none border-2 px-3 py-2 transition-colors min-w-0 overflow-hidden ${
+          isSelected
+            ? 'border-foreground bg-foreground/10'
+            : 'border-transparent bg-transparent group-hover:bg-foreground/5'
+        }`}
+      >
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-1.5">
           {row.branchLabel && (
@@ -34,28 +44,54 @@ export function ThoughtRow({ row, isSelected, onClick }: Props) {
             </span>
           )}
           {row.isTyped && row.displayType !== 'reasoning' && (
-            <span className={`${BADGE_BASE} ${THOUGHT_TYPE_BADGE[row.displayType]}`}>
+            <span
+              className={`${BADGE_BASE} ${THOUGHT_TYPE_BADGE[row.displayType]}`}
+            >
               {row.displayType.replace('_', ' ')}
             </span>
           )}
           {row.isRevision && (
-            <span className={`${BADGE_BASE} ${REVISION_BADGE}`}>
-              Revision
-            </span>
+            <span className={`${BADGE_BASE} ${REVISION_BADGE}`}>Revision</span>
           )}
         </div>
 
-        {/* Content */}
-        <div className="text-sm font-medium leading-5 text-foreground truncate" title={row.previewText}>
-          {row.previewText || <span className="text-foreground italic">Empty thought</span>}
+        {/* Content with search highlighting */}
+        <div
+          className="text-sm font-medium leading-5 text-foreground truncate"
+          title={row.previewText}
+        >
+          {row.previewText ? (
+            searchQuery ? (
+              highlightText(row.previewText, searchQuery).map((seg, i) =>
+                seg.type === 'match' ? (
+                  <mark
+                    key={i}
+                    className="bg-amber-400/30 text-foreground rounded-sm px-0.5"
+                  >
+                    {seg.value}
+                  </mark>
+                ) : (
+                  <span key={i}>{seg.value}</span>
+                ),
+              )
+            ) : (
+              row.previewText
+            )
+          ) : (
+            <span className="text-foreground italic">Empty thought</span>
+          )}
         </div>
 
         {/* Metadata */}
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-foreground">
-          <span className="font-semibold text-foreground">#{row.thoughtNumber}</span>
-          <span>•</span>
-          <span className="font-mono text-[12px] text-foreground/50">{row.shortId}</span>
-          <span>•</span>
+          <span className="font-semibold text-foreground tabular-nums">
+            #{row.thoughtNumber}
+          </span>
+          <span>&bull;</span>
+          <span className="font-mono text-[12px] text-foreground/50">
+            {row.shortId}
+          </span>
+          <span>&bull;</span>
           <span title={row.absoluteTimeLabel}>{row.relativeTimeLabel}</span>
         </div>
       </div>

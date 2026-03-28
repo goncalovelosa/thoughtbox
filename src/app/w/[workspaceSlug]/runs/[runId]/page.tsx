@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SessionDetailHeader } from '@/components/session-area/session-detail-header'
+import { SessionSummaryCard } from '@/components/session-area/session-summary-card'
 import { SessionTraceExplorer } from '@/components/session-area/session-trace-explorer'
-import { 
-  createSessionDetailVM, 
+import {
+  createSessionDetailVM,
   type RawSessionRecord,
   type RawThoughtRecord
 } from '@/lib/session/view-models'
+import { computeSessionSummary } from '@/lib/session/compute-session-summary'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Session' }
@@ -85,15 +87,25 @@ export default async function SessionDetailPage({ params }: Props) {
     critique: row.critique
   }))
 
+  const summary = computeSessionSummary(rawThoughts, rawSession.tags || [])
+  const defaultExpanded = rawThoughts.length >= 20
+
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))] text-foreground">
       <SessionDetailHeader session={sessionVM} workspaceSlug={workspaceSlug} />
-      
+
+      <SessionSummaryCard
+        {...summary}
+        durationLabel={sessionVM.durationLabel}
+        defaultExpanded={defaultExpanded}
+      />
+
       <SessionTraceExplorer
         initialThoughts={rawThoughts}
         workspaceId={sessionRow.workspace_id}
         sessionId={runId}
         sessionStatus={sessionVM.status}
+        sessionVM={sessionVM}
       />
     </div>
   )

@@ -2,19 +2,38 @@
 
 import { useState } from 'react'
 import type { ThoughtDetailVM } from '@/lib/session/view-models'
+import { highlightText } from '@/lib/session/search-utils'
 import { BADGE_BASE, THOUGHT_TYPE_BADGE, THOUGHT_TYPE_LABEL } from '@/lib/session/badge-styles'
 
 type Props = {
   detail: ThoughtDetailVM
+  searchQuery?: string
 }
 
-export function ThoughtCard({ detail }: Props) {
+function HighlightedPre({ text, query }: { text: string; query?: string }) {
+  if (!query) {
+    return <pre className="whitespace-pre-wrap font-inherit">{text}</pre>
+  }
+  return (
+    <pre className="whitespace-pre-wrap font-inherit">
+      {highlightText(text, query).map((seg, i) =>
+        seg.type === 'match' ? (
+          <mark key={i} className="bg-amber-400/30 text-foreground rounded-sm px-0.5">{seg.value}</mark>
+        ) : (
+          <span key={i}>{seg.value}</span>
+        ),
+      )}
+    </pre>
+  )
+}
+
+export function ThoughtCard({ detail, searchQuery }: Props) {
   // If it's pure reasoning, we just return the raw content block
   if (detail.displayType === 'reasoning') {
     return (
       <div className="border-b border-foreground px-5 py-4 last:border-b-0">
         <div className="overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
-          <pre className="whitespace-pre-wrap font-inherit">{detail.rawThought}</pre>
+          <HighlightedPre text={detail.rawThought} query={searchQuery} />
         </div>
       </div>
     )
@@ -227,6 +246,7 @@ export function ThoughtCard({ detail }: Props) {
       label={label}
       renderHeader={renderHeader}
       renderBody={renderBody}
+      searchQuery={searchQuery}
     />
   )
 }
@@ -237,12 +257,14 @@ function TypedThoughtCard({
   label,
   renderHeader,
   renderBody,
+  searchQuery,
 }: {
   detail: ThoughtDetailVM
   badgeStyles: string
   label: string
   renderHeader: (badgeStyles: string, label: string) => React.ReactNode
   renderBody: () => React.ReactNode
+  searchQuery?: string
 }) {
   const [showRaw, setShowRaw] = useState(false)
 
@@ -256,8 +278,10 @@ function TypedThoughtCard({
       </div>
 
       <button
+        type="button"
         onClick={() => setShowRaw(!showRaw)}
-        className="flex items-center gap-2 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors"
+        aria-expanded={showRaw}
+        className="flex items-center gap-2 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +291,8 @@ function TypedThoughtCard({
           viewBox="0 0 24 24"
           strokeWidth="2"
           stroke="currentColor"
-          className={`transition-transform ${showRaw ? 'rotate-90' : ''}`}
+          className={`transition-transform motion-reduce:transition-none ${showRaw ? 'rotate-90' : ''}`}
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
@@ -276,7 +301,7 @@ function TypedThoughtCard({
 
       {showRaw && (
         <div className="mt-2 overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
-          <pre className="whitespace-pre-wrap font-inherit">{detail.rawThought}</pre>
+          <HighlightedPre text={detail.rawThought} query={searchQuery} />
         </div>
       )}
     </div>

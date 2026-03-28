@@ -4,9 +4,10 @@ import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styl
 
 type Props = {
   sessions: SessionSummaryVM[]
+  onTagClick?: (tag: string) => void
 }
 
-export function SessionsTableShell({ sessions }: Props) {
+export function SessionsTableShell({ sessions, onTagClick }: Props) {
   if (sessions.length === 0) {
     return (
       <div className="rounded-none border border-foreground bg-background/80 shadow-sm p-12 text-center">
@@ -47,13 +48,30 @@ export function SessionsTableShell({ sessions }: Props) {
                 <Link href={session.href} className="absolute inset-0">
                   <span className="sr-only">View session {session.shortId}</span>
                 </Link>
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   {session.title && (
                     <span className="text-sm font-medium text-foreground">{session.title}</span>
                   )}
                   <span className="font-mono text-[12px] leading-5 text-foreground">
                     {session.shortId}
                   </span>
+                  {session.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 relative z-10">
+                      {session.tags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onTagClick?.(tag)
+                          }}
+                          className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-background text-foreground/50 ring-1 ring-foreground/15 hover:text-foreground hover:ring-foreground/30 transition-colors"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </td>
               <td className="whitespace-nowrap px-6 py-4">
@@ -61,13 +79,13 @@ export function SessionsTableShell({ sessions }: Props) {
                   {STATUS_LABEL[session.status]}
                 </span>
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground tabular-nums">
                 {session.thoughtCount ?? '—'}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                 {session.startedAtLabel}
               </td>
-              <td className="whitespace-nowrap px-6 py-4 font-mono text-[12px] leading-5 text-foreground">
+              <td className="whitespace-nowrap px-6 py-4 font-mono text-[12px] leading-5 text-foreground tabular-nums">
                 {session.durationLabel}
               </td>
             </tr>

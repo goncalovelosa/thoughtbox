@@ -1,7 +1,6 @@
-import type { ThoughtRowVM } from '@/lib/session/view-models'
+import type { ThoughtDisplayType } from '@/lib/session/view-models'
 
 type SessionStatus = 'active' | 'completed' | 'abandoned'
-type ThoughtDisplayType = ThoughtRowVM['displayType']
 
 export const BADGE_BASE =
   'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide'
