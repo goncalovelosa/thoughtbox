@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { format, formatDistanceStrict } from 'date-fns'
+import { format } from 'date-fns'
 import type { SessionSummaryVM } from '@/lib/session/view-models'
 
 type TimeRange = '24h' | '7d' | '30d'
@@ -18,52 +18,147 @@ const RANGE_MS: Record<TimeRange, number> = {
 }
 
 const MIN_THOUGHTS = 3
+const LANE_HEIGHT = 36
+const LANE_GAP = 4
+const MIN_BAR_WIDTH_PCT = 1.5
 
-function thoughtBar(count: number, maxCount: number): number {
-  if (maxCount <= 0) return 5
-  return Math.max(5, Math.round((count / maxCount) * 100))
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+function parseDurationMs(label: string): number {
+  const match = label.match(/(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)?/)
+  if (!match) return 0
+  const h = parseInt(match[1] || '0', 10)
+  const m = parseInt(match[2] || '0', 10)
+  const s = parseInt(match[3] || '0', 10)
+  return (h * 3600 + m * 60 + s) * 1000
+}
+
+function formatTimeLabel(date: Date, range: TimeRange): string {
+  if (range === '24h') return format(date, 'HH:mm')
+  if (range === '7d') return format(date, 'EEE d, HH:mm')
+  return format(date, 'MMM d')
+}
+
+type PlacedSession = {
+  session: SessionSummaryVM
+  lane: number
+  leftPct: number
+  widthPct: number
+  startMs: number
+  endMs: number
+}
+
+function packIntoLanes(
+  sessions: SessionSummaryVM[],
+  rangeStart: number,
+  rangeMs: number,
+): PlacedSession[] {
+  // Sort by start time
+  const sorted = [...sessions].sort(
+    (a, b) =>
+      new Date(a.startedAtISO).getTime() -
+      new Date(b.startedAtISO).getTime(),
+  )
+
+  // Each lane tracks when it's free (end time of last session in that lane)
+  const laneEnds: number[] = []
+  const placed: PlacedSession[] = []
+
+  for (const session of sorted) {
+    const startMs = new Date(session.startedAtISO).getTime()
+    const durationMs = Math.max(
+      parseDurationMs(session.durationLabel),
+      // Minimum visual duration: scale with range so bars are always visible
+      rangeMs * (MIN_BAR_WIDTH_PCT / 100),
+    )
+    const endMs = startMs + durationMs
+
+    // Find first lane where this session fits (doesn't overlap)
+    let lane = -1
+    for (let i = 0; i < laneEnds.length; i++) {
+      if (startMs >= laneEnds[i]) {
+        lane = i
+        break
+      }
+    }
+    if (lane === -1) {
+      lane = laneEnds.length
+      laneEnds.push(0)
+    }
+    laneEnds[lane] = endMs
+
+    const leftPct = clamp(
+      ((startMs - rangeStart) / rangeMs) * 100,
+      0,
+      100,
+    )
+    const widthPct = clamp(
+      (durationMs / rangeMs) * 100,
+      MIN_BAR_WIDTH_PCT,
+      100 - leftPct,
+    )
+
+    placed.push({ session, lane, leftPct, widthPct, startMs, endMs })
+  }
+
+  return placed
 }
 
 export function SessionsTimeline({ sessions }: Props) {
   const [range, setRange] = useState<TimeRange>('7d')
   const [showMinor, setShowMinor] = useState(false)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   const now = Date.now()
   const rangeStart = now - RANGE_MS[range]
+  const rangeMs = RANGE_MS[range]
 
-  const { major, minor } = useMemo(() => {
-    const inRange = sessions
-      .filter((s) => new Date(s.startedAtISO).getTime() >= rangeStart)
-      .sort(
-        (a, b) =>
-          new Date(b.startedAtISO).getTime() -
-          new Date(a.startedAtISO).getTime(),
-      )
+  const { placed, minorCount, laneCount } = useMemo(() => {
+    const inRange = sessions.filter(
+      (s) => new Date(s.startedAtISO).getTime() >= rangeStart,
+    )
 
-    const majorSessions: SessionSummaryVM[] = []
-    const minorSessions: SessionSummaryVM[] = []
+    const major = inRange.filter(
+      (s) => (s.thoughtCount ?? 0) >= MIN_THOUGHTS,
+    )
+    const minor = inRange.filter(
+      (s) => (s.thoughtCount ?? 0) < MIN_THOUGHTS,
+    )
 
-    for (const s of inRange) {
-      if ((s.thoughtCount ?? 0) >= MIN_THOUGHTS) {
-        majorSessions.push(s)
-      } else {
-        minorSessions.push(s)
-      }
+    const toPlace = showMinor ? inRange : major
+    const placedSessions = packIntoLanes(toPlace, rangeStart, rangeMs)
+    const maxLane = placedSessions.reduce(
+      (max, p) => Math.max(max, p.lane),
+      -1,
+    )
+
+    return {
+      placed: placedSessions,
+      minorCount: minor.length,
+      laneCount: maxLane + 1,
     }
+  }, [sessions, rangeStart, rangeMs, showMinor])
 
-    return { major: majorSessions, minor: minorSessions }
-  }, [sessions, rangeStart])
+  // Time axis ticks
+  const tickCount = range === '24h' ? 8 : range === '7d' ? 7 : 6
+  const ticks = useMemo(() => {
+    const result: { label: string; pct: number }[] = []
+    for (let i = 0; i <= tickCount; i++) {
+      const t = rangeStart + (i / tickCount) * rangeMs
+      result.push({
+        label: formatTimeLabel(new Date(t), range),
+        pct: (i / tickCount) * 100,
+      })
+    }
+    return result
+  }, [rangeStart, rangeMs, range, tickCount])
 
-  const maxThoughts = useMemo(
-    () => Math.max(1, ...major.map((s) => s.thoughtCount ?? 0)),
-    [major],
+  const contentHeight = Math.max(
+    60,
+    laneCount * (LANE_HEIGHT + LANE_GAP) + 8,
   )
-
-  const displayed = showMinor ? [...major, ...minor].sort(
-    (a, b) =>
-      new Date(b.startedAtISO).getTime() -
-      new Date(a.startedAtISO).getTime(),
-  ) : major
 
   return (
     <div className="mb-8 rounded-none border border-foreground bg-background/80 shadow-sm">
@@ -73,15 +168,15 @@ export function SessionsTimeline({ sessions }: Props) {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">
             Timeline
           </h2>
-          {minor.length > 0 && (
+          {minorCount > 0 && (
             <button
               type="button"
               onClick={() => setShowMinor(!showMinor)}
               className="text-[11px] text-foreground/40 hover:text-foreground transition-colors"
             >
               {showMinor
-                ? 'Hide minor sessions'
-                : `+ ${minor.length} minor session${minor.length === 1 ? '' : 's'} (&lt;${MIN_THOUGHTS} thoughts)`}
+                ? 'Hide minor'
+                : `+ ${minorCount} minor`}
             </button>
           )}
         </div>
@@ -103,81 +198,128 @@ export function SessionsTimeline({ sessions }: Props) {
         </div>
       </div>
 
-      {/* Session rows */}
-      <div className="divide-y divide-foreground/10">
-        {displayed.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-foreground/40">
-            No sessions with {MIN_THOUGHTS}+ thoughts in the last{' '}
-            {range === '24h' ? '24 hours' : range === '7d' ? '7 days' : '30 days'}
-          </div>
-        ) : (
-          displayed.map((session) => {
-            const thoughtCount = session.thoughtCount ?? 0
-            const barPct = thoughtBar(thoughtCount, maxThoughts)
-            const startDate = new Date(session.startedAtISO)
-            const isMinor = thoughtCount < MIN_THOUGHTS
+      {/* Timeline */}
+      <div className="px-4 pt-2 pb-4">
+        {/* Time axis */}
+        <div className="relative h-5 mb-1">
+          {ticks.map((tick, i) => (
+            <span
+              key={i}
+              className="absolute text-[10px] text-foreground/40 -translate-x-1/2 whitespace-nowrap"
+              style={{ left: `${tick.pct}%` }}
+            >
+              {tick.label}
+            </span>
+          ))}
+        </div>
 
-            const statusColor =
-              session.status === 'active'
-                ? 'bg-emerald-500'
-                : session.status === 'completed'
-                  ? 'bg-blue-500'
-                  : 'bg-slate-500'
+        {/* Lanes */}
+        <div className="relative" style={{ height: `${contentHeight}px` }}>
+          {/* Grid lines */}
+          {ticks.map((tick, i) => (
+            <div
+              key={i}
+              className="absolute top-0 bottom-0 w-px bg-foreground/8"
+              style={{ left: `${tick.pct}%` }}
+            />
+          ))}
 
-            const barOpacity = isMinor ? 'opacity-30' : ''
+          {/* "Now" marker */}
+          <div
+            className="absolute top-0 bottom-0 w-px bg-red-500/40"
+            style={{ left: '100%' }}
+          />
 
-            return (
-              <Link
-                key={session.id}
-                href={session.href}
-                className="flex items-center gap-4 px-4 py-2.5 hover:bg-foreground/5 transition-colors group"
-              >
-                {/* Timestamp */}
-                <div className="w-28 shrink-0 text-right">
-                  <div className="text-[11px] font-mono text-foreground/60">
-                    {format(startDate, range === '30d' ? 'MMM d HH:mm' : 'EEE HH:mm')}
-                  </div>
-                </div>
+          {placed.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-sm text-foreground/30">
+              No sessions in range
+            </div>
+          ) : (
+            placed.map(({ session, lane, leftPct, widthPct }) => {
+              const thoughtCount = session.thoughtCount ?? 0
+              const isMinor = thoughtCount < MIN_THOUGHTS
+              const isHovered = hoveredId === session.id
 
-                {/* Status dot */}
-                <div className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
+              const bgColor =
+                session.status === 'active'
+                  ? 'bg-emerald-500'
+                  : session.status === 'completed'
+                    ? 'bg-blue-500'
+                    : 'bg-slate-500'
 
-                {/* Bar + info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className={`text-sm font-medium truncate ${isMinor ? 'text-foreground/40' : 'text-foreground'}`}>
-                      {session.title || session.shortId}
-                    </span>
-                    {session.tags.length > 0 && (
-                      <div className="flex gap-1 shrink-0">
-                        {session.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium bg-background text-foreground/30 ring-1 ring-foreground/10"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {/* Thought count bar */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-foreground/5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${statusColor} ${barOpacity} transition-all`}
-                        style={{ width: `${barPct}%` }}
-                      />
+              const opacity = isMinor
+                ? 'opacity-20'
+                : thoughtCount >= 50
+                  ? 'opacity-90'
+                  : thoughtCount >= 10
+                    ? 'opacity-60'
+                    : 'opacity-40'
+
+              const top = lane * (LANE_HEIGHT + LANE_GAP) + 4
+
+              return (
+                <Link
+                  key={session.id}
+                  href={session.href}
+                  className="absolute group"
+                  style={{
+                    left: `${leftPct}%`,
+                    width: `${widthPct}%`,
+                    top: `${top}px`,
+                    height: `${LANE_HEIGHT}px`,
+                  }}
+                  onMouseEnter={() => setHoveredId(session.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
+                  <div
+                    className={`h-full w-full ${bgColor} ${opacity} transition-opacity ${
+                      isHovered ? '!opacity-100 ring-1 ring-foreground/40' : ''
+                    }`}
+                  />
+
+                  {/* Label inside bar */}
+                  {widthPct > 6 && (
+                    <div className="absolute inset-0 flex items-center px-2 overflow-hidden pointer-events-none">
+                      <span className="text-[10px] font-medium text-white truncate drop-shadow-sm">
+                        {session.title || session.shortId}
+                      </span>
                     </div>
-                    <span className="text-[10px] font-mono text-foreground/40 w-20 shrink-0">
-                      {thoughtCount}t &middot; {session.durationLabel}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )
-          })
-        )}
+                  )}
+
+                  {/* Thought count badge */}
+                  {widthPct > 4 && (
+                    <div className="absolute top-0.5 right-1 pointer-events-none">
+                      <span className="text-[9px] font-mono text-white/70 drop-shadow-sm">
+                        {thoughtCount}t
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Tooltip */}
+                  {isHovered && (
+                    <div className="absolute left-0 bottom-full mb-1 z-30 pointer-events-none">
+                      <div className="bg-foreground text-background text-[11px] px-3 py-2 shadow-lg whitespace-nowrap">
+                        <div className="font-medium">
+                          {session.title || session.shortId}
+                        </div>
+                        <div className="text-background/70 mt-0.5">
+                          {thoughtCount} thoughts &middot;{' '}
+                          {session.durationLabel} &middot;{' '}
+                          {session.status}
+                        </div>
+                        {session.tags.length > 0 && (
+                          <div className="text-background/50 mt-0.5">
+                            {session.tags.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Link>
+              )
+            })
+          )}
+        </div>
       </div>
     </div>
   )
