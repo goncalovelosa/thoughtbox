@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SessionsIndexHeader } from '@/components/session-area/sessions-index-header'
 import { SessionsIndexClient } from '@/components/session-area/sessions-index-client'
+import { SessionsTimeline } from '@/components/session-area/sessions-timeline'
 import { createSessionSummaryVM, type RawSessionRecord } from '@/lib/session/view-models'
 import { createClient } from '@/lib/supabase/server'
 
@@ -78,6 +79,7 @@ export default async function RunsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))]">
       <SessionsIndexHeader />
+      <SessionsTimeline sessions={sessions} />
       <SessionsIndexClient sessions={sessions} />
     </div>
   )
