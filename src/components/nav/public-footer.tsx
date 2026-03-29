@@ -32,6 +32,7 @@ export function PublicFooter() {
               <p className="text-xs font-black uppercase tracking-wider text-foreground">Company</p>
               <ul className="mt-3 flex flex-col gap-2">
                 <li><Link href="/support" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Support</Link></li>
+                <li><a href="https://discord.gg/8g4Ku3EXrv" target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Discord</a></li>
               </ul>
             </div>
             <div>

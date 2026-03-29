@@ -119,7 +119,7 @@ export default function HomePage() {
       <section className="bg-foreground text-background border-4 border-foreground px-6 py-20 text-center">
         <h2 className="text-3xl font-black text-background">Know why your agents did what they did</h2>
         <p className="mt-4 text-background/80">
-          $99 one-time for founding beta access. Hosted workspace, founder-assisted onboarding, and early input into the product.
+          Free through May 1. Full access, no credit card. Sign up and start recording agent reasoning today.
         </p>
         <Link
           href="/pricing"

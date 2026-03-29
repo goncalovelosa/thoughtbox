@@ -7,16 +7,10 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 const plans = [
   {
-    name: 'Free',
-    price: '$0 / month',
+    name: 'Founding Beta',
+    price: 'Free through May 1',
     active: true,
-    features: ['10,000 thoughts / month', '3 projects', '1 API key', '30-day run history'],
-  },
-  {
-    name: 'Pro',
-    price: '$29 / month',
-    active: false,
-    features: ['500,000 thoughts / month', 'Unlimited projects', 'Unlimited API keys', '1-year run history', 'Usage analytics'],
+    features: ['Unlimited thoughts', 'Unlimited projects', 'Unlimited API keys', 'Full run history', 'Direct line to the team'],
   },
 ]
 
@@ -42,8 +36,8 @@ export default async function BillingPage({ params }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
               Current plan
             </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">Free</p>
-            <p className="mt-1 text-sm text-foreground">$0 / month · renews never</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">Founding Beta</p>
+            <p className="mt-1 text-sm text-foreground">Free through May 1, 2026</p>
           </div>
           <span className="rounded-none bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
             Active
@@ -52,20 +46,10 @@ export default async function BillingPage({ params }: Props) {
 
         <div className="mt-6 border-t border-foreground pt-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
-            Next steps
+            Founding beta
           </p>
           <p className="mt-2 text-sm text-foreground">
-            Upgrade to Pro to unlock higher limits, longer run history, and priority support.
-          </p>
-          <button
-            disabled
-            className="mt-4 rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold text-background opacity-50 cursor-not-allowed"
-            title="Stripe integration coming soon"
-          >
-            Upgrade to Pro — $29/month
-          </button>
-          <p className="mt-2 text-xs text-foreground">
-            Stripe checkout will be enabled once ADR-BILL-01 is implemented.
+            You have full, unlimited access through May 1, 2026. Paid plans will be announced before then — founding beta members get early notice and favorable terms.
           </p>
         </div>
       </div>
