@@ -6,7 +6,8 @@ import { SessionTraceExplorer } from '@/components/session-area/session-trace-ex
 import {
   createSessionDetailVM,
   type RawSessionRecord,
-  type RawThoughtRecord
+  type RawThoughtRecord,
+  type RawOtelEventRecord,
 } from '@/lib/session/view-models'
 import { computeSessionSummary } from '@/lib/session/compute-session-summary'
 import { createClient } from '@/lib/supabase/server'
@@ -32,17 +33,46 @@ export default async function SessionDetailPage({ params }: Props) {
     notFound()
   }
 
-  // Fetch thoughts for the session
-  const { data: thoughtRows, error: thoughtsError } = await supabase
-    .from('thoughts')
-    .select('*')
-    .eq('session_id', runId)
-    .order('thought_number', { ascending: true })
-    
+  // Fetch thoughts, OTEL events, and total OTEL count in parallel
+  const OTEL_PAGE_LIMIT = 500
+  const [thoughtsResult, otelResult, otelCountResult] = await Promise.all([
+    supabase
+      .from('thoughts')
+      .select('*')
+      .eq('session_id', runId)
+      .order('thought_number', { ascending: true }),
+    supabase
+      .from('otel_events')
+      .select('id, event_type, event_name, severity, timestamp_at, body, metric_value, event_attrs, session_id')
+      .eq('workspace_id', sessionRow.workspace_id)
+      .eq('session_id', runId)
+      .order('timestamp_at', { ascending: true })
+      .limit(OTEL_PAGE_LIMIT),
+    supabase
+      .from('otel_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', sessionRow.workspace_id)
+      .eq('session_id', runId),
+  ])
+
+  const totalOtelCount = otelCountResult.count ?? 0
+
+  const { data: thoughtRows, error: thoughtsError } = thoughtsResult
   if (thoughtsError) {
     console.error('Failed to fetch thoughts:', thoughtsError)
-    // We'll proceed with empty thoughts rather than fully failing the page
   }
+
+  const otelEvents: RawOtelEventRecord[] = (otelResult.data ?? []).map((row) => ({
+    id: row.id,
+    event_type: row.event_type,
+    event_name: row.event_name,
+    severity: row.severity,
+    timestamp_at: row.timestamp_at,
+    body: row.body,
+    metric_value: row.metric_value,
+    event_attrs: row.event_attrs as Record<string, unknown> | null,
+    session_id: row.session_id,
+  }))
 
   // Map Session
   const rawSession: RawSessionRecord = {
@@ -102,6 +132,8 @@ export default async function SessionDetailPage({ params }: Props) {
 
       <SessionTraceExplorer
         initialThoughts={rawThoughts}
+        initialOtelEvents={otelEvents}
+        otelTotalCount={totalOtelCount}
         workspaceId={sessionRow.workspace_id}
         sessionId={runId}
         sessionStatus={sessionVM.status}

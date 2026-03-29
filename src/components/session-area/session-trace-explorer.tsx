@@ -4,8 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import type {
   RawThoughtRecord,
+  RawOtelEventRecord,
   ThoughtDisplayType,
   SessionDetailVM,
+  OtelEventVM,
+} from '@/lib/session/view-models'
+import {
+  createOtelEventVMs,
+  mergeTimeline,
 } from '@/lib/session/view-models'
 import { useSessionRealtime } from '@/lib/session/use-session-realtime'
 import {
@@ -20,11 +26,14 @@ import { SessionTimeline } from './session-timeline'
 import { DecisionTimeline } from './decision-timeline'
 import { ThoughtDetailPanel } from './thought-detail-panel'
 import { ExportDropdown } from './export-dropdown'
+import { SessionIdDiagnostic } from './session-id-diagnostic'
 
 type ViewMode = 'full' | 'decisions'
 
 type Props = {
   initialThoughts: RawThoughtRecord[]
+  initialOtelEvents: RawOtelEventRecord[]
+  otelTotalCount: number
   workspaceId: string
   sessionId: string
   sessionStatus: 'active' | 'completed' | 'abandoned'
@@ -33,6 +42,8 @@ type Props = {
 
 export function SessionTraceExplorer({
   initialThoughts,
+  initialOtelEvents,
+  otelTotalCount,
   workspaceId,
   sessionId,
   sessionStatus,
@@ -43,6 +54,24 @@ export function SessionTraceExplorer({
     workspaceId,
     sessionId,
   )
+
+  // OTEL event view models
+  const otelEventVMs = useMemo(
+    () => createOtelEventVMs(initialOtelEvents),
+    [initialOtelEvents],
+  )
+  const otelSessionId = otelEventVMs.length > 0
+    ? otelEventVMs[0].sessionId
+    : null
+
+  // Build OTEL detail lookup
+  const otelDetails = useMemo(() => {
+    const map: Record<string, OtelEventVM> = {}
+    for (const ev of otelEventVMs) {
+      map[ev.id] = ev
+    }
+    return map
+  }, [otelEventVMs])
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -175,6 +204,12 @@ export function SessionTraceExplorer({
     return filteredRows.map((r) => details[r.id]).filter(Boolean)
   }, [filteredRows, details])
 
+  // --- Merged timeline (thoughts + OTEL events) ---
+  const timelineItems = useMemo(
+    () => mergeTimeline(filteredRows, otelEventVMs),
+    [filteredRows, otelEventVMs],
+  )
+
   // --- Thought selection ---
   const thoughtParam = searchParams.get('thought')
 
@@ -195,40 +230,50 @@ export function SessionTraceExplorer({
     [searchParams, router, pathname],
   )
 
+  // Track OTEL event selection separately (not in URL)
+  const [selectedOtelId, setSelectedOtelId] = useState<string | null>(null)
+
   const handleSelect = useCallback(
     (id: string) => {
-      const row = rows.find((r) => r.id === id)
-      if (row) {
-        setThoughtParam(row.thoughtNumber)
+      // Check if it's a thought or OTEL event
+      const thoughtRow = rows.find((r) => r.id === id)
+      if (thoughtRow) {
+        setSelectedOtelId(null)
+        setThoughtParam(thoughtRow.thoughtNumber)
+      } else if (otelDetails[id]) {
+        setSelectedOtelId(id)
       }
     },
-    [rows, setThoughtParam],
+    [rows, otelDetails, setThoughtParam],
   )
+
+  // Effective selected ID: OTEL selection takes priority when set
+  const effectiveSelectedId = selectedOtelId ?? selectedId
 
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (filteredRows.length === 0) return
+      if (timelineItems.length === 0) return
       if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
       e.preventDefault()
 
-      const currentIdx = selectedId
-        ? filteredRows.findIndex((r) => r.id === selectedId)
+      const currentIdx = effectiveSelectedId
+        ? timelineItems.findIndex((r) => r.id === effectiveSelectedId)
         : -1
 
       let nextIdx: number
       if (e.key === 'ArrowDown') {
-        nextIdx = currentIdx < filteredRows.length - 1 ? currentIdx + 1 : 0
+        nextIdx = currentIdx < timelineItems.length - 1 ? currentIdx + 1 : 0
       } else {
-        nextIdx = currentIdx > 0 ? currentIdx - 1 : filteredRows.length - 1
+        nextIdx = currentIdx > 0 ? currentIdx - 1 : timelineItems.length - 1
       }
 
-      const nextRow = filteredRows[nextIdx]
-      if (nextRow) {
-        setThoughtParam(nextRow.thoughtNumber)
+      const nextItem = timelineItems[nextIdx]
+      if (nextItem) {
+        handleSelect(nextItem.id)
       }
     },
-    [filteredRows, selectedId, setThoughtParam],
+    [timelineItems, effectiveSelectedId, handleSelect],
   )
 
   // Default selection
@@ -243,12 +288,12 @@ export function SessionTraceExplorer({
     }
   }, [rows, thoughtParam, sessionStatus, setThoughtParam])
 
-  // Scroll selected thought into view
+  // Scroll selected item into view
   useEffect(() => {
-    if (!selectedId) return
-    const el = document.querySelector(`[data-thought-id="${selectedId}"]`)
+    if (!effectiveSelectedId) return
+    const el = document.querySelector(`[data-thought-id="${effectiveSelectedId}"]`)
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [selectedId])
+  }, [effectiveSelectedId])
 
   const debouncedQuery = debouncedSearch.trim()
 
@@ -283,18 +328,25 @@ export function SessionTraceExplorer({
           }
         />
 
+        <SessionIdDiagnostic
+          thoughtboxSessionId={sessionId}
+          otelSessionId={otelSessionId}
+          otelShown={otelEventVMs.length}
+          otelTotal={otelTotalCount}
+        />
+
         <div className="flex-1 overflow-y-auto relative">
           {viewMode === 'decisions' && decisionGroups ? (
             <DecisionTimeline
               data={decisionGroups}
-              selectedId={selectedId}
+              selectedId={effectiveSelectedId}
               onSelect={handleSelect}
               searchQuery={debouncedQuery}
             />
           ) : (
             <SessionTimeline
-              rows={filteredRows}
-              selectedId={selectedId}
+              rows={timelineItems}
+              selectedId={effectiveSelectedId}
               onSelect={handleSelect}
               searchQuery={debouncedQuery}
               phases={viewMode === 'full' ? visiblePhases : []}
@@ -305,37 +357,41 @@ export function SessionTraceExplorer({
         </div>
       </div>
 
-      {/* Right Column: Selected Thought Detail */}
+      {/* Right Column: Selected Detail */}
       <div className="w-full sticky top-6 rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
         <ThoughtDetailPanel
-          detail={selectedId ? details[selectedId] : null}
+          detail={
+            effectiveSelectedId
+              ? (details[effectiveSelectedId] ?? otelDetails[effectiveSelectedId] ?? null)
+              : null
+          }
           positionIndex={
-            selectedId
-              ? filteredRows.findIndex((r) => r.id === selectedId)
+            effectiveSelectedId
+              ? timelineItems.findIndex((r) => r.id === effectiveSelectedId)
               : undefined
           }
-          totalCount={filteredRows.length}
+          totalCount={timelineItems.length}
           hasPrev={
-            selectedId
-              ? filteredRows.findIndex((r) => r.id === selectedId) > 0
+            effectiveSelectedId
+              ? timelineItems.findIndex((r) => r.id === effectiveSelectedId) > 0
               : false
           }
           hasNext={
-            selectedId
-              ? filteredRows.findIndex((r) => r.id === selectedId) <
-                filteredRows.length - 1
+            effectiveSelectedId
+              ? timelineItems.findIndex((r) => r.id === effectiveSelectedId) <
+                timelineItems.length - 1
               : false
           }
           onPrev={() => {
-            if (!selectedId) return
-            const idx = filteredRows.findIndex((r) => r.id === selectedId)
-            if (idx > 0) setThoughtParam(filteredRows[idx - 1].thoughtNumber)
+            if (!effectiveSelectedId) return
+            const idx = timelineItems.findIndex((r) => r.id === effectiveSelectedId)
+            if (idx > 0) handleSelect(timelineItems[idx - 1].id)
           }}
           onNext={() => {
-            if (!selectedId) return
-            const idx = filteredRows.findIndex((r) => r.id === selectedId)
-            if (idx < filteredRows.length - 1)
-              setThoughtParam(filteredRows[idx + 1].thoughtNumber)
+            if (!effectiveSelectedId) return
+            const idx = timelineItems.findIndex((r) => r.id === effectiveSelectedId)
+            if (idx < timelineItems.length - 1)
+              handleSelect(timelineItems[idx + 1].id)
           }}
           searchQuery={debouncedQuery}
         />

@@ -33,6 +33,26 @@ export default async function RunsPage({ params }: Props) {
     console.error('Failed to fetch sessions:', error)
   }
 
+  // Fetch OTEL presence per session — select only session_id (minimal payload)
+  // Capped to avoid unbounded scans in high-telemetry workspaces.
+  // TODO: replace with a grouped-count RPC once the migration is deployed
+  const sessionIds = (rawSessions || []).map(r => r.id)
+  const otelCountMap = new Map<string, number>()
+  if (sessionIds.length > 0) {
+    const { data: otelRows } = await supabase
+      .from('otel_events')
+      .select('session_id')
+      .eq('workspace_id', workspace.id)
+      .in('session_id', sessionIds)
+      .limit(5000)
+
+    for (const row of otelRows ?? []) {
+      if (row.session_id) {
+        otelCountMap.set(row.session_id, (otelCountMap.get(row.session_id) ?? 0) + 1)
+      }
+    }
+  }
+
   const sessions = (rawSessions || []).map(row => {
     const raw: RawSessionRecord = {
       id: row.id,
@@ -49,6 +69,8 @@ export default async function RunsPage({ params }: Props) {
     if (row.thought_count != null) {
       vm.thoughtCount = row.thought_count
     }
+
+    vm.otelEventCount = otelCountMap.get(row.id) ?? 0
 
     return vm
   })

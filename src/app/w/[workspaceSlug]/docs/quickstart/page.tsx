@@ -9,7 +9,6 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
   const { workspaceSlug } = await params
   const apiKeysHref = `/w/${workspaceSlug}/api-keys`
   const runsHref = `/w/${workspaceSlug}/runs`
-  const projectsHref = `/w/${workspaceSlug}/projects`
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -80,7 +79,6 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
           </p>
           <ul className="mt-3 flex flex-col gap-2">
             {[
-              { label: 'Projects', href: projectsHref, desc: 'Browse your memory namespaces' },
               { label: 'Runs', href: runsHref, desc: 'Inspect MCP session traces step-by-step' },
               { label: 'API Keys', href: apiKeysHref, desc: 'Issue and revoke keys' },
             ].map((item) => (

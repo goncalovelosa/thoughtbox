@@ -1,15 +1,16 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { ThoughtRowVM } from '@/lib/session/view-models'
+import type { TimelineItem, ThoughtRowVM } from '@/lib/session/view-models'
 import type { Phase } from '@/lib/session/phase-detection'
 import { ThoughtRow } from './thought-row'
+import { OtelEventRow } from './otel-event-row'
 import { TimestampGap } from './timestamp-gap'
 import { PhaseHeader } from './phase-header'
 import { SessionTimelineRail } from './session-timeline-rail'
 
 type Props = {
-  rows: ThoughtRowVM[]
+  rows: TimelineItem[]
   selectedId: string | null
   onSelect: (id: string) => void
   searchQuery?: string
@@ -27,14 +28,20 @@ export function SessionTimeline({
   collapsedPhases = new Set(),
   onPhaseToggle,
 }: Props) {
-  const maxLane = Math.max(...rows.map((r) => r.laneIndex), 0)
+  // Extract only thought rows for the rail and phase logic
+  const thoughtRows = useMemo(
+    () => rows.filter((r): r is ThoughtRowVM & { kind: 'thought' } => r.kind === 'thought'),
+    [rows],
+  )
+
+  const maxLane = Math.max(...thoughtRows.map((r) => r.laneIndex), 0)
 
   // Map row IDs to their phase (for the first visible row in each phase)
   const phaseStartRowIds = useMemo(() => {
     const result = new Map<string, Phase>()
     if (phases.length === 0) return result
     for (const phase of phases) {
-      for (const row of rows) {
+      for (const row of thoughtRows) {
         const origIdx = row.thoughtNumber - 1
         if (origIdx >= phase.startIndex && origIdx <= phase.endIndex) {
           result.set(row.id, phase)
@@ -43,7 +50,7 @@ export function SessionTimeline({
       }
     }
     return result
-  }, [phases, rows])
+  }, [phases, thoughtRows])
 
   // Set of collapsed phase row IDs
   const collapsedRowIds = useMemo(() => {
@@ -53,7 +60,7 @@ export function SessionTimeline({
     const hiddenIds = new Set<string>()
     for (const phase of phases) {
       if (!collapsedPhases.has(phase.id)) continue
-      for (const row of rows) {
+      for (const row of thoughtRows) {
         const origIdx = row.thoughtNumber - 1
         if (origIdx >= phase.startIndex && origIdx <= phase.endIndex) {
           hiddenIds.add(row.id)
@@ -61,12 +68,12 @@ export function SessionTimeline({
       }
     }
     return hiddenIds
-  }, [phases, collapsedPhases, rows])
+  }, [phases, collapsedPhases, thoughtRows])
 
   if (rows.length === 0) {
     return (
       <div className="p-12 text-center text-sm text-foreground">
-        No thoughts match the current filters.
+        No items match the current filters.
       </div>
     )
   }
@@ -75,14 +82,27 @@ export function SessionTimeline({
     <div className="relative flex min-w-max">
       <div className="sticky left-0 z-10 bg-background">
         <SessionTimelineRail
-          rows={rows}
+          rows={thoughtRows}
           maxLane={maxLane}
           selectedId={selectedId}
         />
       </div>
 
       <div className="flex-1 py-4 flex flex-col relative z-0">
-        {rows.map((row) => {
+        {rows.map((item) => {
+          if (item.kind === 'otel_event') {
+            return (
+              <OtelEventRow
+                key={item.id}
+                row={item}
+                isSelected={item.id === selectedId}
+                onClick={() => onSelect(item.id)}
+                searchQuery={searchQuery}
+              />
+            )
+          }
+
+          const row = item
           const phase = phaseStartRowIds.get(row.id)
           const isCollapsed =
             phase != null && collapsedPhases.has(phase.id)
