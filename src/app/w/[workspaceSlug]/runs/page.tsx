@@ -33,7 +33,9 @@ export default async function RunsPage({ params }: Props) {
     console.error('Failed to fetch sessions:', error)
   }
 
-  // Fetch OTEL event counts per session
+  // Fetch OTEL presence per session — select only session_id (minimal payload)
+  // Capped to avoid unbounded scans in high-telemetry workspaces.
+  // TODO: replace with a grouped-count RPC once the migration is deployed
   const sessionIds = (rawSessions || []).map(r => r.id)
   const otelCountMap = new Map<string, number>()
   if (sessionIds.length > 0) {
@@ -42,6 +44,7 @@ export default async function RunsPage({ params }: Props) {
       .select('session_id')
       .eq('workspace_id', workspace.id)
       .in('session_id', sessionIds)
+      .limit(5000)
 
     for (const row of otelRows ?? []) {
       if (row.session_id) {

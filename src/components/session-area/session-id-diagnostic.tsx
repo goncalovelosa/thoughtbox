@@ -5,11 +5,14 @@ import { CheckCircle2, AlertTriangle, Minus } from 'lucide-react'
 type Props = {
   thoughtboxSessionId: string
   otelSessionId: string | null
+  otelShown: number
+  otelTotal: number
 }
 
-export function SessionIdDiagnostic({ thoughtboxSessionId, otelSessionId }: Props) {
+export function SessionIdDiagnostic({ thoughtboxSessionId, otelSessionId, otelShown, otelTotal }: Props) {
   const hasOtel = otelSessionId != null
   const match = hasOtel && otelSessionId === thoughtboxSessionId
+  const isTruncated = otelTotal > otelShown
 
   return (
     <div className="flex items-center gap-4 px-4 py-2 border-b border-border text-[11px] text-muted-foreground bg-muted/30">
@@ -32,6 +35,13 @@ export function SessionIdDiagnostic({ thoughtboxSessionId, otelSessionId }: Prop
         <span className="flex items-center gap-1">
           <Minus className="h-3 w-3" aria-hidden="true" />
           No OTEL events
+        </span>
+      )}
+
+      {isTruncated && (
+        <span className="flex items-center gap-1 text-amber-600">
+          <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+          Showing {otelShown.toLocaleString()} of {otelTotal.toLocaleString()} OTEL events
         </span>
       )}
     </div>

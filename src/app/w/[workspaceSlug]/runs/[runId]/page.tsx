@@ -33,8 +33,9 @@ export default async function SessionDetailPage({ params }: Props) {
     notFound()
   }
 
-  // Fetch thoughts and OTEL events in parallel
-  const [thoughtsResult, otelResult] = await Promise.all([
+  // Fetch thoughts, OTEL events, and total OTEL count in parallel
+  const OTEL_PAGE_LIMIT = 500
+  const [thoughtsResult, otelResult, otelCountResult] = await Promise.all([
     supabase
       .from('thoughts')
       .select('*')
@@ -46,8 +47,15 @@ export default async function SessionDetailPage({ params }: Props) {
       .eq('workspace_id', sessionRow.workspace_id)
       .eq('session_id', runId)
       .order('timestamp_at', { ascending: true })
-      .limit(500),
+      .limit(OTEL_PAGE_LIMIT),
+    supabase
+      .from('otel_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', sessionRow.workspace_id)
+      .eq('session_id', runId),
   ])
+
+  const totalOtelCount = otelCountResult.count ?? 0
 
   const { data: thoughtRows, error: thoughtsError } = thoughtsResult
   if (thoughtsError) {
@@ -125,6 +133,7 @@ export default async function SessionDetailPage({ params }: Props) {
       <SessionTraceExplorer
         initialThoughts={rawThoughts}
         initialOtelEvents={otelEvents}
+        otelTotalCount={totalOtelCount}
         workspaceId={sessionRow.workspace_id}
         sessionId={runId}
         sessionStatus={sessionVM.status}

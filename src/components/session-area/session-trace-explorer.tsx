@@ -33,6 +33,7 @@ type ViewMode = 'full' | 'decisions'
 type Props = {
   initialThoughts: RawThoughtRecord[]
   initialOtelEvents: RawOtelEventRecord[]
+  otelTotalCount: number
   workspaceId: string
   sessionId: string
   sessionStatus: 'active' | 'completed' | 'abandoned'
@@ -42,6 +43,7 @@ type Props = {
 export function SessionTraceExplorer({
   initialThoughts,
   initialOtelEvents,
+  otelTotalCount,
   workspaceId,
   sessionId,
   sessionStatus,
@@ -329,6 +331,8 @@ export function SessionTraceExplorer({
         <SessionIdDiagnostic
           thoughtboxSessionId={sessionId}
           otelSessionId={otelSessionId}
+          otelShown={otelEventVMs.length}
+          otelTotal={otelTotalCount}
         />
 
         <div className="flex-1 overflow-y-auto relative">
