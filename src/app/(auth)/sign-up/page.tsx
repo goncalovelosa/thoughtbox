@@ -13,7 +13,7 @@ export default function SignUpPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
           <p className="mt-1 text-sm text-foreground">
-            Closed beta — invite code required
+            Free through May 1, 2026
           </p>
         </div>
 

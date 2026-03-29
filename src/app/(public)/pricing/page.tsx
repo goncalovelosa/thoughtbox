@@ -26,20 +26,20 @@ export default function PricingPage() {
             Founding Beta
           </h1>
           <p className="mt-4 text-lg text-foreground">
-            Thoughtbox is early. You get in at the ground floor, we get honest signal about what matters. One price, no tiers.
+            Thoughtbox is early. You get in at the ground floor, we get honest signal about what matters. No tiers, no credit card.
           </p>
         </div>
 
         {/* Single card */}
         <div className="mt-12 border-4 border-foreground bg-background p-8">
           <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-black text-foreground">$99</span>
-            <span className="text-sm text-foreground">one-time</span>
+            <span className="text-5xl font-black text-foreground">Free</span>
+            <span className="text-sm text-foreground">through May 1</span>
           </div>
 
           <p className="mt-4 text-sm text-foreground leading-relaxed">
-            Pay once, get founding beta access for the life of the beta period.
-            When we introduce usage-based plans, founding members get grandfathered pricing.
+            Full access, no limits, no credit card. Sign up and start recording agent reasoning today.
+            Paid plans begin May 1, 2026 — founding beta members get early notice and favorable terms.
           </p>
 
           <ul className="mt-8 flex flex-col gap-3">
@@ -63,15 +63,15 @@ export default function PricingPage() {
             ))}
           </ul>
 
-          <a
-            href="mailto:glassBead@kastalienresearch.ai?subject=Thoughtbox%20Founding%20Beta"
+          <Link
+            href="/sign-up"
             className="mt-10 block rounded-none bg-foreground px-6 py-3 text-center text-sm font-black uppercase tracking-wider text-background transition-colors hover:bg-foreground/90"
           >
-            Get founding beta access
-          </a>
+            Sign up free
+          </Link>
 
           <p className="mt-4 text-center text-xs text-foreground/60">
-            We&apos;ll respond within 24 hours to set up your workspace.
+            No credit card required. Full access through May 1, 2026.
           </p>
         </div>
 
@@ -112,7 +112,7 @@ export default function PricingPage() {
           <div>
             <h3 className="text-sm font-bold text-foreground">What does &ldquo;founding beta&rdquo; mean?</h3>
             <p className="mt-1 text-sm text-foreground">
-              The product is early and actively evolving. You get direct access to the team, your feedback shapes the roadmap, and you&apos;ll be grandfathered into favorable pricing when we move to general availability.
+              The product is early and actively evolving. You get full access for free through May 1, direct access to the team, and your feedback shapes the roadmap. When paid plans begin, founding beta members get favorable terms.
             </p>
           </div>
 
