@@ -90,6 +90,14 @@ export type RawSessionRecord = {
  * These represent the normalized state consumed by the UI components
  */
 
+export type SessionSignals = {
+  decisions: number
+  assumptions: number
+  beliefs: number
+  actions: number
+  revisions: number
+}
+
 export type SessionSummaryVM = {
   id: string
   shortId: string
@@ -98,6 +106,7 @@ export type SessionSummaryVM = {
   tags: string[]
   thoughtCount?: number
   otelEventCount?: number
+  signals?: SessionSignals
   startedAtISO: string
   startedAtLabel: string
   durationLabel: string

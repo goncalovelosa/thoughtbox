@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SessionsIndexHeader } from '@/components/session-area/sessions-index-header'
 import { SessionsIndexClient } from '@/components/session-area/sessions-index-client'
-import { createSessionSummaryVM, type RawSessionRecord } from '@/lib/session/view-models'
+import { createSessionSummaryVM, type RawSessionRecord, type SessionSignals } from '@/lib/session/view-models'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Runs' }
@@ -53,6 +53,32 @@ export default async function RunsPage({ params }: Props) {
     }
   }
 
+  // Fetch thought type breakdown per session for reasoning signals
+  const signalsMap = new Map<string, SessionSignals>()
+  if (sessionIds.length > 0) {
+    const { data: thoughtRows } = await supabase
+      .from('thoughts')
+      .select('session_id, thought_type, is_revision')
+      .eq('workspace_id', workspace.id)
+      .in('session_id', sessionIds)
+      .limit(5000)
+
+    for (const row of thoughtRows ?? []) {
+      const sid = row.session_id as string
+      if (!signalsMap.has(sid)) {
+        signalsMap.set(sid, { decisions: 0, assumptions: 0, beliefs: 0, actions: 0, revisions: 0 })
+      }
+      const s = signalsMap.get(sid)!
+      switch (row.thought_type) {
+        case 'decision_frame': s.decisions++; break
+        case 'assumption_update': s.assumptions++; break
+        case 'belief_snapshot': s.beliefs++; break
+        case 'action_report': s.actions++; break
+      }
+      if (row.is_revision) s.revisions++
+    }
+  }
+
   const sessions = (rawSessions || []).map(row => {
     const raw: RawSessionRecord = {
       id: row.id,
@@ -71,6 +97,7 @@ export default async function RunsPage({ params }: Props) {
     }
 
     vm.otelEventCount = otelCountMap.get(row.id) ?? 0
+    vm.signals = signalsMap.get(row.id)
 
     return vm
   })

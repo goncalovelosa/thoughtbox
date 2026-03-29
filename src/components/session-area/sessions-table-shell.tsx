@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Activity } from 'lucide-react'
 import type { SessionSummaryVM } from '@/lib/session/view-models'
 import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styles'
 
@@ -32,10 +31,7 @@ export function SessionsTableShell({ sessions, onTagClick }: Props) {
               Status
             </th>
             <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
-              Thoughts
-            </th>
-            <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
-              OTEL
+              Reasoning
             </th>
             <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
               Started
@@ -83,18 +79,32 @@ export function SessionsTableShell({ sessions, onTagClick }: Props) {
                   {STATUS_LABEL[session.status]}
                 </span>
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground tabular-nums">
-                {session.thoughtCount ?? '—'}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground tabular-nums">
-                {session.otelEventCount ? (
-                  <span className="flex items-center gap-1">
-                    <Activity className="h-3 w-3 text-blue-500/70" aria-hidden="true" />
-                    {session.otelEventCount}
+              <td className="px-6 py-4">
+                <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  <span className="font-mono text-foreground tabular-nums">
+                    {session.thoughtCount ?? 0}t
                   </span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
+                  {session.signals?.decisions ? (
+                    <span className="text-violet-400">
+                      {session.signals.decisions}d
+                    </span>
+                  ) : null}
+                  {session.signals?.assumptions ? (
+                    <span className="text-amber-400">
+                      {session.signals.assumptions}a
+                    </span>
+                  ) : null}
+                  {session.signals?.beliefs ? (
+                    <span className="text-pink-400">
+                      {session.signals.beliefs}b
+                    </span>
+                  ) : null}
+                  {session.signals?.revisions ? (
+                    <span className="text-sky-400">
+                      {session.signals.revisions}r
+                    </span>
+                  ) : null}
+                </div>
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                 {session.startedAtLabel}
