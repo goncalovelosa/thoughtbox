@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Activity } from 'lucide-react'
 import type { SessionSummaryVM } from '@/lib/session/view-models'
 import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styles'
 
@@ -32,6 +33,9 @@ export function SessionsTableShell({ sessions, onTagClick }: Props) {
             </th>
             <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
               Thoughts
+            </th>
+            <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
+              OTEL
             </th>
             <th className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-foreground">
               Started
@@ -81,6 +85,16 @@ export function SessionsTableShell({ sessions, onTagClick }: Props) {
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground tabular-nums">
                 {session.thoughtCount ?? '—'}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground tabular-nums">
+                {session.otelEventCount ? (
+                  <span className="flex items-center gap-1">
+                    <Activity className="h-3 w-3 text-blue-500/70" aria-hidden="true" />
+                    {session.otelEventCount}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                 {session.startedAtLabel}

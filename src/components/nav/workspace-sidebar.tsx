@@ -17,14 +17,6 @@ function DashboardIcon() {
   )
 }
 
-function ProjectsIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-    </svg>
-  )
-}
-
 function RunsIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,7 +88,6 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
 
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: `${base}/dashboard`, icon: <DashboardIcon /> },
-    { label: 'Projects', href: `${base}/projects`, icon: <ProjectsIcon /> },
     { label: 'Runs', href: `${base}/runs`, icon: <RunsIcon /> },
     { label: 'Observability', href: `${base}/observability`, icon: <ObservabilityIcon /> },
     { label: 'API Keys', href: `${base}/api-keys`, icon: <KeyIcon /> },

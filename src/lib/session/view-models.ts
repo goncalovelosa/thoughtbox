@@ -97,6 +97,7 @@ export type SessionSummaryVM = {
   status: 'active' | 'completed' | 'abandoned'
   tags: string[]
   thoughtCount?: number
+  otelEventCount?: number
   startedAtISO: string
   startedAtLabel: string
   durationLabel: string
@@ -397,4 +398,108 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
   })
 
   return { rows, details }
+}
+
+/**
+ * OTEL Event View Models
+ */
+
+export type RawOtelEventRecord = {
+  id: string
+  event_type: string
+  event_name: string
+  severity: string | null
+  timestamp_at: string
+  body: string | null
+  metric_value: number | null
+  event_attrs: Record<string, unknown> | null
+  session_id: string | null
+}
+
+export type OtelEventVM = {
+  id: string
+  kind: 'otel_event'
+  eventType: 'log' | 'metric'
+  eventName: string
+  severity: string | null
+  timestampISO: string
+  relativeTimeLabel: string
+  absoluteTimeLabel: string
+  body: string | null
+  metricValue: number | null
+  eventAttrs: Record<string, unknown>
+  sessionId: string | null
+}
+
+export type TimelineItem =
+  | (ThoughtRowVM & { kind: 'thought' })
+  | OtelEventVM
+
+export function createOtelEventVMs(
+  rawEvents: RawOtelEventRecord[],
+): OtelEventVM[] {
+  return rawEvents.map((raw) => {
+    const ts = new Date(raw.timestamp_at)
+    return {
+      id: raw.id,
+      kind: 'otel_event' as const,
+      eventType: raw.event_type === 'metric' ? 'metric' : 'log',
+      eventName: raw.event_name,
+      severity: raw.severity,
+      timestampISO: raw.timestamp_at,
+      relativeTimeLabel: formatDistanceToNow(ts, { addSuffix: true }),
+      absoluteTimeLabel: format(ts, 'MMM d, yyyy HH:mm:ss'),
+      body: raw.body,
+      metricValue: raw.metric_value,
+      eventAttrs: (raw.event_attrs ?? {}) as Record<string, unknown>,
+      sessionId: raw.session_id,
+    }
+  })
+}
+
+export function mergeTimeline(
+  thoughts: ThoughtRowVM[],
+  otelEvents: OtelEventVM[],
+): TimelineItem[] {
+  if (otelEvents.length === 0) {
+    return thoughts.map((t) => ({ ...t, kind: 'thought' as const }))
+  }
+
+  const taggedThoughts: TimelineItem[] = thoughts.map((t) => ({
+    ...t,
+    kind: 'thought' as const,
+  }))
+
+  if (thoughts.length === 0) {
+    return otelEvents
+  }
+
+  const result: TimelineItem[] = []
+  let otelIdx = 0
+
+  for (let i = 0; i < taggedThoughts.length; i++) {
+    const thought = taggedThoughts[i]
+    const thoughtTime = new Date(thought.timestampISO).getTime()
+
+    // Insert OTEL events that occurred before this thought
+    while (otelIdx < otelEvents.length) {
+      const eventTime = new Date(otelEvents[otelIdx].timestampISO).getTime()
+      if (eventTime < thoughtTime) {
+        result.push(otelEvents[otelIdx])
+        otelIdx++
+      } else {
+        break
+      }
+    }
+
+    result.push(thought)
+  }
+
+  // Remaining OTEL events after the last thought
+  while (otelIdx < otelEvents.length) {
+    result.push(otelEvents[otelIdx])
+    otelIdx++
+  }
+
+  return result
 }

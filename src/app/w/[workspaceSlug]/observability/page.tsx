@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { format, subDays, startOfDay } from 'date-fns'
-import { Activity, BrainCircuit, Folder, Zap, Lock, Terminal, TrendingUp } from 'lucide-react'
+import { Activity, BrainCircuit, Zap, Lock, Terminal, TrendingUp } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Observability' }
 
@@ -23,7 +23,7 @@ export default async function ObservabilityPage({ params }: Props) {
 
   const since30d = subDays(new Date(), 30).toISOString()
 
-  const [allSessionsResult, thoughtCountResult] = await Promise.all([
+  const [allSessionsResult, thoughtCountResult, otelCountResult, otelCostResult] = await Promise.all([
     supabase
       .from('sessions')
       .select('id, status, thought_count, created_at, updated_at, tags')
@@ -35,19 +35,61 @@ export default async function ObservabilityPage({ params }: Props) {
       .from('thoughts')
       .select('id', { count: 'exact', head: true })
       .eq('workspace_id', workspace.id),
+    supabase
+      .from('otel_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('workspace_id', workspace.id),
+    supabase
+      .rpc('otel_session_cost', { p_workspace_id: workspace.id }),
   ])
 
   const sessions = allSessionsResult.data ?? []
   const totalThoughts = thoughtCountResult.count ?? 0
+  const otelEventCount = otelCountResult.count ?? 0
+  const otelConnected = otelEventCount > 0
+
+  // Cost data from RPC
+  const costRows = (otelCostResult.data ?? []) as Array<{
+    model: string
+    total_cost: number
+    data_points: number
+  }>
+  const totalCost = costRows.reduce((sum, r) => sum + r.total_cost, 0)
+  const maxCost = Math.max(...costRows.map(r => r.total_cost), 1)
+
+  // Tool performance — count tool_result events by tool name
+  let toolStats: { tool: string; count: number }[] = []
+  if (otelConnected) {
+    const { data: toolRows } = await supabase
+      .from('otel_events')
+      .select('event_attrs')
+      .eq('workspace_id', workspace.id)
+      .eq('event_type', 'log')
+      .like('event_name', '%tool%')
+      .limit(500)
+
+    const toolMap = new Map<string, number>()
+    for (const row of toolRows ?? []) {
+      const attrs = row.event_attrs as Record<string, unknown> | null
+      const toolName = typeof attrs?.['tool.name'] === 'string'
+        ? attrs['tool.name']
+        : typeof attrs?.['event.name'] === 'string'
+          ? attrs['event.name']
+          : 'unknown'
+      toolMap.set(toolName, (toolMap.get(toolName) ?? 0) + 1)
+    }
+    toolStats = Array.from(toolMap.entries())
+      .map(([tool, count]) => ({ tool, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  }
+  const maxToolCount = Math.max(...toolStats.map(t => t.count), 1)
 
   // KPI computations
   const totalRuns = sessions.length
   const activeRuns = sessions.filter(s => s.status === 'active').length
   const completedRuns = sessions.filter(s => s.status === 'completed').length
   const abandonedRuns = sessions.filter(s => s.status === 'abandoned').length
-
-  const tagSet = new Set(sessions.flatMap(s => s.tags ?? []).filter(Boolean))
-  const totalTags = tagSet.size
 
   // Sessions per day — last 14 days
   const days: { date: string; label: string; shortLabel: string; count: number }[] = []
@@ -101,10 +143,10 @@ export default async function ObservabilityPage({ params }: Props) {
         <KpiCard label="Total runs" value={String(totalRuns)} sub="last 30 days" icon={<Zap className="h-4 w-4" aria-hidden="true" />} />
         <KpiCard label="Active" value={String(activeRuns)} sub="in progress" icon={<Activity className="h-4 w-4" aria-hidden="true" />} />
         <KpiCard label="Thoughts" value={String(totalThoughts)} sub="all time" icon={<BrainCircuit className="h-4 w-4" aria-hidden="true" />} />
-        <KpiCard label="Tags" value={String(totalTags)} sub="distinct tags" icon={<Folder className="h-4 w-4" aria-hidden="true" />} />
+        <KpiCard label="OTEL Events" value={String(otelEventCount)} sub={otelConnected ? 'telemetry records' : 'not connected'} icon={<Activity className="h-4 w-4" aria-hidden="true" />} />
       </div>
 
-      {/* Activity + Projects row */}
+      {/* Activity row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Sessions per day */}
         <Panel title="Sessions per day" subtitle="Last 14 days">
@@ -216,37 +258,122 @@ export default async function ObservabilityPage({ params }: Props) {
         )}
       </Panel>
 
-      {/* OTel gate — locked panels */}
+      {/* OTel telemetry section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2.5 border-b border-foreground pb-3">
           <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-foreground">Claude&nbsp;Code Telemetry</h2>
-          <span className="ml-auto flex items-center gap-1 rounded-none border border-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <Lock className="h-3 w-3" aria-hidden="true" />
-            Requires OTel
-          </span>
+          {otelConnected ? (
+            <span className="ml-auto flex items-center gap-1 rounded-none border border-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+              Connected
+            </span>
+          ) : (
+            <span className="ml-auto flex items-center gap-1 rounded-none border border-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Lock className="h-3 w-3" aria-hidden="true" />
+              Requires OTel
+            </span>
+          )}
         </div>
 
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Connect Claude&nbsp;Code&apos;s OpenTelemetry pipeline to unlock cost tracking, token analytics,
-          model-level breakdowns, and tool performance metrics. The panels below show what becomes
-          available once configured.
-        </p>
+        {otelConnected ? (
+          <>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              Telemetry active — {otelEventCount.toLocaleString()} events ingested.
+              {totalCost > 0 && ` Total cost: $${totalCost.toFixed(4)}.`}
+            </p>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <OtelLockedCard
-            title="Cost by model"
-            description="Total spend broken down by claude-opus, claude-sonnet, claude-haiku per session and over time."
-          />
-          <OtelLockedCard
-            title="Token usage"
-            description="Input, output, cache read, and cache creation tokens — per model, per project, per day."
-          />
-          <OtelLockedCard
-            title="Tool performance"
-            description="Success rates and average execution times for every Claude Code tool (Edit, Write, Bash, etc.)."
-          />
-        </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {/* Cost by model */}
+              <Panel title="Cost by model" subtitle={`$${totalCost.toFixed(4)} total`}>
+                {costRows.length === 0 ? (
+                  <EmptyChart message="No cost data yet." />
+                ) : (
+                  <div className="space-y-2.5 pt-1">
+                    {costRows.map((r) => (
+                      <div key={r.model} className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-24 shrink-0 truncate text-right" title={r.model}>
+                          {r.model}
+                        </span>
+                        <div className="flex-1 bg-muted h-2">
+                          <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${(r.total_cost / maxCost) * 100}%` }} />
+                        </div>
+                        <span className="text-xs text-foreground font-medium tabular-nums w-16 text-right">${r.total_cost.toFixed(4)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Panel>
+
+              {/* Data points by model */}
+              <Panel title="Data points" subtitle="By model">
+                {costRows.length === 0 ? (
+                  <EmptyChart message="No metric data yet." />
+                ) : (
+                  <div className="space-y-2.5 pt-1">
+                    {costRows.map((r) => {
+                      const maxDp = Math.max(...costRows.map(c => c.data_points), 1)
+                      return (
+                        <div key={r.model} className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground w-24 shrink-0 truncate text-right" title={r.model}>
+                            {r.model}
+                          </span>
+                          <div className="flex-1 bg-muted h-2">
+                            <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${(r.data_points / maxDp) * 100}%` }} />
+                          </div>
+                          <span className="text-xs text-foreground font-medium tabular-nums w-10 text-right">{r.data_points}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </Panel>
+
+              {/* Tool performance */}
+              <Panel title="Tool usage" subtitle="By event count">
+                {toolStats.length === 0 ? (
+                  <EmptyChart message="No tool data yet." />
+                ) : (
+                  <div className="space-y-2.5 pt-1">
+                    {toolStats.map((t) => (
+                      <div key={t.tool} className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-24 shrink-0 truncate text-right" title={t.tool}>
+                          {t.tool}
+                        </span>
+                        <div className="flex-1 bg-muted h-2">
+                          <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${(t.count / maxToolCount) * 100}%` }} />
+                        </div>
+                        <span className="text-xs text-foreground font-medium tabular-nums w-6 text-right">{t.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Panel>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              Connect Claude&nbsp;Code&apos;s OpenTelemetry pipeline to unlock cost tracking, token analytics,
+              model-level breakdowns, and tool performance metrics. The panels below show what becomes
+              available once configured.
+            </p>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <OtelLockedCard
+                title="Cost by model"
+                description="Total spend broken down by claude-opus, claude-sonnet, claude-haiku per session and over time."
+              />
+              <OtelLockedCard
+                title="Token usage"
+                description="Input, output, cache read, and cache creation tokens — per model, per project, per day."
+              />
+              <OtelLockedCard
+                title="Tool performance"
+                description="Success rates and average execution times for every Claude Code tool (Edit, Write, Bash, etc.)."
+              />
+            </div>
+          </>
+        )}
 
         {/* Setup instructions */}
         <div className="rounded-none border border-foreground bg-background p-5 space-y-3">
@@ -263,22 +390,21 @@ export default async function ObservabilityPage({ params }: Props) {
 {`export CLAUDE_CODE_ENABLE_TELEMETRY=1
 export OTEL_METRICS_EXPORTER=otlp
 export OTEL_LOGS_EXPORTER=otlp
-export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/json
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://mcp.kastalienresearch.ai
 export OTEL_METRICS_INCLUDE_ACCOUNT_UUID=true`}
           </pre>
           <p className="text-xs text-muted-foreground">
-            Point the endpoint at your OpenTelemetry Collector, then route metrics to Prometheus and
-            logs to Loki — or any compatible backend. See the{' '}
+            The endpoint points directly at Thoughtbox, which ingests and stores your telemetry. See the{' '}
             <a
-              href="https://modelcontextprotocol.io/specification/2025-11-25/client/roots"
+              href="https://docs.anthropic.com/en/docs/claude-code/monitoring"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-2 text-foreground hover:text-muted-foreground transition-colors"
             >
               Claude Code Observability docs
             </a>{' '}
-            for the full reference.
+            for details.
           </p>
         </div>
       </div>
