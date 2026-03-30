@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:types": "supabase gen types typescript --linked --schema public 2>/dev/null > src/lib/supabase/database.types.ts",
-    "db:types:sync": "bash scripts/sync-db-types.sh"
+    "db:types": "bash scripts/sync-db-types.sh",
+    "db:types:force": "supabase gen types typescript --linked --schema public 2>/dev/null > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
