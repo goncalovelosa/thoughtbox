@@ -1,26 +1,48 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import type { ApiKeyRow } from '@/lib/types/api-keys'
 import { revokeApiKeyAction, type RevokeKeyState } from './actions'
 
 function RevokeButton({ keyId }: { keyId: string }) {
+  const [confirming, setConfirming] = useState(false)
   const [state, formAction, pending] = useActionState<RevokeKeyState, FormData>(
     revokeApiKeyAction,
     null,
   )
 
+  if (!confirming) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="text-xs text-red-600 hover:text-red-800 transition-colors"
+        title="Revoke this key"
+      >
+        Revoke
+      </button>
+    )
+  }
+
   return (
-    <form action={formAction}>
+    <form action={formAction} className="flex items-center gap-2">
       <input type="hidden" name="keyId" value={keyId} />
+      <span className="text-xs text-red-600">Revoke?</span>
       <button
         type="submit"
         disabled={pending}
-        className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50 transition-colors"
-        title="Revoke this key"
+        className="text-xs font-semibold text-red-700 hover:text-red-900 disabled:opacity-50 transition-colors"
       >
-        {pending ? 'Revoking...' : 'Revoke'}
+        {pending ? 'Revoking\u2026' : 'Confirm'}
+      </button>
+      <button
+        type="button"
+        onClick={() => setConfirming(false)}
+        disabled={pending}
+        className="text-xs text-foreground hover:text-foreground/70 disabled:opacity-50 transition-colors"
+      >
+        Cancel
       </button>
       {state?.error && (
         <p className="text-xs text-red-500 mt-1">{state.error}</p>

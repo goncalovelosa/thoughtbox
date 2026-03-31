@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createApiKeyAction, type CreateKeyState } from './actions'
 
@@ -17,6 +17,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   const hasKey = state?.plainKey != null
@@ -25,12 +26,36 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
     if (hasKey) inputRef.current?.select()
   }, [hasKey])
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     setOpen(false)
     setCopied(false)
     setCopyError(null)
     if (hasKey) router.refresh()
-  }
+  }, [hasKey, router])
+
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose()
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input:not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])',
+        )
+        if (focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, handleClose])
 
   async function handleCopy() {
     if (!state?.plainKey) return
@@ -63,13 +88,19 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
           <div
             className="absolute inset-0 bg-background"
             onClick={handleClose}
-            onKeyDown={(e) => { if (e.key === 'Escape') handleClose() }}
             role="presentation"
           />
-          <div className="relative w-full max-w-md rounded-none border border-foreground bg-background p-6 shadow-xl">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-key-title"
+            className="relative w-full max-w-md rounded-none border border-foreground bg-background p-6 shadow-xl"
+            style={{ overscrollBehavior: 'contain' }}
+          >
             {hasKey ? (
               <>
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 id="create-key-title" className="text-lg font-semibold text-foreground">
                   Key created
                 </h2>
                 <p className="mt-2 text-sm text-amber-700 font-medium">
@@ -80,6 +111,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                     ref={inputRef}
                     readOnly
                     value={state.plainKey}
+                    aria-label="API key value"
                     className="flex-1 rounded-none border border-foreground bg-background px-3 py-2 font-mono text-sm text-foreground"
                   />
                   <button
@@ -102,16 +134,19 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
             ) : (
               <form action={formAction}>
                 <input type="hidden" name="workspaceSlug" value={workspaceSlug} />
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 id="create-key-title" className="text-lg font-semibold text-foreground">
                   Create API key
                 </h2>
                 <p className="mt-1 text-sm text-foreground">
                   Give your key a descriptive name so you can identify it later.
                 </p>
+                <label htmlFor="key-name" className="sr-only">Key name</label>
                 <input
+                  id="key-name"
                   name="name"
                   required
                   maxLength={64}
+                  autoComplete="off"
                   placeholder="e.g. Production MCP server"
                   className="mt-4 w-full rounded-none border border-foreground px-3 py-2 text-sm text-black placeholder:text-neutral-400 focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
                 />
@@ -131,7 +166,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                     disabled={pending}
                     className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background disabled:opacity-50 transition-colors"
                   >
-                    {pending ? 'Creating...' : 'Create'}
+                    {pending ? 'Creating\u2026' : 'Create'}
                   </button>
                 </div>
               </form>
