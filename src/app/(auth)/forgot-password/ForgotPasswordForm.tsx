@@ -23,7 +23,7 @@ export function ForgotPasswordForm() {
   return (
     <form action={formAction} className="mt-6 space-y-4" aria-label="Password reset form">
       {state?.error && (
-        <div className="rounded-none border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-none border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert" aria-live="polite">
           {state.error}
         </div>
       )}
