@@ -26,7 +26,7 @@ export default async function RunsPage({ params }: Props) {
     .from('sessions')
     .select('*')
     .eq('workspace_id', workspace.id)
-    .order('updated_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(100)
 
   if (error) {
