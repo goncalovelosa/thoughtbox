@@ -89,9 +89,13 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
   }
 
   const isOtel = isOtelEvent(detail)
-  const headerTitle = isOtel
-    ? formatOtelDisplayLabel(detail.eventName, detail.eventAttrs).label
-    : `Thought #${detail.thoughtNumber}`
+  const headerTitle = (() => {
+    if (isOtel) {
+      const { label, detail: qualifier } = formatOtelDisplayLabel(detail.eventName, detail.eventAttrs)
+      return qualifier ? `${label} · ${qualifier}` : label
+    }
+    return `Thought #${detail.thoughtNumber}`
+  })()
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
