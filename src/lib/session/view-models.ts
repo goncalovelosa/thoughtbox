@@ -541,11 +541,13 @@ export function formatOtelDisplayLabel(
 
   switch (stripped) {
     case 'tool_result':
-    case 'hook_tool_result':
+    case 'hook_tool_result': {
+      const displayTool = toolName === 'mcp_tool' ? 'MCP call' : toolName
       return {
-        label: toolName ? `${toolName} result` : 'tool result',
+        label: displayTool ? `${displayTool}` : 'tool result',
         detail: null,
       }
+    }
     case 'tool_decision':
       return {
         label: toolName

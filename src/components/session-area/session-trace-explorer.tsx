@@ -55,23 +55,34 @@ export function SessionTraceExplorer({
     sessionId,
   )
 
-  // OTEL event view models
-  const otelEventVMs = useMemo(
+  // OTEL event view models — only tool use events belong in the timeline
+  const TOOL_EVENT_NAMES = new Set([
+    'tool_result',
+    'claude_code.hook_tool_result',
+  ])
+
+  const allOtelEventVMs = useMemo(
     () => createOtelEventVMs(initialOtelEvents),
     [initialOtelEvents],
   )
-  const otelSessionId = otelEventVMs.length > 0
-    ? otelEventVMs[0].sessionId
+
+  const otelEventVMs = useMemo(
+    () => allOtelEventVMs.filter(ev => TOOL_EVENT_NAMES.has(ev.eventName)),
+    [allOtelEventVMs],
+  )
+
+  const otelSessionId = allOtelEventVMs.length > 0
+    ? allOtelEventVMs[0].sessionId
     : null
 
-  // Build OTEL detail lookup
+  // Build OTEL detail lookup (all events, for detail panel)
   const otelDetails = useMemo(() => {
     const map: Record<string, OtelEventVM> = {}
-    for (const ev of otelEventVMs) {
+    for (const ev of allOtelEventVMs) {
       map[ev.id] = ev
     }
     return map
-  }, [otelEventVMs])
+  }, [allOtelEventVMs])
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -85,7 +96,6 @@ export function SessionTraceExplorer({
     Set<ThoughtDisplayType>
   >(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('full')
-  const [showOtel, setShowOtel] = useState(false)
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(
     new Set(),
   )
@@ -205,10 +215,10 @@ export function SessionTraceExplorer({
     return filteredRows.map((r) => details[r.id]).filter(Boolean)
   }, [filteredRows, details])
 
-  // --- Merged timeline (thoughts + OTEL events when toggled on) ---
+  // --- Merged timeline (thoughts + tool use events) ---
   const timelineItems = useMemo(
-    () => mergeTimeline(filteredRows, showOtel ? otelEventVMs : []),
-    [filteredRows, otelEventVMs, showOtel],
+    () => mergeTimeline(filteredRows, otelEventVMs),
+    [filteredRows, otelEventVMs],
   )
 
   // --- Thought selection ---
@@ -320,9 +330,6 @@ export function SessionTraceExplorer({
           typeCounts={typeCounts}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          showOtel={showOtel}
-          onShowOtelChange={setShowOtel}
-          otelCount={otelEventVMs.length}
           exportSlot={
             <ExportDropdown
               session={sessionVM}
