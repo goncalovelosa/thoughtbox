@@ -1,6 +1,6 @@
 'use client'
 
-import type { ThoughtDetailVM, OtelEventVM } from '@/lib/session/view-models'
+import { formatOtelDisplayLabel, type ThoughtDetailVM, type OtelEventVM } from '@/lib/session/view-models'
 import { BADGE_BASE, REVISION_BADGE } from '@/lib/session/badge-styles'
 import { ThoughtCard } from './thought-card'
 import { ThoughtMetadataDisclosure } from './thought-metadata-disclosure'
@@ -90,7 +90,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
 
   const isOtel = isOtelEvent(detail)
   const headerTitle = isOtel
-    ? detail.eventName.replace(/^claude_code\./, '')
+    ? formatOtelDisplayLabel(detail.eventName, detail.eventAttrs).label
     : `Thought #${detail.thoughtNumber}`
 
   return (

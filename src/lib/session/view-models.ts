@@ -520,3 +520,68 @@ export function mergeTimeline(
 
   return result
 }
+
+/**
+ * Build a human-readable label from an OTEL event name + its attributes.
+ * Uses tool_name, model, decision, type from attrs to disambiguate rows
+ * that otherwise all show the same event name.
+ */
+export function formatOtelDisplayLabel(
+  eventName: string,
+  attrs: Record<string, unknown>,
+): { label: string; detail: string | null } {
+  const stripped = eventName
+    .replace(/^claude_code\./, '')
+    .replace(/^gen_ai\./, '')
+
+  const toolName = (attrs['tool.name'] ?? attrs['tool_name'] ?? null) as string | null
+  const model = attrs['model'] as string | null
+  const decision = attrs['decision'] as string | null
+  const tokenType = attrs['type'] as string | null
+
+  switch (stripped) {
+    case 'tool_result':
+    case 'hook_tool_result':
+      return {
+        label: toolName ? `${toolName} result` : 'tool result',
+        detail: null,
+      }
+    case 'tool_decision':
+      return {
+        label: toolName
+          ? `${toolName} ${decision ?? 'decision'}`
+          : `tool ${decision ?? 'decision'}`,
+        detail: null,
+      }
+    case 'api_request':
+      return {
+        label: 'API request',
+        detail: model?.replace('claude-', '') ?? null,
+      }
+    case 'api_error':
+      return { label: 'API error', detail: model?.replace('claude-', '') ?? null }
+    case 'user_prompt':
+      return { label: 'user prompt', detail: null }
+    case 'token.usage':
+      return { label: 'token usage', detail: tokenType ?? null }
+    case 'cost.usage':
+      return { label: 'cost', detail: model?.replace('claude-', '') ?? null }
+    case 'active_time.total':
+      return { label: 'active time', detail: null }
+    case 'lines_of_code.count':
+      return { label: 'lines changed', detail: null }
+    case 'code_edit_tool.decision':
+      return {
+        label: toolName ? `${toolName} edit` : 'code edit',
+        detail: (attrs['language'] as string | null) ?? null,
+      }
+    case 'commit.count':
+      return { label: 'commit', detail: null }
+    case 'pull_request.count':
+      return { label: 'pull request', detail: null }
+    default: {
+      const label = stripped.split('.').pop()?.replaceAll('_', ' ') ?? stripped
+      return { label, detail: toolName ?? null }
+    }
+  }
+}

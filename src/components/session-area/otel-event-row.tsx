@@ -1,7 +1,7 @@
 'use client'
 
 import { Activity, BarChart3 } from 'lucide-react'
-import type { OtelEventVM } from '@/lib/session/view-models'
+import { formatOtelDisplayLabel, type OtelEventVM } from '@/lib/session/view-models'
 
 type Props = {
   row: OtelEventVM
@@ -30,29 +30,10 @@ const SEVERITY_COLORS: Record<string, string> = {
   DEBUG: 'bg-muted text-muted-foreground',
 }
 
-/**
- * Build a human-readable label from an OTEL event name.
- * Strips common prefixes (`claude_code.`, `gen_ai.`) and replaces
- * dots/underscores with spaces so `hook_tool_result` → `hook tool result`
- * and `gen_ai.content.prompt` → `content prompt`.
- */
-function formatDisplayName(eventName: string): { label: string; category: string | null } {
-  const stripped = eventName
-    .replace(/^claude_code\./, '')
-    .replace(/^gen_ai\./, '')
-
-  const parts = stripped.split('.')
-  const category = parts.length > 1 ? parts[0] : null
-  const label = (parts.length > 1 ? parts.slice(1).join('.') : stripped)
-    .replaceAll('_', ' ')
-
-  return { label, category }
-}
-
 export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
   const Icon = row.eventType === 'metric' ? BarChart3 : Activity
   const severityClass = row.severity ? SEVERITY_COLORS[row.severity] ?? 'bg-muted text-muted-foreground' : null
-  const { label, category } = formatDisplayName(row.eventName)
+  const { label, detail } = formatOtelDisplayLabel(row.eventName, row.eventAttrs)
 
   return (
     <button
@@ -69,10 +50,10 @@ export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
       <Icon className="h-3.5 w-3.5 shrink-0 text-blue-500/70" aria-hidden="true" />
 
       <span className="flex-1 min-w-0 truncate text-foreground">
-        {category && (
-          <span className="text-muted-foreground mr-1.5">{category}</span>
-        )}
         {highlightMatch(label, searchQuery ?? '')}
+        {detail && (
+          <span className="ml-1.5 text-muted-foreground">{detail}</span>
+        )}
       </span>
 
       {severityClass && (
