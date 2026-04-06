@@ -154,7 +154,7 @@ export default async function ObservabilityPage({ params }: Props) {
             <EmptyChart message="No runs recorded in the last 14 days." />
           ) : (
             <div className="pt-2">
-              <div className="flex items-end gap-1 h-24">
+              <div className="flex items-end gap-1 h-40">
                 {days.map((day) => (
                   <div
                     key={day.date}

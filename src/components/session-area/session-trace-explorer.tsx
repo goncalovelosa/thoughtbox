@@ -301,7 +301,7 @@ export function SessionTraceExplorer({
     <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
       {/* Left Column: Trace List */}
       <div
-        className="w-full rounded-none border border-foreground bg-background shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
+        className="w-full sticky top-6 rounded-none border border-foreground bg-background shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >

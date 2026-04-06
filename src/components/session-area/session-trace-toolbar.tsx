@@ -66,7 +66,7 @@ export function SessionTraceToolbar({
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search thoughts\u2026"
+          placeholder="Search thoughts…"
           className="h-9 w-full max-w-xs rounded-none border border-foreground bg-background px-3 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
         />
 

@@ -30,16 +30,36 @@ const SEVERITY_COLORS: Record<string, string> = {
   DEBUG: 'bg-muted text-muted-foreground',
 }
 
+/**
+ * Build a human-readable label from an OTEL event name.
+ * Strips common prefixes (`claude_code.`, `gen_ai.`) and replaces
+ * dots/underscores with spaces so `hook_tool_result` → `hook tool result`
+ * and `gen_ai.content.prompt` → `content prompt`.
+ */
+function formatDisplayName(eventName: string): { label: string; category: string | null } {
+  const stripped = eventName
+    .replace(/^claude_code\./, '')
+    .replace(/^gen_ai\./, '')
+
+  const parts = stripped.split('.')
+  const category = parts.length > 1 ? parts[0] : null
+  const label = (parts.length > 1 ? parts.slice(1).join('.') : stripped)
+    .replaceAll('_', ' ')
+
+  return { label, category }
+}
+
 export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
   const Icon = row.eventType === 'metric' ? BarChart3 : Activity
   const severityClass = row.severity ? SEVERITY_COLORS[row.severity] ?? 'bg-muted text-muted-foreground' : null
-  const displayName = row.eventName.replace(/^claude_code\./, '')
+  const { label, category } = formatDisplayName(row.eventName)
 
   return (
     <button
       type="button"
       data-thought-id={row.id}
       onClick={onClick}
+      title={row.eventName}
       className={`w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs transition-colors border-l-2 ${
         isSelected
           ? 'bg-blue-50 border-l-blue-500'
@@ -49,7 +69,10 @@ export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
       <Icon className="h-3.5 w-3.5 shrink-0 text-blue-500/70" aria-hidden="true" />
 
       <span className="flex-1 min-w-0 truncate text-foreground">
-        {highlightMatch(displayName, searchQuery ?? '')}
+        {category && (
+          <span className="text-muted-foreground mr-1.5">{category}</span>
+        )}
+        {highlightMatch(label, searchQuery ?? '')}
       </span>
 
       {severityClass && (

@@ -47,9 +47,11 @@ export function WorkspaceTopBar({ userEmail, userDisplayName }: WorkspaceTopBarP
       <h1 className="text-sm font-semibold text-foreground">{title}</h1>
 
       <div className="flex items-center gap-3">
-        {/* Help link */}
+        {/* Help link — opens in new tab to avoid leaving the workspace */}
         <Link
           href="/support"
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Help
