@@ -33,6 +33,17 @@ export default async function SessionDetailPage({ params }: Props) {
     notFound()
   }
 
+  // Look up OTEL session IDs via the runs binding table
+  const { data: runRows } = await supabase
+    .from('runs')
+    .select('otel_session_id')
+    .eq('session_id', runId)
+    .not('otel_session_id', 'is', null)
+
+  const otelSessionIds = [...new Set(
+    (runRows ?? []).map(r => r.otel_session_id).filter(Boolean)
+  )]
+
   // Fetch thoughts, OTEL events, and total OTEL count in parallel
   const OTEL_PAGE_LIMIT = 500
   const [thoughtsResult, otelResult, otelCountResult] = await Promise.all([
@@ -41,18 +52,22 @@ export default async function SessionDetailPage({ params }: Props) {
       .select('*')
       .eq('session_id', runId)
       .order('thought_number', { ascending: true }),
-    supabase
-      .from('otel_events')
-      .select('id, event_type, event_name, severity, timestamp_at, body, metric_value, event_attrs, session_id')
-      .eq('workspace_id', sessionRow.workspace_id)
-      .eq('session_id', runId)
-      .order('timestamp_at', { ascending: true })
-      .limit(OTEL_PAGE_LIMIT),
-    supabase
-      .from('otel_events')
-      .select('id', { count: 'exact', head: true })
-      .eq('workspace_id', sessionRow.workspace_id)
-      .eq('session_id', runId),
+    otelSessionIds.length > 0
+      ? supabase
+          .from('otel_events')
+          .select('id, event_type, event_name, severity, timestamp_at, body, metric_value, event_attrs, session_id')
+          .eq('workspace_id', sessionRow.workspace_id)
+          .in('session_id', otelSessionIds)
+          .order('timestamp_at', { ascending: true })
+          .limit(OTEL_PAGE_LIMIT)
+      : Promise.resolve({ data: [], error: null }),
+    otelSessionIds.length > 0
+      ? supabase
+          .from('otel_events')
+          .select('id', { count: 'exact', head: true })
+          .eq('workspace_id', sessionRow.workspace_id)
+          .in('session_id', otelSessionIds)
+      : Promise.resolve({ count: 0, error: null }),
   ])
 
   const totalOtelCount = otelCountResult.count ?? 0
