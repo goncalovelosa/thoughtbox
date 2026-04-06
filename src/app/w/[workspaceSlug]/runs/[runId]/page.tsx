@@ -133,7 +133,7 @@ export default async function SessionDetailPage({ params }: Props) {
   }))
 
   const summary = computeSessionSummary(rawThoughts, rawSession.tags || [])
-  const defaultExpanded = rawThoughts.length >= 20
+  const defaultExpanded = true
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))] text-foreground">

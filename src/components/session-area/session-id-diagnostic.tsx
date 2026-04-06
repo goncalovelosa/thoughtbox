@@ -39,9 +39,15 @@ export function SessionIdDiagnostic({ thoughtboxSessionId, otelSessionId, otelSh
       )}
 
       {isTruncated && (
-        <span className="flex items-center gap-1 text-amber-600">
-          <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+        <span
+          className="flex items-center gap-1.5 px-2 py-1 rounded-sm bg-amber-500/15 text-amber-600 font-semibold"
+          role="alert"
+        >
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           Showing {otelShown.toLocaleString()} of {otelTotal.toLocaleString()} OTEL events
+          <span className="font-normal text-amber-600/70">
+            ({(otelTotal - otelShown).toLocaleString()} hidden)
+          </span>
         </span>
       )}
     </div>

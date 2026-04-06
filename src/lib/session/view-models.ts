@@ -444,11 +444,15 @@ export type TimelineItem =
   | (ThoughtRowVM & { kind: 'thought' })
   | OtelEventVM
 
+/** Timestamps before 2020 are almost certainly epoch-zero or garbage data */
+const MIN_VALID_TIMESTAMP = new Date('2020-01-01T00:00:00Z').getTime()
+
 export function createOtelEventVMs(
   rawEvents: RawOtelEventRecord[],
 ): OtelEventVM[] {
   return rawEvents.map((raw) => {
     const ts = new Date(raw.timestamp_at)
+    const isValid = ts.getTime() >= MIN_VALID_TIMESTAMP
     return {
       id: raw.id,
       kind: 'otel_event' as const,
@@ -456,8 +460,12 @@ export function createOtelEventVMs(
       eventName: raw.event_name,
       severity: raw.severity,
       timestampISO: raw.timestamp_at,
-      relativeTimeLabel: formatDistanceToNow(ts, { addSuffix: true }),
-      absoluteTimeLabel: format(ts, 'MMM d, yyyy HH:mm:ss'),
+      relativeTimeLabel: isValid
+        ? formatDistanceToNow(ts, { addSuffix: true })
+        : 'unknown time',
+      absoluteTimeLabel: isValid
+        ? format(ts, 'MMM d, yyyy HH:mm:ss')
+        : 'Invalid timestamp',
       body: raw.body,
       metricValue: raw.metric_value,
       eventAttrs: (raw.event_attrs ?? {}) as Record<string, unknown>,
