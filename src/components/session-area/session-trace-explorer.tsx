@@ -85,6 +85,7 @@ export function SessionTraceExplorer({
     Set<ThoughtDisplayType>
   >(new Set())
   const [viewMode, setViewMode] = useState<ViewMode>('full')
+  const [showOtel, setShowOtel] = useState(false)
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(
     new Set(),
   )
@@ -204,10 +205,10 @@ export function SessionTraceExplorer({
     return filteredRows.map((r) => details[r.id]).filter(Boolean)
   }, [filteredRows, details])
 
-  // --- Merged timeline (thoughts + OTEL events) ---
+  // --- Merged timeline (thoughts + OTEL events when toggled on) ---
   const timelineItems = useMemo(
-    () => mergeTimeline(filteredRows, otelEventVMs),
-    [filteredRows, otelEventVMs],
+    () => mergeTimeline(filteredRows, showOtel ? otelEventVMs : []),
+    [filteredRows, otelEventVMs, showOtel],
   )
 
   // --- Thought selection ---
@@ -319,6 +320,9 @@ export function SessionTraceExplorer({
           typeCounts={typeCounts}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          showOtel={showOtel}
+          onShowOtelChange={setShowOtel}
+          otelCount={otelEventVMs.length}
           exportSlot={
             <ExportDropdown
               session={sessionVM}

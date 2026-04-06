@@ -34,6 +34,9 @@ type Props = {
   typeCounts: Record<ThoughtDisplayType, number>
   viewMode: ViewMode
   onViewModeChange: (mode: ViewMode) => void
+  showOtel: boolean
+  onShowOtelChange: (show: boolean) => void
+  otelCount: number
   exportSlot?: React.ReactNode
 }
 
@@ -51,6 +54,9 @@ export function SessionTraceToolbar({
   typeCounts,
   viewMode,
   onViewModeChange,
+  showOtel,
+  onShowOtelChange,
+  otelCount,
   exportSlot,
 }: Props) {
   const showLiveIndicator = sessionStatus === 'active'
@@ -125,6 +131,20 @@ export function SessionTraceToolbar({
             Decisions
           </button>
         </div>
+
+        {otelCount > 0 && (
+          <button
+            type="button"
+            onClick={() => onShowOtelChange(!showOtel)}
+            className={`px-2.5 py-1.5 text-xs font-medium rounded-none border transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+              showOtel
+                ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                : 'bg-background text-foreground/50 border-foreground/30 hover:text-foreground'
+            }`}
+          >
+            OTEL ({otelCount.toLocaleString()})
+          </button>
+        )}
 
         <div className="flex-1" />
 
