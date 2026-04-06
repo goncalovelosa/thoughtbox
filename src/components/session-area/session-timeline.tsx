@@ -79,7 +79,7 @@ export function SessionTimeline({
   }
 
   return (
-    <div className="relative flex min-w-max">
+    <div className="relative flex">
       <div className="sticky left-0 z-10 bg-background">
         <SessionTimelineRail
           rows={thoughtRows}

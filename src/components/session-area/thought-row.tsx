@@ -57,7 +57,7 @@ export function ThoughtRow({ row, isSelected, onClick, searchQuery }: Props) {
 
         {/* Content with search highlighting */}
         <div
-          className="text-sm font-medium leading-5 text-foreground truncate"
+          className="text-sm font-medium leading-5 text-foreground line-clamp-2"
           title={row.previewText}
         >
           {row.previewText ? (
