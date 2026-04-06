@@ -55,23 +55,34 @@ export function SessionTraceExplorer({
     sessionId,
   )
 
-  // OTEL event view models
-  const otelEventVMs = useMemo(
+  // OTEL event view models — only tool use events belong in the timeline
+  const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
+
+  const allOtelEventVMs = useMemo(
     () => createOtelEventVMs(initialOtelEvents),
     [initialOtelEvents],
   )
-  const otelSessionId = otelEventVMs.length > 0
-    ? otelEventVMs[0].sessionId
+
+  const otelEventVMs = useMemo(
+    () => allOtelEventVMs.filter(ev => {
+      const stripped = ev.eventName.replace(/^claude_code\./, '').replace(/^gen_ai\./, '')
+      return TOOL_EVENT_SUFFIXES.has(stripped)
+    }),
+    [allOtelEventVMs],
+  )
+
+  const otelSessionId = allOtelEventVMs.length > 0
+    ? allOtelEventVMs[0].sessionId
     : null
 
-  // Build OTEL detail lookup
+  // Build OTEL detail lookup (all events, for detail panel)
   const otelDetails = useMemo(() => {
     const map: Record<string, OtelEventVM> = {}
-    for (const ev of otelEventVMs) {
+    for (const ev of allOtelEventVMs) {
       map[ev.id] = ev
     }
     return map
-  }, [otelEventVMs])
+  }, [allOtelEventVMs])
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -204,7 +215,7 @@ export function SessionTraceExplorer({
     return filteredRows.map((r) => details[r.id]).filter(Boolean)
   }, [filteredRows, details])
 
-  // --- Merged timeline (thoughts + OTEL events) ---
+  // --- Merged timeline (thoughts + tool use events) ---
   const timelineItems = useMemo(
     () => mergeTimeline(filteredRows, otelEventVMs),
     [filteredRows, otelEventVMs],
