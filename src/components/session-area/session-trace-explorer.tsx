@@ -56,10 +56,7 @@ export function SessionTraceExplorer({
   )
 
   // OTEL event view models — only tool use events belong in the timeline
-  const TOOL_EVENT_NAMES = new Set([
-    'tool_result',
-    'claude_code.hook_tool_result',
-  ])
+  const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
 
   const allOtelEventVMs = useMemo(
     () => createOtelEventVMs(initialOtelEvents),
@@ -67,7 +64,10 @@ export function SessionTraceExplorer({
   )
 
   const otelEventVMs = useMemo(
-    () => allOtelEventVMs.filter(ev => TOOL_EVENT_NAMES.has(ev.eventName)),
+    () => allOtelEventVMs.filter(ev => {
+      const stripped = ev.eventName.replace(/^claude_code\./, '').replace(/^gen_ai\./, '')
+      return TOOL_EVENT_SUFFIXES.has(stripped)
+    }),
     [allOtelEventVMs],
   )
 
