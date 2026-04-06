@@ -37,6 +37,7 @@ export default async function SessionDetailPage({ params }: Props) {
   const { data: runRows } = await supabase
     .from('runs')
     .select('otel_session_id')
+    .eq('workspace_id', sessionRow.workspace_id)
     .eq('session_id', runId)
     .not('otel_session_id', 'is', null)
 
