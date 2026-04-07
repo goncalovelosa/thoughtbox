@@ -99,9 +99,9 @@ Your "Getting Started" session appears with `status: "completed"` and `thoughtCo
 
 ## What's Next
 
-- [Sessions](/docs/session-lifecycle) — search, resume, export, and analyze your reasoning
-- [Knowledge Graph](/docs/knowledge-graph) — persist insights across sessions
-- [Interleaved Thinking](/docs/interleaved-thinking) — structure research and development tasks
-- [Ulysses Protocol](/docs/ulysses-protocol) — disciplined debugging when you're stuck
-- [Subagent Patterns](/docs/subagent-patterns) — manage context with subagent isolation
-- [Observability](/docs/observability) — set up telemetry and cost tracking
+- [Sessions](./sessions.md) — search, resume, export, and analyze your reasoning
+- [Knowledge Graph](./knowledge-graph.md) — persist insights across sessions
+- [Interleaved Thinking](./interleaved-thinking.md) — structure research and development tasks
+- [Ulysses Protocol](./ulysses-protocol.md) — disciplined debugging when you're stuck
+- [Subagent Patterns](./subagent-patterns.md) — manage context with subagent isolation
+- [Observability](./observability.md) — set up telemetry and cost tracking
