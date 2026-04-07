@@ -76,7 +76,7 @@ export function ExportDropdown({
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-none border border-foreground/30 text-foreground/70 hover:text-foreground hover:border-foreground/50 transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-foreground/10 text-foreground/70 hover:text-foreground hover:border-foreground/50 transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +98,7 @@ export function ExportDropdown({
       </button>
 
       {open && (
-        <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-none border border-foreground bg-background shadow-lg">
+        <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-48 rounded-xl border border-foreground/10 bg-background shadow-lg">
           <button
             type="button"
             role="menuitem"
@@ -128,7 +128,7 @@ export function ExportDropdown({
 
       <div aria-live="polite" className="absolute right-0 top-full mt-10 z-20">
         {toast && (
-          <div className="px-3 py-1.5 rounded-none border border-foreground/30 bg-background text-xs text-foreground shadow-md whitespace-nowrap">
+          <div className="px-3 py-1.5 rounded-lg border border-foreground/10 bg-background text-xs text-foreground shadow-md whitespace-nowrap">
             {toast}
           </div>
         )}

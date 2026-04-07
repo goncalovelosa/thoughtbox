@@ -30,22 +30,22 @@ export default function SupportPage() {
   return (
     <div className="px-6 py-24">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl uppercase">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
           How can we help?
         </h1>
-        <p className="mt-4 text-lg text-foreground">
+        <p className="mt-4 text-lg text-foreground/70">
           Check the resources below, or reach out directly — we typically respond within one business day.
         </p>
 
         {/* Contact */}
-        <div className="mt-10 rounded-none border-4 border-foreground bg-background p-8">
-          <h2 className="text-lg font-black uppercase text-foreground">Email support</h2>
-          <p className="mt-2 text-foreground">
+        <div className="mt-10 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8">
+          <h2 className="text-lg font-semibold text-foreground">Email support</h2>
+          <p className="mt-2 text-foreground/70">
             For account issues, billing questions, or anything not covered in the docs:
           </p>
           <a
             href="mailto:support@thoughtbox.dev"
-            className="mt-4 inline-block rounded-none bg-foreground text-background border-4 border-foreground px-6 py-3 text-sm font-black uppercase tracking-wider text-background hover:bg-background transition-colors"
+            className="mt-4 inline-block rounded-full bg-foreground text-background px-6 py-3 text-sm font-semibold transition-all hover:bg-foreground/80"
           >
             support@thoughtbox.dev
           </a>
@@ -64,11 +64,11 @@ export default function SupportPage() {
               <Link
                 key={resource.title}
                 href={resource.href}
-                className="flex flex-col items-start gap-2 rounded-none border-4 border-foreground bg-background p-5 text-left shadow-sm hover:shadow-md transition-shadow"
+                className="flex flex-col items-start gap-2 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 text-left transition-colors hover:bg-foreground/[0.06]"
               >
                 <span className="text-2xl">{resource.icon}</span>
-                <span className="font-black uppercase text-foreground">{resource.title}</span>
-                <span className="text-sm text-foreground">{resource.description}</span>
+                <span className="font-semibold text-foreground">{resource.title}</span>
+                <span className="text-sm text-foreground/70">{resource.description}</span>
               </Link>
             ))}
           </div>

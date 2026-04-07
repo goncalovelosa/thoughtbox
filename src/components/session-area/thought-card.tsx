@@ -31,8 +31,8 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
   // If it's pure reasoning, we just return the raw content block
   if (detail.displayType === 'reasoning') {
     return (
-      <div className="border-b border-foreground px-5 py-4 last:border-b-0">
-        <div className="overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
+      <div className="border-b border-foreground/10 px-5 py-4 last:border-b-0">
+        <div className="overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/[0.03] p-4 font-mono text-[12px] leading-5 text-foreground">
           <HighlightedPre text={detail.rawThought} query={searchQuery} />
         </div>
       </div>
@@ -41,7 +41,7 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
 
   // Helper for rendering the header of a structured card
   const renderHeader = (badgeStyles: string, label: string) => (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-foreground/10 px-4 py-3">
       <div className="flex items-center gap-2">
         <span className={`${BADGE_BASE} ${badgeStyles}`}>
           {label}
@@ -78,8 +78,8 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
         return (
           <ul className="space-y-3">
             {detail.options.map((opt, i) => (
-              <li key={i} className={`flex items-start gap-3 rounded-none p-3 ${opt.selected ? 'bg-emerald-500/10 ring-1 ring-emerald-500/20' : 'bg-background/50'}`}>
-                <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-none border ${opt.selected ? 'border-emerald-500 bg-emerald-500' : 'border-foreground'}`}>
+              <li key={i} className={`flex items-start gap-3 rounded-lg p-3 ${opt.selected ? 'bg-emerald-500/10 ring-1 ring-emerald-500/20' : 'bg-background/50'}`}>
+                <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${opt.selected ? 'border-emerald-500 bg-emerald-500' : 'border-foreground/30'}`}>
                   {opt.selected && <svg className="h-3 w-3 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
                 </div>
                 <div>
@@ -122,7 +122,7 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
           <div className="space-y-4">
             <div className="grid gap-2">
               {detail.beliefs.entities.map((entity, i) => (
-                <div key={i} className="flex flex-col gap-0.5 rounded-none bg-background/50 px-3 py-2">
+                <div key={i} className="flex flex-col gap-0.5 rounded-lg bg-background/50 px-3 py-2">
                   <span className="text-sm font-medium text-pink-300">{entity.name}</span>
                   <span className="text-sm text-foreground">{entity.state}</span>
                 </div>
@@ -160,7 +160,7 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
             <div className="text-sm font-medium text-foreground">
               {detail.assumptionChange.text}
             </div>
-            <div className="flex items-center gap-3 bg-background/50 rounded-none p-3 w-fit border border-foreground">
+            <div className="flex items-center gap-3 bg-background/50 rounded-xl p-3 w-fit border border-foreground/10">
               <span className={`text-sm font-semibold capitalize ${getStatusColor(detail.assumptionChange.oldStatus)}`}>
                 {detail.assumptionChange.oldStatus}
               </span>
@@ -198,7 +198,7 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
                 <span className="text-xs font-semibold uppercase tracking-wider text-foreground">Tools Available</span>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {detail.contextData.toolsAvailable.map(t => (
-                    <span key={t} className="px-2 py-1 bg-background rounded-none text-xs font-mono text-foreground border border-foreground">{t}</span>
+                    <span key={t} className="px-2 py-1 bg-background rounded-lg text-xs font-mono text-foreground border border-foreground/10">{t}</span>
                   ))}
                 </div>
               </div>
@@ -214,7 +214,7 @@ export function ThoughtCard({ detail, searchQuery }: Props) {
               {detail.progressData.task}
             </div>
             <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center rounded-none px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+              <span className={`inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                 detail.progressData.status === 'done' ? 'bg-emerald-400/10 text-emerald-400 ring-emerald-400/20' :
                 detail.progressData.status === 'in_progress' ? 'bg-blue-400/10 text-blue-400 ring-blue-400/20' :
                 detail.progressData.status === 'blocked' ? 'bg-rose-400/10 text-rose-400 ring-rose-400/20' :
@@ -269,8 +269,8 @@ function TypedThoughtCard({
   const [showRaw, setShowRaw] = useState(false)
 
   return (
-    <div className="border-b border-foreground px-5 py-4 last:border-b-0">
-      <div className="rounded-none border border-foreground bg-background mb-4">
+    <div className="border-b border-foreground/10 px-5 py-4 last:border-b-0">
+      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] mb-4">
         {renderHeader(badgeStyles, label)}
         <div className="space-y-4 px-4 py-4 text-sm text-foreground">
           {renderBody()}
@@ -300,7 +300,7 @@ function TypedThoughtCard({
       </button>
 
       {showRaw && (
-        <div className="mt-2 overflow-x-auto rounded-none border border-foreground bg-background/80 p-4 font-mono text-[12px] leading-5 text-foreground">
+        <div className="mt-2 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/[0.03] p-4 font-mono text-[12px] leading-5 text-foreground">
           <HighlightedPre text={detail.rawThought} query={searchQuery} />
         </div>
       )}

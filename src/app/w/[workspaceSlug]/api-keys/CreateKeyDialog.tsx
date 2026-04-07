@@ -78,7 +78,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background transition-colors"
+        className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:bg-foreground/80"
       >
         + Create key
       </button>
@@ -95,7 +95,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-key-title"
-            className="relative w-full max-w-md rounded-none border border-foreground bg-background p-6 shadow-xl"
+            className="relative w-full max-w-md rounded-2xl border border-foreground/10 bg-background p-6 shadow-xl"
             style={{ overscrollBehavior: 'contain' }}
           >
             {hasKey ? (
@@ -112,11 +112,11 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                     readOnly
                     value={state.plainKey}
                     aria-label="API key value"
-                    className="flex-1 rounded-none border border-foreground bg-background px-3 py-2 font-mono text-sm text-foreground"
+                    className="flex-1 rounded-xl border border-foreground/10 bg-foreground/5 px-3 py-2 font-mono text-sm text-foreground focus:border-foreground/20 focus:ring-2 focus:ring-foreground/10"
                   />
                   <button
                     onClick={handleCopy}
-                    className="rounded-none border border-foreground px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                    className="rounded-xl border border-foreground/10 px-3 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-all"
                   >
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
@@ -126,7 +126,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                 )}
                 <button
                   onClick={handleClose}
-                  className="mt-4 w-full rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background transition-colors"
+                  className="mt-4 w-full rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:bg-foreground/80"
                 >
                   Done
                 </button>
@@ -148,7 +148,7 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                   maxLength={64}
                   autoComplete="off"
                   placeholder="e.g. Production MCP server"
-                  className="mt-4 w-full rounded-none border border-foreground px-3 py-2 text-sm text-black placeholder:text-neutral-400 focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                  className="mt-4 w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3 py-2 text-sm text-black placeholder:text-neutral-400 focus:border-foreground/20 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                 />
                 {state?.error && (
                   <p className="mt-2 text-sm text-red-600">{state.error}</p>
@@ -157,14 +157,14 @@ export function CreateKeyDialog({ workspaceSlug }: CreateKeyDialogProps) {
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="rounded-none border border-foreground px-4 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                    className="rounded-full border border-foreground/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={pending}
-                    className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background disabled:opacity-50 transition-colors"
+                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all hover:bg-foreground/80 disabled:opacity-50"
                   >
                     {pending ? 'Creating\u2026' : 'Create'}
                   </button>

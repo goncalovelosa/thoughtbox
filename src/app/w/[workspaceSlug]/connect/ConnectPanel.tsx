@@ -58,7 +58,7 @@ export function ConnectPanel({
     <div className="space-y-6">
       {/* Key selector / no-key warning */}
       {hasKeys ? (
-        <div className="rounded-none border border-foreground bg-background px-5 py-4">
+        <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-5 py-4">
           <label htmlFor="key-select" className="block text-sm font-medium text-foreground mb-2">
             API key
           </label>
@@ -66,7 +66,7 @@ export function ConnectPanel({
             id="key-select"
             value={selectedKeyId}
             onChange={e => setSelectedKeyId(e.target.value)}
-            className="w-full rounded-none border border-foreground bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3 py-2 text-sm text-foreground focus:outline-none focus:border-foreground/20 focus:ring-2 focus:ring-foreground/10"
             autoComplete="off"
           >
             {apiKeys.map(k => (
@@ -83,7 +83,7 @@ export function ConnectPanel({
           </p>
         </div>
       ) : (
-        <div className="rounded-none border border-foreground bg-muted px-5 py-4">
+        <div className="rounded-2xl border border-foreground/10 bg-muted px-5 py-4">
           <p className="text-sm font-medium text-foreground">No API keys yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Create a key on the{' '}
@@ -96,8 +96,8 @@ export function ConnectPanel({
       )}
 
       {/* Config block */}
-      <section className="rounded-none border border-foreground bg-background">
-        <div className="flex items-center justify-between border-b border-foreground px-6 py-4">
+      <section className="rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
+        <div className="flex items-center justify-between border-b border-foreground/10 px-6 py-4">
           <div>
             <h2 className="text-sm font-semibold text-foreground">
               1. Copy your MCP config
@@ -109,13 +109,13 @@ export function ConnectPanel({
           <button
             type="button"
             onClick={handleCopy}
-            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            className="rounded-lg border border-foreground/10 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-all"
           >
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
         <div className="overflow-x-auto p-6">
-          <pre className="rounded-none bg-muted p-4 text-sm leading-relaxed text-foreground font-mono">
+          <pre className="rounded-xl bg-muted p-4 text-sm leading-relaxed text-foreground font-mono">
             {configJson}
           </pre>
           {!hasKeys && (
@@ -130,8 +130,8 @@ export function ConnectPanel({
       </section>
 
       {/* Add-to-client instructions */}
-      <section className="rounded-none border border-foreground bg-background">
-        <div className="border-b border-foreground px-6 py-4">
+      <section className="rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
+        <div className="border-b border-foreground/10 px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">
             2. Add to your MCP client
           </h2>

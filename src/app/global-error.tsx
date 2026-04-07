@@ -16,8 +16,8 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center font-sans">
-        <p className="text-sm font-semibold uppercase tracking-widest text-red-600">
-          Critical Error
+        <p className="text-sm font-semibold tracking-widest text-red-600">
+          Critical error
         </p>
         <h1 className="mt-4 text-3xl font-bold text-foreground">Something went wrong</h1>
         <p className="mt-3 text-foreground">
@@ -28,7 +28,7 @@ export default function GlobalError({
         )}
         <button
           onClick={reset}
-          className="mt-8 rounded-none bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-background shadow-sm hover:bg-indigo-700 transition-colors"
+          className="mt-8 rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-semibold shadow-sm transition-all hover:bg-foreground/80"
         >
           Try again
         </button>

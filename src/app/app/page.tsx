@@ -25,8 +25,8 @@ export default async function AppPage() {
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-2xl items-center px-6 py-16">
-      <div className="w-full rounded-none border border-amber-200 bg-amber-50 p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">
+      <div className="w-full rounded-2xl border border-amber-200 bg-amber-50 p-8 shadow-sm">
+        <p className="text-sm font-semibold tracking-wide text-amber-800">
           Workspace setup required
         </p>
         <h1 className="mt-3 text-3xl font-bold text-foreground">
@@ -40,13 +40,13 @@ export default async function AppPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/support"
-            className="rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-background transition-colors"
+            className="rounded-full bg-foreground text-background px-4 py-2 text-sm font-semibold transition-all hover:bg-foreground/80"
           >
             Contact support
           </Link>
           <Link
             href="/sign-in"
-            className="rounded-none border border-foreground px-4 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+            className="rounded-full border border-foreground/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-foreground/5"
           >
             Back to sign in
           </Link>

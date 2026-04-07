@@ -40,7 +40,7 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
   )
 
   return (
-    <div className="border-t border-foreground px-5 py-4">
+    <div className="border-t border-foreground/10 px-5 py-4">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 text-xs font-medium text-foreground hover:text-foreground transition-colors"
@@ -61,7 +61,7 @@ export function ThoughtMetadataDisclosure({ detail }: Props) {
       </button>
 
       {isOpen && (
-        <div className="mt-3 overflow-x-auto rounded-none border border-foreground bg-background/80 p-4">
+        <div className="mt-3 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/[0.03] p-4">
           <pre className="font-mono text-[12px] leading-5 text-foreground">
             {JSON.stringify(payload, null, 2)}
           </pre>

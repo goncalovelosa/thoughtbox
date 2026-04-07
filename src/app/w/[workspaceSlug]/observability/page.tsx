@@ -216,7 +216,7 @@ export default async function ObservabilityPage({ params }: Props) {
         ) : (
           <div className="space-y-4">
             {/* Stacked bar */}
-            <div className="flex h-4 w-full overflow-hidden rounded-none border border-foreground">
+            <div className="flex h-4 w-full overflow-hidden rounded-full border border-foreground/10">
               {completedPct > 0 && (
                 <div
                   className="h-full bg-emerald-500/80"
@@ -260,15 +260,15 @@ export default async function ObservabilityPage({ params }: Props) {
 
       {/* OTel telemetry section */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2.5 border-b border-foreground pb-3">
+        <div className="flex items-center gap-2.5 border-b border-foreground/10 pb-3">
           <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-foreground">Claude&nbsp;Code Telemetry</h2>
           {otelConnected ? (
-            <span className="ml-auto flex items-center gap-1 rounded-none border border-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+            <span className="ml-auto flex items-center gap-1 rounded-lg border border-emerald-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
               Connected
             </span>
           ) : (
-            <span className="ml-auto flex items-center gap-1 rounded-none border border-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="ml-auto flex items-center gap-1 rounded-lg border border-foreground/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Lock className="h-3 w-3" aria-hidden="true" />
               Requires OTel
             </span>
@@ -376,7 +376,7 @@ export default async function ObservabilityPage({ params }: Props) {
         )}
 
         {/* Setup instructions */}
-        <div className="rounded-none border border-foreground bg-background p-5 space-y-3">
+        <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 space-y-3">
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <p className="text-sm font-semibold text-foreground">Enable Claude Code telemetry</p>
@@ -424,7 +424,7 @@ function KpiCard({
   icon: React.ReactNode
 }) {
   return (
-    <div className="rounded-none border border-foreground bg-background p-5">
+    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
         <span className="text-muted-foreground">{icon}</span>
@@ -445,7 +445,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-none border border-foreground bg-background p-5">
+    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5">
       <div className="flex items-baseline justify-between mb-4">
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
@@ -465,7 +465,7 @@ function EmptyChart({ message }: { message: string }) {
 
 function OtelLockedCard({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-none border border-foreground/30 bg-background p-4 opacity-50">
+    <div className="rounded-2xl border border-foreground/10 bg-background p-4 opacity-50">
       <div className="flex items-center gap-2 mb-2">
         <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         <p className="text-sm font-semibold text-foreground">{title}</p>

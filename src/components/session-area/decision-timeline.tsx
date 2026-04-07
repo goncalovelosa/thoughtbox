@@ -48,10 +48,10 @@ export function DecisionTimeline({
           <button
             type="button"
             data-thought-id={group.decision.id}
-            className={`mx-4 rounded-none border-2 transition-colors cursor-pointer w-[calc(100%-2rem)] text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`mx-4 rounded-2xl border transition-colors cursor-pointer w-[calc(100%-2rem)] text-left focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
               selectedId === group.decision.id
-                ? 'border-foreground bg-foreground/5'
-                : 'border-foreground/30 hover:border-foreground/60'
+                ? 'border-foreground/30 bg-foreground/5'
+                : 'border-foreground/10 hover:border-foreground/30'
             }`}
             onClick={() => onSelect(group.decision.id)}
           >
@@ -121,7 +121,7 @@ function ReasoningGap({
       </button>
 
       {expanded && (
-        <div className="mt-1 rounded-none border border-foreground/20 overflow-hidden">
+        <div className="mt-1 rounded-xl border border-foreground/10 overflow-hidden">
           {rows.map((row) => (
             <ThoughtRow
               key={row.id}

@@ -57,7 +57,7 @@ function GeneralSection({
             autoComplete="organization"
             defaultValue={initialName}
             spellCheck={false}
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
           />
         </div>
 
@@ -67,7 +67,7 @@ function GeneralSection({
             type="text"
             disabled
             defaultValue={workspaceSlug}
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 font-mono text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 font-mono text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           />
           <p className="mt-1.5 text-xs text-muted-foreground">
             Used in URLs — e.g.{' '}
@@ -87,7 +87,7 @@ function GeneralSection({
           <button
             type="submit"
             disabled={pending}
-            className="rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-full bg-foreground text-background font-semibold px-5 py-2.5 text-sm transition-all hover:bg-foreground/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {pending ? 'Saving…' : 'Save changes'}
           </button>
@@ -106,7 +106,7 @@ function MembersSection({ members }: { members: Member[] }) {
 
   return (
     <Section title="Members">
-      <div className="overflow-hidden rounded-none border border-foreground">
+      <div className="overflow-hidden rounded-xl border border-foreground/10">
         <table className="min-w-full divide-y divide-foreground/10">
           <thead className="bg-muted">
             <tr>
@@ -138,7 +138,7 @@ function MembersSection({ members }: { members: Member[] }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="rounded-none border border-foreground/30 bg-background px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                    <span className="rounded-lg border border-foreground/10 bg-foreground/5 px-2.5 py-0.5 text-xs font-semibold text-foreground">
                       {ROLE_LABEL[m.role]}
                     </span>
                   </td>
@@ -151,7 +151,7 @@ function MembersSection({ members }: { members: Member[] }) {
       </div>
       <button
         disabled
-        className="rounded-none border border-foreground px-4 py-2 text-sm font-medium text-foreground opacity-40 cursor-not-allowed"
+        className="rounded-full border border-foreground/10 px-4 py-2 text-sm font-medium text-foreground opacity-40 cursor-not-allowed"
         title="Team invitations coming in a future release"
       >
         + Invite member
@@ -166,14 +166,14 @@ function MembersSection({ members }: { members: Member[] }) {
 function DangerSection() {
   return (
     <Section title="Danger zone">
-      <div className="rounded-none border border-foreground bg-background p-5">
+      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5">
         <p className="font-semibold text-foreground">Delete workspace</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Permanently delete this workspace, all projects, thoughts, and run history. This cannot be undone.
         </p>
         <button
           disabled
-          className="mt-4 rounded-none border border-foreground px-4 py-2 text-sm font-semibold text-foreground opacity-40 cursor-not-allowed"
+          className="mt-4 rounded-full border border-foreground/10 px-4 py-2 text-sm font-semibold text-foreground opacity-40 cursor-not-allowed"
           title="Contact support to delete your workspace"
         >
           Delete workspace
@@ -191,8 +191,8 @@ function DangerSection() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8 rounded-none border border-foreground bg-background p-6">
-      <h2 className="mb-5 border-b border-foreground pb-3 text-base font-semibold text-foreground">
+    <div className="mb-8 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-6">
+      <h2 className="mb-5 border-b border-foreground/10 pb-3 text-base font-semibold text-foreground">
         {title}
       </h2>
       <div className="flex flex-col gap-4">{children}</div>

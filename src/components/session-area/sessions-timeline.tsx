@@ -89,7 +89,7 @@ export function SessionsTimeline({
   }, [sessions, rangeStart, bucketMs, bucketCount])
 
   return (
-    <div className="mb-6 rounded-none border border-foreground bg-background/80 shadow-sm">
+    <div className="mb-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm">
       <div className="flex items-center justify-between border-b border-foreground/20 px-4 py-2.5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
           Activity

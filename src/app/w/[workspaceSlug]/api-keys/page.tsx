@@ -23,7 +23,7 @@ export default async function ApiKeysPage({ params }: Props) {
         <CreateKeyDialog workspaceSlug={workspaceSlug} />
       </div>
 
-      <div className="mb-6 rounded-none border border-blue-200 bg-blue-50 px-5 py-4">
+      <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4">
         <p className="text-sm font-medium text-blue-900">Key format</p>
         <p className="mt-1 text-sm text-blue-700">
           Keys are prefixed <code className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs">tbx_</code> and

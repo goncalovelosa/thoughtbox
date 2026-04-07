@@ -10,7 +10,7 @@ type Props = {
 export function SessionsTableShell({ sessions, onTagClick }: Props) {
   if (sessions.length === 0) {
     return (
-      <div className="rounded-none border border-foreground bg-background/80 shadow-sm p-12 text-center">
+      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm p-12 text-center">
         <h3 className="text-lg font-medium text-foreground">No sessions yet</h3>
         <p className="mt-2 text-sm text-foreground">
           Reasoning traces will appear here once agents run through Thoughtbox.
@@ -20,7 +20,7 @@ export function SessionsTableShell({ sessions, onTagClick }: Props) {
   }
 
   return (
-    <div className="rounded-none border border-foreground bg-background/80 shadow-sm overflow-hidden">
+    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-slate-800/60">
         <thead className="bg-background/50">
           <tr>

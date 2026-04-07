@@ -20,10 +20,10 @@
     --accent-foreground: 0 0% 0%;
     --destructive: 0 0% 100%;
     --destructive-foreground: 0 0% 0%;
-    --border: 0 0% 100%;
-    --input: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --ring: 0 0% 100%;
-    --radius: 0rem;
+    --radius: 0.625rem;
     --chart-1: 0 0% 80%;
     --chart-2: 0 0% 70%;
     --chart-3: 0 0% 60%;
@@ -57,8 +57,8 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 0% 0%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 0%;
-    --input: 0 0% 0%;
+    --border: 0 0% 82%;
+    --input: 0 0% 82%;
     --ring: 0 0% 0%;
     --chart-1: 0 0% 20%;
     --chart-2: 0 0% 30%;
@@ -78,7 +78,7 @@
 
 @layer base {
   * {
-    @apply border-foreground;
+    @apply border-border;
   }
 
   html {
@@ -103,7 +103,7 @@
 @layer components {
   /* Code blocks in docs/quickstart */
   .prose-code pre {
-    @apply rounded-none bg-background p-4 text-sm text-foreground overflow-x-auto border-2 border-foreground;
+    @apply rounded-lg bg-background p-4 text-sm text-foreground overflow-x-auto border border-foreground/10;
   }
 
   .prose-code code {
@@ -131,23 +131,25 @@
   .corner-accent::before {
     content: '';
     position: absolute;
-    top: -4px;
-    left: -4px;
-    width: 24px;
-    height: 24px;
-    border-top: 4px solid currentColor;
-    border-left: 4px solid currentColor;
+    top: -2px;
+    left: -2px;
+    width: 20px;
+    height: 20px;
+    border-top: 2px solid currentColor;
+    border-left: 2px solid currentColor;
+    border-top-left-radius: 4px;
   }
 
   .corner-accent::after {
     content: '';
     position: absolute;
-    bottom: -4px;
-    right: -4px;
-    width: 24px;
-    height: 24px;
-    border-bottom: 4px solid currentColor;
-    border-right: 4px solid currentColor;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-bottom: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    border-bottom-right-radius: 4px;
   }
 
   .text-outline {
@@ -168,7 +170,7 @@
 
   .underline-thick {
     text-decoration: underline;
-    text-decoration-thickness: 4px;
-    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
   }
 }

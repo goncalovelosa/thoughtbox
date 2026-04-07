@@ -73,7 +73,7 @@ export default async function DashboardPage({ params }: Props) {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-none border border-foreground bg-background p-5 shadow-sm"
+            className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 shadow-sm"
           >
             <p className="text-xs font-medium uppercase tracking-wider text-foreground">
               {stat.label}
@@ -107,8 +107,8 @@ export default async function DashboardPage({ params }: Props) {
       </div>
 
       {/* Recent runs */}
-      <div className="mt-8 rounded-none border border-foreground bg-background shadow-sm">
-        <div className="flex items-center justify-between border-b border-foreground px-6 py-4">
+      <div className="mt-8 rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm">
+        <div className="flex items-center justify-between border-b border-foreground/10 px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">Recent runs</h2>
           <Link
             href={`${base}/runs`}
@@ -127,7 +127,7 @@ export default async function DashboardPage({ params }: Props) {
             </p>
             <Link
               href={`${base}/docs/quickstart`}
-              className="mt-3 rounded-none bg-foreground text-background border-2 border-foreground px-4 py-2 text-xs font-semibold text-background hover:bg-background transition-colors"
+              className="mt-3 rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all hover:bg-foreground/80"
             >
               See quickstart guide
             </Link>
@@ -180,7 +180,7 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex flex-col gap-3 rounded-none border border-foreground bg-background p-5 shadow-sm hover:shadow-md hover:border-foreground transition-all"
+      className="flex flex-col gap-3 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 shadow-sm hover:shadow-md transition-all"
     >
       <span className="text-2xl">{icon}</span>
       <div>
