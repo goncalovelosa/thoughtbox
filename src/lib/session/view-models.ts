@@ -74,6 +74,38 @@ export type RawThoughtRecord = {
   critique?: unknown
 }
 
+/**
+ * Map a raw Supabase DB row (snake_case) to RawThoughtRecord (camelCase).
+ * Used by Postgres Changes realtime handlers where payload.new is the raw DB row.
+ */
+export function fromThoughtsRow(row: Record<string, unknown>): RawThoughtRecord {
+  return {
+    id: row.id as string,
+    thoughtNumber: row.thought_number != null ? row.thought_number as number : undefined,
+    totalThoughts: row.total_thoughts != null ? row.total_thoughts as number : undefined,
+    thought: row.thought as string,
+    timestamp: row.timestamp as string,
+    nextThoughtNeeded: row.next_thought_needed != null ? row.next_thought_needed as boolean : undefined,
+    isRevision: row.is_revision != null ? row.is_revision as boolean : undefined,
+    revisesThought: row.revises_thought != null ? row.revises_thought as number : undefined,
+    branchId: row.branch_id != null ? row.branch_id as string : undefined,
+    branchFromThought: row.branch_from_thought != null ? row.branch_from_thought as number : undefined,
+    thoughtType: row.thought_type as RawThoughtRecord['thoughtType'],
+    confidence: row.confidence as RawThoughtRecord['confidence'],
+    options: row.options as RawThoughtRecord['options'],
+    actionResult: row.action_result as RawThoughtRecord['actionResult'],
+    beliefs: row.beliefs as RawThoughtRecord['beliefs'],
+    assumptionChange: row.assumption_change as RawThoughtRecord['assumptionChange'],
+    contextData: row.context_data as RawThoughtRecord['contextData'],
+    progressData: row.progress_data as RawThoughtRecord['progressData'],
+    agentId: row.agent_id != null ? row.agent_id as string : undefined,
+    agentName: row.agent_name != null ? row.agent_name as string : undefined,
+    contentHash: row.content_hash != null ? row.content_hash as string : undefined,
+    parentHash: row.parent_hash != null ? row.parent_hash as string : undefined,
+    critique: row.critique ?? undefined,
+  }
+}
+
 export type RawSessionRecord = {
   id: string
   title?: string

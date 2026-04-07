@@ -3,7 +3,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  createThoughtViewModels, 
+  createThoughtViewModels,
+  fromThoughtsRow,
   type RawThoughtRecord,
 } from './view-models'
 
@@ -25,33 +26,30 @@ export function useSessionRealtime(
   useEffect(() => {
     if (!workspaceId) return
 
-    console.log(`[Realtime] Subscribing to workspace:${workspaceId}`)
-    
-    const channel = supabase.channel(`workspace:${workspaceId}`)
-      .on('broadcast', { event: 'thought:added' }, (payload) => {
-        const data = payload.payload as { sessionId: string; thought: RawThoughtRecord }
-        if (data.sessionId === sessionId) {
-          setThoughts(prev => {
-            if (prev.some(t => t.id === data.thought.id)) return prev
-            return [...prev, data.thought]
-          })
+    console.log(`[Realtime] Subscribing to thoughts for workspace:${workspaceId}`)
+
+    const channel = supabase.channel(`thoughts:${workspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'thoughts',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        (payload) => {
+          const raw = payload.new as Record<string, unknown>
+          if (!raw || raw.session_id !== sessionId) return
+          const row = fromThoughtsRow(raw)
+          if (payload.eventType === 'INSERT') {
+            setThoughts(prev =>
+              prev.some(t => t.id === row.id) ? prev : [...prev, row]
+            )
+          } else if (payload.eventType === 'UPDATE') {
+            setThoughts(prev => prev.map(t => t.id === row.id ? row : t))
+          }
         }
-      })
-      .on('broadcast', { event: 'thought:revised' }, (payload) => {
-        const data = payload.payload as { sessionId: string; thought: RawThoughtRecord }
-        if (data.sessionId === sessionId) {
-          setThoughts(prev => prev.map(t => t.id === data.thought.id ? data.thought : t))
-        }
-      })
-      .on('broadcast', { event: 'thought:branched' }, (payload) => {
-        const data = payload.payload as { sessionId: string; thought: RawThoughtRecord }
-        if (data.sessionId === sessionId) {
-          setThoughts(prev => {
-            if (prev.some(t => t.id === data.thought.id)) return prev
-            return [...prev, data.thought]
-          })
-        }
-      })
+      )
       .subscribe((newStatus) => {
         console.log(`[Realtime] Subscription status: ${newStatus}`)
         setStatus(newStatus)
