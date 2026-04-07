@@ -9,7 +9,7 @@ const sections = [
   {
     title: 'Getting started',
     items: [
-      { label: 'Quickstart', href: '/docs/quickstart', description: 'Connect your first MCP client in under 60 seconds.' },
+      { label: 'Quickstart', href: '/docs/quickstart', description: 'Connect your first MCP client in under 5 minutes.' },
     ],
   },
   {
@@ -18,6 +18,17 @@ const sections = [
       { label: 'Sessions & Thoughts', href: '/docs/sessions-and-thoughts', description: 'The structured reasoning trace — sessions, thoughts, branching, and revisions.' },
       { label: 'Code Mode', href: '/docs/code-mode', description: 'Two MCP tools replace dozens. Write JavaScript against the tb SDK.' },
       { label: 'Authentication', href: '/docs/authentication', description: 'API key format, creation, rotation, and workspace scoping.' },
+    ],
+  },
+  {
+    title: 'Guides',
+    items: [
+      { label: 'Session Lifecycle', href: '/docs/session-lifecycle', description: 'Session lifecycle, search, resume, export, and analysis.' },
+      { label: 'Knowledge Graph', href: '/docs/knowledge-graph', description: 'Entities, relations, observations, and graph traversal.' },
+      { label: 'Interleaved Thinking', href: '/docs/interleaved-thinking', description: 'IRCoT pattern: think, act, reflect, repeat.' },
+      { label: 'Ulysses Protocol', href: '/docs/ulysses-protocol', description: 'Surprise-gated debugging with forced hypotheses.' },
+      { label: 'Subagent Patterns', href: '/docs/subagent-patterns', description: 'Context isolation for session retrieval and thought evolution.' },
+      { label: 'Observability', href: '/docs/observability', description: 'OTEL setup, cost tracking, and session timelines.' },
     ],
   },
 ]
