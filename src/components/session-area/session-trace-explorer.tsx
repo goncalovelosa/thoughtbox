@@ -55,21 +55,19 @@ export function SessionTraceExplorer({
     sessionId,
   )
 
-  // OTEL event view models — only tool use events belong in the timeline
-  const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
-
   const allOtelEventVMs = useMemo(
     () => createOtelEventVMs(initialOtelEvents),
     [initialOtelEvents],
   )
 
-  const otelEventVMs = useMemo(
-    () => allOtelEventVMs.filter(ev => {
+  // OTEL event view models — only tool use events belong in the timeline
+  const otelEventVMs = useMemo(() => {
+    const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
+    return allOtelEventVMs.filter(ev => {
       const stripped = ev.eventName.replace(/^claude_code\./, '').replace(/^gen_ai\./, '')
       return TOOL_EVENT_SUFFIXES.has(stripped)
-    }),
-    [allOtelEventVMs],
-  )
+    })
+  }, [allOtelEventVMs])
 
   const otelSessionId = allOtelEventVMs.length > 0
     ? allOtelEventVMs[0].sessionId
@@ -309,13 +307,14 @@ export function SessionTraceExplorer({
   const debouncedQuery = debouncedSearch.trim()
 
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-6 items-start">
+    <div className="flex flex-col lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)] gap-8 items-start">
       {/* Left Column: Trace List */}
       <div
-        className="w-full sticky top-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)]"
+        className="w-full sticky top-6 border-4 border-foreground bg-background shadow-brutal overflow-hidden flex flex-col h-[calc(100vh-12rem)] group"
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
+        <div className="absolute inset-0 scanlines opacity-5 pointer-events-none z-0"></div>
         <SessionTraceToolbar
           isLive={isLive}
           sessionStatus={sessionStatus}
@@ -346,7 +345,7 @@ export function SessionTraceExplorer({
           otelTotal={otelTotalCount}
         />
 
-        <div className="flex-1 overflow-y-auto relative">
+        <div className="flex-1 overflow-y-auto relative z-10">
           {viewMode === 'decisions' && decisionGroups ? (
             <DecisionTimeline
               data={decisionGroups}
@@ -369,7 +368,13 @@ export function SessionTraceExplorer({
       </div>
 
       {/* Right Column: Selected Detail */}
-      <div className="w-full sticky top-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+      <div className="w-full sticky top-6 border-4 border-foreground bg-background shadow-brutal overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+        <div className="absolute inset-0 dots-pattern opacity-5 pointer-events-none z-0"></div>
+        <div className="reticle-tl text-foreground z-20"></div>
+        <div className="reticle-tr text-foreground z-20"></div>
+        <div className="reticle-bl text-foreground z-20"></div>
+        <div className="reticle-br text-foreground z-20"></div>
+        
         <ThoughtDetailPanel
           detail={
             effectiveSelectedId
