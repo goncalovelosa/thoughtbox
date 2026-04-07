@@ -17,7 +17,7 @@ action returned and decides what to do next.
 The discipline: never act without a thought explaining why, and never
 think without incorporating what the last action returned.
 
-## Three Modes
+## Four Modes
 
 Each mode has a resource at `thoughtbox://interleaved/{mode}`.
 Load the resource to get the mode's prompt template and constraints.
@@ -51,6 +51,17 @@ Deep examination of existing material. No external retrieval needed.
   structure from what you already have.
 - **Cadence:** Read, reflect in a thought, re-read with the new lens,
   reflect again.
+
+### Operations
+
+Runtime monitoring and incident response. Observe, diagnose, act.
+
+- **Required tools:** Thoughtbox + observability queries + system
+  access
+- **Priority:** Triage and root cause. Record observations before
+  acting so the timeline is reconstructable.
+- **Cadence:** Query metrics/logs, record finding in a thought,
+  form hypothesis, take corrective action, record outcome.
 
 ## Sufficiency Assessment
 

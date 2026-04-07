@@ -8,7 +8,7 @@ export const mdxComponents: MDXComponents = {
   Callout,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
     <h1
-      className="mt-0 text-4xl font-bold tracking-tight text-foreground"
+      className="mt-0 mb-8 text-5xl md:text-6xl font-black uppercase tracking-tighter text-foreground"
       {...props}
     />
   ),
@@ -18,7 +18,7 @@ export const mdxComponents: MDXComponents = {
       : undefined
     return (
       <h2
-        className="mt-10 mb-4 text-xl font-semibold text-foreground"
+        className="mt-16 mb-6 text-3xl md:text-4xl font-black uppercase tracking-tight text-foreground"
         id={id}
         {...props}
       />
@@ -26,19 +26,19 @@ export const mdxComponents: MDXComponents = {
   },
   h3: (props: ComponentPropsWithoutRef<'h3'>) => (
     <h3
-      className="mt-8 mb-3 text-lg font-bold text-foreground"
+      className="mt-12 mb-4 text-xl md:text-2xl font-black uppercase tracking-wide text-foreground"
       {...props}
     />
   ),
   p: (props: ComponentPropsWithoutRef<'p'>) => (
-    <p className="my-3 text-sm leading-relaxed text-foreground" {...props} />
+    <p className="my-5 text-base md:text-lg font-medium leading-relaxed text-foreground" {...props} />
   ),
   a: ({ href, ...props }: ComponentPropsWithoutRef<'a'>) => {
     if (href?.startsWith('/')) {
       return (
         <Link
           href={href}
-          className="text-foreground underline hover:underline-thick"
+          className="text-foreground font-bold underline decoration-2 underline-offset-4 hover:bg-foreground hover:text-background transition-colors"
           {...props}
         />
       )
@@ -48,62 +48,65 @@ export const mdxComponents: MDXComponents = {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-foreground underline hover:underline-thick"
+        className="text-foreground font-bold underline decoration-2 underline-offset-4 hover:bg-foreground hover:text-background transition-colors"
         {...props}
       />
     )
   },
   ul: (props: ComponentPropsWithoutRef<'ul'>) => (
-    <ul className="my-3 flex flex-col gap-1.5 pl-5 text-sm text-foreground list-disc" {...props} />
+    <ul className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-disc" {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
-    <ol className="my-3 flex flex-col gap-1.5 pl-5 text-sm text-foreground list-decimal" {...props} />
+    <ol className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-decimal" {...props} />
   ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
-    <li className="text-sm leading-relaxed text-foreground" {...props} />
+    <li className="leading-relaxed text-foreground" {...props} />
   ),
   code: (props: ComponentPropsWithoutRef<'code'>) => (
     <code
-      className="rounded bg-foreground/10 px-1.5 py-0.5 font-mono text-xs text-foreground"
+      className="bg-foreground/10 px-1.5 py-0.5 font-mono-terminal font-bold text-sm md:text-base text-foreground border-b-2 border-foreground/20"
       {...props}
     />
   ),
   pre: (props: ComponentPropsWithoutRef<'pre'>) => (
-    <pre className="my-4 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/[0.03] p-5 font-mono text-sm leading-relaxed text-foreground">
+    <pre className="my-8 overflow-x-auto border-4 border-foreground bg-background p-6 font-mono-terminal text-sm md:text-base leading-relaxed text-foreground shadow-brutal-sm relative">
+      <div className="absolute top-0 right-0 w-8 h-8 diagonal-lines opacity-10 pointer-events-none"></div>
       {props.children}
     </pre>
   ),
   table: (props: ComponentPropsWithoutRef<'table'>) => (
-    <div className="my-4 overflow-x-auto">
-      <table className="w-full text-sm" {...props} />
+    <div className="my-8 overflow-x-auto border-4 border-foreground bg-background shadow-brutal-sm">
+      <table className="w-full text-base md:text-lg font-medium" {...props} />
     </div>
   ),
   thead: (props: ComponentPropsWithoutRef<'thead'>) => (
-    <thead className="border-b border-foreground" {...props} />
+    <thead className="bg-foreground text-background" {...props} />
   ),
   th: (props: ComponentPropsWithoutRef<'th'>) => (
-    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground" {...props} />
+    <th className="px-4 py-3 text-left text-xs md:text-sm font-black uppercase tracking-widest" {...props} />
   ),
   td: (props: ComponentPropsWithoutRef<'td'>) => (
-    <td className="border-b border-foreground/10 px-3 py-2 text-sm text-foreground" {...props} />
+    <td className="border-t-4 border-foreground px-4 py-3 text-foreground" {...props} />
   ),
   strong: (props: ComponentPropsWithoutRef<'strong'>) => (
-    <strong className="font-semibold text-foreground" {...props} />
+    <strong className="font-black text-foreground" {...props} />
   ),
   blockquote: (props: ComponentPropsWithoutRef<'blockquote'>) => (
-    <blockquote className="my-4 border-l-4 border-foreground/30 pl-4 text-sm italic text-foreground" {...props} />
+    <blockquote className="my-8 border-l-8 border-foreground bg-foreground/5 p-6 text-lg md:text-xl font-bold italic text-foreground" {...props} />
   ),
-  hr: () => <hr className="my-8 border-foreground/20" />,
+  hr: () => <hr className="my-12 border-t-4 border-foreground" />,
   img: ({ src, alt }: ComponentPropsWithoutRef<'img'>) => {
     if (!src || typeof src !== 'string') return null
     return (
-      <Image
-        src={src}
-        alt={alt ?? ''}
-        width={800}
-        height={450}
-        className="my-6 w-full rounded-xl border border-foreground/10"
-      />
+      <div className="my-10 border-4 border-foreground shadow-brutal-sm overflow-hidden bg-background">
+        <Image
+          src={src}
+          alt={alt ?? ''}
+          width={800}
+          height={450}
+          className="w-full"
+        />
+      </div>
     )
   },
 }

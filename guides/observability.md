@@ -61,7 +61,7 @@ async () => tb.observability({ operation: "health" })
 ### Active Sessions
 
 ```javascript
-// List active reasoning sessions
+// List reasoning sessions by status ("active", "idle", or "all")
 async () => tb.observability({ operation: "sessions", limit: 10, status: "active" })
 ```
 
