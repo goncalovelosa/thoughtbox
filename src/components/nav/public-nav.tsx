@@ -15,11 +15,11 @@ export function PublicNav() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-40 border-b-4 border-foreground bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-foreground/10 bg-background/80 backdrop-blur-md">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-black text-foreground">
-          <span className="flex h-7 w-7 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-xs font-black text-background">
+        <Link href="/" className="flex items-center gap-2 font-bold text-foreground">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background text-xs font-bold">
             T
           </span>
           Thoughtbox
@@ -62,7 +62,7 @@ export function PublicNav() {
           </Link>
           <Link
             href="/sign-up"
-            className="rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2 text-sm font-black uppercase tracking-wider hover-grow"
+            className="rounded-full bg-foreground text-background px-5 py-2 text-sm font-semibold transition-all hover:bg-foreground/80"
           >
             Get started
           </Link>
@@ -70,7 +70,7 @@ export function PublicNav() {
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden rounded-none p-2 text-foreground hover:bg-background transition-colors"
+          className="md:hidden rounded-lg p-2 text-foreground hover:bg-foreground/5 transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -88,13 +88,13 @@ export function PublicNav() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-foreground bg-background px-6 pb-4 md:hidden">
+        <div className="border-t border-foreground/10 bg-background px-6 pb-4 md:hidden">
           <ul className="flex flex-col gap-1 pt-3">
             {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block rounded-none px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
@@ -102,12 +102,12 @@ export function PublicNav() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex flex-col gap-2 border-t border-foreground pt-4">
+          <div className="mt-4 flex flex-col gap-2 border-t border-foreground/10 pt-4">
             <a
               href="https://discord.gg/8g4Ku3EXrv"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-none px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
@@ -117,14 +117,14 @@ export function PublicNav() {
             </a>
             <Link
               href="/sign-in"
-              className="block rounded-none px-3 py-2 text-sm font-medium text-foreground hover:bg-background transition-colors"
+              className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-foreground/5 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               Sign in
             </Link>
             <Link
               href="/sign-up"
-              className="block rounded-none border-2 border-foreground bg-foreground text-background px-4 py-2.5 text-center text-sm font-black uppercase tracking-wider hover-grow"
+              className="block rounded-full bg-foreground text-background px-4 py-2.5 text-center text-sm font-semibold transition-all hover:bg-foreground/80"
               onClick={() => setMenuOpen(false)}
             >
               Get started

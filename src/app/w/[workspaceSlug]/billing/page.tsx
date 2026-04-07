@@ -30,7 +30,7 @@ export default async function BillingPage({ params }: Props) {
       </div>
 
       {/* Current plan */}
-      <div className="mb-6 rounded-none border border-foreground bg-background p-6 shadow-sm">
+      <div className="mb-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-6 shadow-sm">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -39,12 +39,12 @@ export default async function BillingPage({ params }: Props) {
             <p className="mt-1 text-2xl font-bold text-foreground">Founding Beta</p>
             <p className="mt-1 text-sm text-foreground">Free through May 1, 2026</p>
           </div>
-          <span className="rounded-none bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+          <span className="rounded-lg bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
             Active
           </span>
         </div>
 
-        <div className="mt-6 border-t border-foreground pt-5">
+        <div className="mt-6 border-t border-foreground/10 pt-5">
           <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
             Founding beta
           </p>
@@ -59,16 +59,16 @@ export default async function BillingPage({ params }: Props) {
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`rounded-none border p-5 ${
+            className={`rounded-2xl border p-5 ${
               plan.active
-                ? 'border-foreground bg-background'
-                : 'border-foreground bg-background'
+                ? 'border-foreground/10 bg-foreground/[0.03]'
+                : 'border-foreground/10 bg-background'
             }`}
           >
             <div className="flex items-center justify-between">
               <p className="font-semibold text-foreground">{plan.name}</p>
               {plan.active && (
-                <span className="rounded-none bg-background px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                <span className="rounded-lg bg-background px-2.5 py-0.5 text-xs font-semibold text-foreground">
                   Current
                 </span>
               )}
@@ -106,7 +106,7 @@ export default async function BillingPage({ params }: Props) {
       </p>
 
       {/* Usage quick link */}
-      <div className="mt-8 flex items-center justify-between rounded-none border border-foreground bg-background px-6 py-4 shadow-sm">
+      <div className="mt-8 flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-6 py-4 shadow-sm">
         <p className="text-sm text-foreground">View detailed usage breakdown</p>
         <Link
           href={`/w/${workspaceSlug}/usage`}

@@ -22,18 +22,18 @@ export default function PricingPage() {
       <div className="mx-auto max-w-2xl">
         {/* Heading */}
         <div className="text-center">
-          <h1 className="text-4xl font-black tracking-tight text-foreground sm:text-5xl uppercase">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Founding Beta
           </h1>
-          <p className="mt-4 text-lg text-foreground">
+          <p className="mt-4 text-lg text-foreground/70">
             Thoughtbox is early. You get in at the ground floor, we get honest signal about what matters. No tiers, no credit card.
           </p>
         </div>
 
         {/* Single card */}
-        <div className="mt-12 border-4 border-foreground bg-background p-8">
+        <div className="mt-12 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8">
           <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-black text-foreground">Free</span>
+            <span className="text-5xl font-bold text-foreground">Free</span>
             <span className="text-sm text-foreground">through May 1</span>
           </div>
 
@@ -65,7 +65,7 @@ export default function PricingPage() {
 
           <Link
             href="/sign-up"
-            className="mt-10 block rounded-none bg-foreground px-6 py-3 text-center text-sm font-black uppercase tracking-wider text-background transition-colors hover:bg-foreground/90"
+            className="mt-10 block rounded-full bg-foreground px-6 py-3 text-center text-sm font-semibold text-background transition-all hover:bg-foreground/80"
           >
             Sign up free
           </Link>
@@ -76,8 +76,8 @@ export default function PricingPage() {
         </div>
 
         {/* Self-host */}
-        <div className="mt-8 border-2 border-foreground bg-background p-6 text-center">
-          <h3 className="text-sm font-black uppercase text-foreground">Or self-host for free</h3>
+        <div className="mt-8 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
+          <h3 className="text-sm font-semibold text-foreground">Or self-host for free</h3>
           <p className="mt-2 text-sm text-foreground">
             Thoughtbox is open source. Run it locally with Docker — your data never leaves your machine.
           </p>
@@ -93,7 +93,7 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <div className="mt-16 space-y-8">
-          <h2 className="text-lg font-black uppercase text-foreground">Common questions</h2>
+          <h2 className="text-lg font-semibold text-foreground">Common questions</h2>
 
           <div>
             <h3 className="text-sm font-bold text-foreground">What do I get?</h3>

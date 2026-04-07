@@ -43,7 +43,7 @@ export function WorkspaceTopBar({ userEmail, userDisplayName }: WorkspaceTopBarP
   const avatarInitial = (userDisplayName || userEmail || '?')[0].toUpperCase()
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-foreground bg-background px-6">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-foreground/10 bg-background px-6">
       <h1 className="text-sm font-semibold text-foreground">{title}</h1>
 
       <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export function WorkspaceTopBar({ userEmail, userDisplayName }: WorkspaceTopBarP
         {userEmail && (
           <div className="flex items-center gap-2">
             <span
-              className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground bg-foreground text-background text-xs font-bold"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-background text-xs font-semibold"
               aria-label={`Signed in as ${userEmail}`}
             >
               {avatarInitial}
@@ -76,7 +76,7 @@ export function WorkspaceTopBar({ userEmail, userDisplayName }: WorkspaceTopBarP
         <form action={signOut}>
           <button
             type="submit"
-            className="rounded-none border border-foreground px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+            className="rounded-full bg-foreground text-background px-3 py-1.5 text-xs font-semibold transition-all hover:bg-foreground/80"
           >
             Sign out
           </button>

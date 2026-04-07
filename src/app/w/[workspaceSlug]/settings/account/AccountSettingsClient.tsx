@@ -40,7 +40,7 @@ function ProfileSection({ initialFirstName, initialLastName, email }: Props) {
               autoComplete="given-name"
               defaultValue={initialFirstName}
               spellCheck={false}
-              className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
             />
           </div>
           <div>
@@ -54,7 +54,7 @@ function ProfileSection({ initialFirstName, initialLastName, email }: Props) {
               autoComplete="family-name"
               defaultValue={initialLastName}
               spellCheck={false}
-              className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
             />
           </div>
         </div>
@@ -66,7 +66,7 @@ function ProfileSection({ initialFirstName, initialLastName, email }: Props) {
             type="email"
             value={email}
             disabled
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
             title="Email changes are not supported — contact support"
           />
           <p className="mt-1 text-xs text-muted-foreground">Email cannot be changed after sign-up.</p>
@@ -83,7 +83,7 @@ function ProfileSection({ initialFirstName, initialLastName, email }: Props) {
           <button
             type="submit"
             disabled={pending}
-            className="rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-full bg-foreground text-background font-semibold px-5 py-2.5 text-sm transition-all hover:bg-foreground/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {pending ? 'Saving…' : 'Save changes'}
           </button>
@@ -113,7 +113,7 @@ function PasswordSection() {
             autoComplete="current-password"
             required
             placeholder="••••••••"
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
           />
         </div>
         <div>
@@ -127,7 +127,7 @@ function PasswordSection() {
             autoComplete="new-password"
             required
             placeholder="Min.&nbsp;12 characters"
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
           />
         </div>
         <div>
@@ -141,7 +141,7 @@ function PasswordSection() {
             autoComplete="new-password"
             required
             placeholder="Repeat password"
-            className="mt-1.5 block w-full rounded-none border border-foreground bg-background px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="mt-1.5 block w-full rounded-xl border border-foreground/10 bg-foreground/5 px-3.5 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
           />
         </div>
 
@@ -156,7 +156,7 @@ function PasswordSection() {
           <button
             type="submit"
             disabled={pending}
-            className="rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-full bg-foreground text-background font-semibold px-5 py-2.5 text-sm transition-all hover:bg-foreground/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {pending ? 'Updating…' : 'Update password'}
           </button>
@@ -169,14 +169,14 @@ function PasswordSection() {
 function DangerSection() {
   return (
     <Section title="Danger zone">
-      <div className="rounded-none border border-foreground bg-background p-5">
+      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5">
         <p className="font-semibold text-foreground">Delete account</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Permanently delete your account and all associated data. This action cannot be undone.
         </p>
         <button
           disabled
-          className="mt-4 rounded-none border border-foreground px-4 py-2 text-sm font-semibold text-foreground opacity-40 cursor-not-allowed"
+          className="mt-4 rounded-full border border-foreground/10 px-4 py-2 text-sm font-semibold text-foreground opacity-40 cursor-not-allowed"
           title="Contact support to delete your account"
         >
           Delete my account
@@ -194,8 +194,8 @@ function DangerSection() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8 rounded-none border border-foreground bg-background p-6">
-      <h2 className="mb-5 text-base font-semibold text-foreground border-b border-foreground pb-3">
+    <div className="mb-8 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-6">
+      <h2 className="mb-5 text-base font-semibold text-foreground border-b border-foreground/10 pb-3">
         {title}
       </h2>
       {children}

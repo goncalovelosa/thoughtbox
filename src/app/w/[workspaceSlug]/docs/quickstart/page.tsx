@@ -41,7 +41,7 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
             </code>{' '}
             or Cursor settings):
           </p>
-          <pre className="mt-3 overflow-x-auto rounded-none bg-background px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
+          <pre className="mt-3 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/5 px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
             <code>{`{
   "mcpServers": {
     "thoughtbox": {
@@ -60,7 +60,7 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
           <p className="text-sm text-foreground">
             Prompt your agent to use Thoughtbox:
           </p>
-          <pre className="mt-3 overflow-x-auto rounded-none bg-background px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
+          <pre className="mt-3 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/5 px-5 py-4 font-mono text-xs leading-relaxed text-foreground">
             <code>{`# Example prompt:
 "Use thoughtbox to capture this thought: 'Thoughtbox is connected.'"`}</code>
           </pre>
@@ -99,7 +99,7 @@ export default async function WorkspaceQuickstartPage({ params }: Props) {
       </div>
 
       {/* Help link */}
-      <div className="mt-10 rounded-none border border-foreground bg-background p-5 text-center">
+      <div className="mt-10 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 text-center">
         <p className="text-sm text-foreground">
           Need help?{' '}
           <Link href="/docs" className="text-foreground hover:underline-thick hover:underline">
@@ -125,9 +125,9 @@ function StepCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-none border border-foreground bg-background p-6 shadow-sm">
+    <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-6 shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-sm font-bold text-background">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
           {number}
         </div>
         <h2 className="text-base font-semibold text-foreground">{title}</h2>

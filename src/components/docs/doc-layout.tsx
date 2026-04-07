@@ -40,7 +40,7 @@ export function DocLayout({
       <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[200px_1fr] lg:gap-12">
         {/* Sidebar nav */}
         <nav className="hidden lg:block">
-          <p className="mb-4 text-xs font-black uppercase tracking-widest text-foreground">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Documentation
           </p>
           <div className="flex flex-col gap-5">

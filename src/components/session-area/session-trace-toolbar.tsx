@@ -59,7 +59,7 @@ export function SessionTraceToolbar({
   )
 
   return (
-    <div className="sticky top-0 z-10 border-b border-foreground bg-background/95 backdrop-blur">
+    <div className="sticky top-0 z-10 border-b border-foreground/10 bg-background/95 backdrop-blur">
       {/* Row 1: Search + toggles + live indicator */}
       <div className="px-4 py-3 flex flex-wrap items-center gap-3">
         <input
@@ -67,11 +67,11 @@ export function SessionTraceToolbar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search thoughts…"
-          className="h-9 w-full max-w-xs rounded-none border border-foreground bg-background px-3 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          className="h-9 w-full max-w-xs rounded-xl border border-foreground/10 bg-background px-3 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
         />
 
         {/* Search mode toggle */}
-        <div role="group" aria-label="Search mode" className="flex rounded-none border border-foreground/30 overflow-hidden">
+        <div role="group" aria-label="Search mode" className="flex rounded-lg border border-foreground/10 overflow-hidden">
           <button
             type="button"
             aria-pressed={searchMode === 'content'}
@@ -99,7 +99,7 @@ export function SessionTraceToolbar({
         </div>
 
         {/* View mode toggle */}
-        <div role="group" aria-label="View mode" className="flex rounded-none border border-foreground/30 overflow-hidden">
+        <div role="group" aria-label="View mode" className="flex rounded-lg border border-foreground/10 overflow-hidden">
           <button
             type="button"
             aria-pressed={viewMode === 'full'}
@@ -132,19 +132,19 @@ export function SessionTraceToolbar({
 
         {showLiveIndicator && isLive != null && (
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-none border ${
+            className={`flex items-center gap-2 px-3 py-1 rounded-lg border ${
               isLive
                 ? 'bg-emerald-500/10 border-emerald-500/20'
-                : 'bg-background/50 border-foreground'
+                : 'bg-background/50 border-foreground/10'
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-none ${
+              className={`w-2 h-2 rounded-full ${
                 isLive ? 'bg-emerald-500 animate-pulse motion-reduce:animate-none' : 'bg-background0'
               }`}
             />
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider ${
+              className={`text-[10px] font-semibold uppercase tracking-wider ${
                 isLive ? 'text-emerald-400' : 'text-foreground'
               }`}
             >

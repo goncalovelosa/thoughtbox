@@ -8,7 +8,7 @@ export const mdxComponents: MDXComponents = {
   Callout,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
     <h1
-      className="mt-0 text-4xl font-black tracking-tight text-foreground"
+      className="mt-0 text-4xl font-bold tracking-tight text-foreground"
       {...props}
     />
   ),
@@ -18,7 +18,7 @@ export const mdxComponents: MDXComponents = {
       : undefined
     return (
       <h2
-        className="mt-10 mb-4 text-xl font-black text-foreground"
+        className="mt-10 mb-4 text-xl font-semibold text-foreground"
         id={id}
         {...props}
       />
@@ -69,7 +69,7 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   pre: (props: ComponentPropsWithoutRef<'pre'>) => (
-    <pre className="my-4 overflow-x-auto rounded-none border border-foreground bg-background p-5 font-mono text-sm leading-relaxed text-foreground">
+    <pre className="my-4 overflow-x-auto rounded-xl border border-foreground/10 bg-foreground/[0.03] p-5 font-mono text-sm leading-relaxed text-foreground">
       {props.children}
     </pre>
   ),
@@ -82,7 +82,7 @@ export const mdxComponents: MDXComponents = {
     <thead className="border-b border-foreground" {...props} />
   ),
   th: (props: ComponentPropsWithoutRef<'th'>) => (
-    <th className="px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-foreground" {...props} />
+    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground" {...props} />
   ),
   td: (props: ComponentPropsWithoutRef<'td'>) => (
     <td className="border-b border-foreground/10 px-3 py-2 text-sm text-foreground" {...props} />
@@ -102,7 +102,7 @@ export const mdxComponents: MDXComponents = {
         alt={alt ?? ''}
         width={800}
         height={450}
-        className="my-6 w-full rounded-none border border-foreground"
+        className="my-6 w-full rounded-xl border border-foreground/10"
       />
     )
   },

@@ -57,7 +57,7 @@ export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
       </span>
 
       {severityClass && (
-        <span className={`shrink-0 rounded-none px-1.5 py-0.5 text-[10px] font-semibold uppercase ${severityClass}`}>
+        <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[10px] font-semibold uppercase ${severityClass}`}>
           {row.severity}
         </span>
       )}

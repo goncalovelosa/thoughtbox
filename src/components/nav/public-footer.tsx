@@ -2,13 +2,13 @@ import Link from 'next/link'
 
 export function PublicFooter() {
   return (
-    <footer className="border-t-4 border-foreground bg-background">
+    <footer className="border-t border-foreground/10 bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2 font-black text-foreground">
-              <span className="flex h-7 w-7 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-xs font-black text-background">
+            <Link href="/" className="flex items-center gap-2 font-bold text-foreground">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background text-xs font-bold">
                 T
               </span>
               Thoughtbox
@@ -21,7 +21,7 @@ export function PublicFooter() {
           {/* Links */}
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-foreground">Product</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Product</p>
               <ul className="mt-3 flex flex-col gap-2">
                 <li><Link href="/pricing" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Pricing</Link></li>
                 <li><Link href="/docs" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Docs</Link></li>
@@ -29,14 +29,14 @@ export function PublicFooter() {
               </ul>
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-foreground">Company</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company</p>
               <ul className="mt-3 flex flex-col gap-2">
                 <li><Link href="/support" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Support</Link></li>
                 <li><a href="https://discord.gg/8g4Ku3EXrv" target="_blank" rel="noopener noreferrer" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Discord</a></li>
               </ul>
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-wider text-foreground">Legal</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Legal</p>
               <ul className="mt-3 flex flex-col gap-2">
                 <li><Link href="/terms" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Terms</Link></li>
                 <li><Link href="/privacy" className="text-sm text-foreground hover:text-foreground hover:underline-thick transition-colors">Privacy</Link></li>
@@ -45,7 +45,7 @@ export function PublicFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-foreground pt-8 text-center text-xs text-foreground">
+        <div className="mt-10 border-t border-foreground/10 pt-8 text-center text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Thoughtbox. All rights reserved.
         </div>
       </div>

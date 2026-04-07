@@ -97,7 +97,7 @@ export default async function UsagePage({ params }: Props) {
       </div>
 
       {/* Current plan badge */}
-      <div className="mb-6 flex items-center justify-between rounded-none border border-foreground bg-background px-6 py-4">
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-6 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Current plan
@@ -111,15 +111,15 @@ export default async function UsagePage({ params }: Props) {
         </div>
         <Link
           href={`/w/${workspaceSlug}/billing`}
-          className="rounded-none border border-foreground px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+          className="rounded-full border border-foreground/10 px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted transition-all"
         >
           Manage Billing
         </Link>
       </div>
 
       {/* Live counters */}
-      <div className="mb-6 overflow-hidden rounded-none border border-foreground bg-background">
-        <div className="border-b border-foreground px-6 py-4">
+      <div className="mb-6 overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
+        <div className="border-b border-foreground/10 px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">Activity</h2>
         </div>
         <ul className="divide-y divide-foreground/10">
@@ -138,8 +138,8 @@ export default async function UsagePage({ params }: Props) {
       </div>
 
       {/* Plan entitlements */}
-      <div className="overflow-hidden rounded-none border border-foreground bg-background">
-        <div className="border-b border-foreground px-6 py-4">
+      <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
+        <div className="border-b border-foreground/10 px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">Plan Entitlements</h2>
         </div>
         <ul className="divide-y divide-foreground/10">

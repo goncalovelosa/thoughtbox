@@ -16,7 +16,7 @@ export default function Error({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
-      <p className="text-sm font-semibold uppercase tracking-widest text-red-600">Error</p>
+      <p className="text-sm font-semibold tracking-widest text-red-600">Error</p>
       <h1 className="mt-4 text-3xl font-bold text-foreground">Something went wrong</h1>
       <p className="mt-3 text-foreground">
         An unexpected error occurred. Please try again.
@@ -27,7 +27,7 @@ export default function Error({
       <div className="mt-8 flex gap-4">
         <button
           onClick={reset}
-          className="rounded-none bg-foreground text-background border-2 border-foreground px-5 py-2.5 text-sm font-semibold text-background shadow-sm hover:bg-background transition-colors"
+          className="rounded-full bg-foreground text-background px-5 py-2.5 text-sm font-semibold shadow-sm transition-all hover:bg-foreground/80"
         >
           Try again
         </button>

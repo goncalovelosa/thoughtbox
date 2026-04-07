@@ -21,7 +21,7 @@ export function Callout({
 }) {
   return (
     <div className={`my-4 border-l-4 px-4 py-3 text-sm ${styles[type]}`}>
-      <p className="mb-1 text-xs font-black uppercase tracking-wider text-foreground">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-foreground">
         {labels[type]}
       </p>
       <div className="text-foreground">{children}</div>

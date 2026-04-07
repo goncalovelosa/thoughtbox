@@ -37,8 +37,8 @@ export default function DocsPage() {
   return (
     <div className="px-6 py-16">
       <div className="mx-auto max-w-5xl">
-        <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">Documentation</h1>
-        <p className="mt-4 text-lg text-foreground">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">Documentation</h1>
+        <p className="mt-4 text-lg text-foreground/70">
           Everything you need to connect Thoughtbox to your AI agents.
         </p>
 
@@ -53,12 +53,12 @@ export default function DocsPage() {
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="group flex flex-col gap-1 rounded-none border-4 border-foreground bg-background p-5 shadow-sm transition-shadow hover:shadow-md"
+                      className="group flex flex-col gap-1 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 transition-colors hover:bg-foreground/[0.06]"
                     >
-                      <span className="font-semibold text-foreground group-hover:underline group-hover:underline-thick">
+                      <span className="font-semibold text-foreground group-hover:underline">
                         {item.label}
                       </span>
-                      <span className="text-sm text-foreground">{item.description}</span>
+                      <span className="text-sm text-foreground/70">{item.description}</span>
                     </Link>
                   </li>
                 ))}

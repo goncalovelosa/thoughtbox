@@ -128,7 +128,7 @@ export function SessionsIndexClient({ sessions }: Props) {
       )}
 
       {filtered.length === 0 && isFiltered ? (
-        <div className="rounded-none border border-foreground bg-background/80 shadow-sm p-12 text-center">
+        <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm p-12 text-center">
           <h3 className="text-lg font-medium text-foreground">
             No sessions match these filters
           </h3>

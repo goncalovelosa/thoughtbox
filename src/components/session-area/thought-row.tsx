@@ -25,12 +25,12 @@ export function ThoughtRow({ row, isSelected, onClick, searchQuery }: Props) {
     >
       <div className="flex justify-center pt-2">
         <div
-          className={`w-2 h-2 rounded-none ${LANE_DOT_COLOR[row.laneColorToken]}`}
+          className={`w-2 h-2 rounded-full ${LANE_DOT_COLOR[row.laneColorToken]}`}
         />
       </div>
 
       <div
-        className={`rounded-none border-2 px-3 py-2 transition-colors min-w-0 overflow-hidden ${
+        className={`rounded-xl border px-3 py-2 transition-colors min-w-0 overflow-hidden ${
           isSelected
             ? 'border-foreground bg-foreground/10'
             : 'border-transparent bg-transparent group-hover:bg-foreground/5'

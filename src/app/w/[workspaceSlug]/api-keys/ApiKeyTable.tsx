@@ -54,7 +54,7 @@ function RevokeButton({ keyId }: { keyId: string }) {
 export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
   if (keys.length === 0) {
     return (
-      <div className="overflow-hidden rounded-none border border-foreground bg-background shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm">
         <table className="min-w-full divide-y divide-slate-100">
           <thead className="bg-background">
             <tr>
@@ -82,7 +82,7 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-none border border-foreground bg-background shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm">
       <table className="min-w-full divide-y divide-slate-100">
         <thead className="bg-background">
           <tr>
@@ -101,7 +101,7 @@ export function ApiKeyTable({ keys }: { keys: ApiKeyRow[] }) {
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-foreground">
                   {key.name}
                   {isRevoked && (
-                    <span className="ml-2 inline-flex items-center rounded-none bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                    <span className="ml-2 inline-flex items-center rounded-lg bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
                       Revoked
                     </span>
                   )}

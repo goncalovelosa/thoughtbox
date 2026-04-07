@@ -41,9 +41,9 @@ function OtelEventDetail({ detail }: { detail: OtelEventVM }) {
 
       {/* Metric value */}
       {detail.metricValue != null && (
-        <div className="rounded-none border border-foreground/20 bg-muted/30 p-3">
+        <div className="rounded-xl border border-foreground/10 bg-muted/30 p-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Metric Value</p>
-          <p className="text-2xl font-bold text-foreground tabular-nums">
+          <p className="text-2xl font-semibold text-foreground tabular-nums">
             {detail.metricValue.toLocaleString(undefined, { maximumFractionDigits: 4 })}
           </p>
         </div>
@@ -63,7 +63,7 @@ function OtelEventDetail({ detail }: { detail: OtelEventVM }) {
       {Object.keys(detail.eventAttrs).length > 0 && (
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Event Attributes</p>
-          <div className="rounded-none border border-foreground/20 divide-y divide-foreground/10">
+          <div className="rounded-xl border border-foreground/10 divide-y divide-foreground/10">
             {Object.entries(detail.eventAttrs).map(([key, value]) => (
               <div key={key} className="flex gap-3 px-3 py-2 text-xs">
                 <span className="font-mono text-muted-foreground shrink-0 w-40 truncate" title={key}>{key}</span>
@@ -100,7 +100,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header */}
-      <div className="border-b border-foreground px-5 py-4 shrink-0 bg-background/95 backdrop-blur sticky top-0 z-10">
+      <div className="border-b border-foreground/10 px-5 py-4 shrink-0 bg-background/95 backdrop-blur sticky top-0 z-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {/* Prev/Next navigation */}
@@ -108,7 +108,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
               <button
                 onClick={onPrev}
                 disabled={!hasPrev}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-foreground/10 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
                 aria-label="Previous item"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -118,7 +118,7 @@ export function ThoughtDetailPanel({ detail, onPrev, onNext, hasPrev, hasNext, p
               <button
                 onClick={onNext}
                 disabled={!hasNext}
-                className="flex h-7 w-7 items-center justify-center rounded-none border border-foreground/30 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-foreground/10 text-foreground transition-colors hover:bg-foreground/10 disabled:opacity-20 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none"
                 aria-label="Next item"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">

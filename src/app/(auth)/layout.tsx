@@ -4,9 +4,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Minimal top bar */}
-      <header className="border-b border-foreground bg-background px-6 py-4">
+      <header className="border-b border-foreground/10 bg-background px-6 py-4">
         <Link href="/" className="flex w-fit items-center gap-2 font-bold text-foreground">
-          <span className="flex h-7 w-7 items-center justify-center rounded-none bg-foreground text-background border-2 border-foreground text-xs font-black text-background">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground text-background text-xs font-bold">
             T
           </span>
           Thoughtbox

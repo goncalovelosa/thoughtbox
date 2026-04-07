@@ -30,7 +30,7 @@ export function SessionSummaryCard({
     .filter(([, count]) => count > 0)
 
   return (
-    <div className="mb-6 rounded-none border border-foreground bg-background overflow-hidden">
+    <div className="mb-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] overflow-hidden">
       {/* Header — always visible */}
       <button
         type="button"
@@ -68,7 +68,7 @@ export function SessionSummaryCard({
         }}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-foreground px-5 py-4 space-y-4">
+          <div className="border-t border-foreground/10 px-5 py-4 space-y-4">
             {/* Stats row */}
             <div className="flex flex-wrap gap-6">
               <Stat label="Thoughts" value={String(totalThoughts)} />
