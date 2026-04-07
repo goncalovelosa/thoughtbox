@@ -15,9 +15,25 @@ Skip for well-understood failures where you know the root cause. The
 protocol adds overhead -- deploy it when you need the discipline, not
 on every bug.
 
+## Actions vs Research
+
+Only **actions** -- steps that change game state -- move the S-register.
+Writing code, running a build, applying a config change, deploying: these
+are actions. If the outcome surprises you, S increments.
+
+**Research** does not move S. Checking a version number, reading logs,
+comparing environment variables, inspecting config files: these are
+lookups. They inform your mental model but they do not change anything.
+A lookup that returns unexpected information is useful data, not a
+surprise in the protocol sense. Use it to refine your next action.
+
+The distinction matters because the protocol gates *planning*, not
+*learning*. You should never feel blocked from gathering information.
+
 ## The S-Register
 
-The surprise counter starts at 0. Each unexpected outcome increments S.
+The surprise counter starts at 0. Each unexpected **action** outcome
+increments S.
 
 | S value | Effect |
 |---------|--------|
@@ -72,15 +88,19 @@ Record what happened. Be honest about whether it matched expectations.
 ```javascript
 async () => tb.ulysses({
   operation: "outcome",
-  assessment: "unexpected",
-  severity: "minor",
+  assessment: "unexpected-unfavorable",
+  severity: 1,
   details: "Environment variables are identical -- " +
     "rules out config differences"
 })
 ```
 
-Assessments: `expected` (S unchanged) or `unexpected` (S increments).
-Severity: `minor` (surprising but not disorienting) or `major`
+Assessments: `expected` (S unchanged), `unexpected-favorable`
+(S increments -- surprise went well), or `unexpected-unfavorable`
+(S increments -- surprise went badly). Both unexpected variants
+increment S equally.
+
+Severity: `1` (surprising but not disorienting) or `2`
 (fundamentally challenges your mental model).
 
 ### Reflect
@@ -138,62 +158,50 @@ Start the session. State the problem and constraints.
 init -> S=0, problem registered
 ```
 
-### 2. Plan: check env vars (S=0)
+### 2. Research: check env vars (S=0)
 
-Primary: compare CI env vars to local `.env`.
-Recovery: if they match, check node version differences.
+Compare CI env vars to local `.env`. This is a lookup -- reading
+config, not changing anything. S stays at 0 regardless of what we
+find. Result: environment variables are identical. Rules out config
+drift. Useful data.
 
-### 3. Outcome: unexpected (S=1)
+### 3. Research: check node version (S=0)
 
-Environment variables are identical. This rules out the most common
-cause of local/CI divergence. S increments to 1.
+Compare `node --version` in CI logs vs local. Still a lookup. S stays
+at 0. Result: node versions are identical. Two common causes ruled out
+without spending any surprise budget.
 
-### 4. Plan: check node version (S=1)
+### 4. Plan: add sleep before test suite (S=0)
 
-Primary: compare `node --version` in CI logs vs local.
-Recovery: if versions match, check test execution order.
-
-The pre-committed recovery was set in step 2. Execute it now.
-
-### 5. Outcome: unexpected (S=2)
-
-Node versions are identical. Two surprises in a row. S increments to 2.
-
-**Planning is now blocked.** You cannot execute another plan until you
-reflect.
-
-### 6. Reflect (S=0)
-
-Stop. Think. What do the two surprises have in common? Both ruled out
-static configuration differences. The problem is dynamic -- something
-that changes at runtime.
-
-Hypothesis: CI failure is a timing race. The database container takes
-longer to initialize in CI, and tests start before seeding completes.
-
-Falsification: adding a 5-second delay before the test suite runs. If
-tests still fail with the delay, the hypothesis is false.
-
-S resets to 0.
-
-### 7. Plan: add delay (S=0)
+At this point research has narrowed the problem to something dynamic,
+not static config. Form a hypothesis: CI failure is a timing race --
+the database container is slower in CI.
 
 Primary: add `await sleep(5000)` before test suite in CI.
 Recovery: if tests still fail, check database logs for connection
 errors during the test window.
 
-### 8. Outcome: expected (S=0)
+This is an **action** -- it changes code and re-runs the build.
+
+### 5. Outcome: expected (S=0)
 
 Tests pass with the delay. Hypothesis confirmed. S stays at 0.
 
 Now fix the root cause: the test setup calls `seedDatabase()` without
 `await`. Add the await, remove the delay, confirm tests still pass.
 
-### 9. Complete: resolved
+### 6. Complete: resolved
 
 Root cause: async database seeding not awaited in test setup. The
 local database was fast enough to finish before tests started; CI's
 database was not.
+
+### What if step 4 had failed?
+
+If adding the delay didn't fix tests, that's S=1 (unexpected action
+outcome). You'd execute the pre-committed recovery: check database
+logs. If the recovery action also surprises you, S=2 -- reflect
+before planning again.
 
 ## Terminal States
 
@@ -202,14 +210,16 @@ database was not.
 Root cause found and fixed. The preferred outcome. Record the root
 cause clearly -- future sessions can search for it.
 
-### abandoned
+### insufficient_information
 
-Not worth investigating further. Use when the cost of continued
-debugging exceeds the value of the fix. Record why you stopped so
-the next person does not repeat the same investigation.
+Cannot make further progress with available data or tools. Use when
+debugging requires access you do not have (production logs, metrics,
+credentials) or when the problem is not reproducible with current
+information. Record what information would unblock the investigation.
 
-### deferred
+### environment_compromised
 
-Understood but fix postponed. You know the root cause but cannot or
-should not fix it now. File an issue with the hypothesis and evidence
-collected during the session. Do not leave deferred work untracked.
+The debugging environment itself is unreliable. Use when you discover
+that the test environment, tooling, or data is corrupted in a way
+that invalidates prior observations. Record which observations are
+affected and what needs to be fixed before resuming.

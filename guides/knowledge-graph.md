@@ -11,12 +11,14 @@ memory.
 
 ## Entities
 
-Three entity types:
+Five entity types:
 
 - **Concept** -- a technical idea or abstraction
 - **Insight** -- a learned truth validated through reasoning or
   evidence
 - **Workflow** -- a process or sequence of steps
+- **Decision** -- a choice made with rationale and context
+- **Agent** -- an autonomous actor or system component
 
 Each entity has a name (unique identifier slug), a label (display
 name), and optional properties for domain-specific metadata.
@@ -64,11 +66,17 @@ full observation timeline.
 
 ## Relations
 
-Three relation types, all directed edges:
+Nine relation types, all directed edges:
 
 - **BUILDS_ON** -- extends or elaborates on another entity
 - **DEPENDS_ON** -- requires another entity to function
 - **RELATES_TO** -- connected but neither dependent nor extending
+- **CONTRADICTS** -- conflicts with another entity's claims
+- **EXTRACTED_FROM** -- derived from a source entity
+- **APPLIED_IN** -- used or deployed in a specific context
+- **LEARNED_BY** -- acquired by an agent or through a process
+- **SUPERSEDES** -- replaces an older entity
+- **MERGED_FROM** -- combines multiple source entities
 
 Create a relation:
 

@@ -36,29 +36,33 @@ const sections = [
 export default function DocsPage() {
   return (
     <div className="px-6 py-16">
-      <div className="mx-auto max-w-5xl">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">Documentation</h1>
-        <p className="mt-4 text-lg text-foreground/70">
-          Everything you need to connect Thoughtbox to your AI agents.
+      <div className="mx-auto max-w-6xl">
+        <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tighter text-foreground relative inline-block">
+          <span className="relative z-10">DOCUMENTATION</span>
+          <div className="absolute -bottom-4 -right-4 w-12 h-12 diagonal-lines opacity-10"></div>
+        </h1>
+        <p className="mt-8 text-xl md:text-2xl font-bold uppercase tracking-wide text-foreground/60 max-w-2xl leading-relaxed border-l-8 border-foreground pl-6">
+          EVERYTHING YOU NEED TO CONNECT THOUGHTBOX TO YOUR AI AGENTS.
         </p>
 
-        <div className="mt-12 grid gap-10">
+        <div className="mt-20 grid gap-16">
           {sections.map((section) => (
             <div key={section.title}>
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-foreground">
+              <h2 className="mb-6 border-b-4 border-foreground pb-4 text-sm md:text-base font-black uppercase tracking-[0.2em] text-foreground">
                 {section.title}
               </h2>
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              <ul className="mt-8 grid gap-6 sm:grid-cols-2">
                 {section.items.map((item) => (
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="group flex flex-col gap-1 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-5 transition-colors hover:bg-foreground/[0.06]"
+                      className="group flex flex-col gap-4 border-4 border-foreground bg-background p-6 transition-all hover:-translate-y-1 shadow-brutal hover:shadow-brutal-md relative"
                     >
-                      <span className="font-semibold text-foreground group-hover:underline">
+                      <div className="absolute top-0 right-0 w-8 h-8 diagonal-lines opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                      <span className="text-xl md:text-2xl font-black uppercase tracking-tight text-foreground bg-foreground/5 inline-block w-fit px-2 py-1">
                         {item.label}
                       </span>
-                      <span className="text-sm text-foreground/70">{item.description}</span>
+                      <span className="text-base font-bold text-foreground/70 leading-relaxed uppercase tracking-wide">{item.description}</span>
                     </Link>
                   </li>
                 ))}

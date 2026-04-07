@@ -2,11 +2,6 @@
 
 import type { ThoughtDisplayType } from '@/lib/session/view-models'
 import type { SearchMode, SearchResult } from '@/lib/session/search-utils'
-import {
-  THOUGHT_TYPE_LABEL,
-  THOUGHT_TYPE_BADGE,
-  BADGE_BASE,
-} from '@/lib/session/badge-styles'
 
 const ALL_TYPES: ThoughtDisplayType[] = [
   'reasoning',
@@ -59,39 +54,40 @@ export function SessionTraceToolbar({
   )
 
   return (
-    <div className="sticky top-0 z-10 border-b border-foreground/10 bg-background/95 backdrop-blur">
+    <div className="sticky top-0 z-20 border-b-4 border-foreground bg-background/95 backdrop-blur shadow-brutal-sm">
       {/* Row 1: Search + toggles + live indicator */}
-      <div className="px-4 py-3 flex flex-wrap items-center gap-3">
+      <div className="p-4 flex flex-wrap items-center gap-4">
         <input
           type="text"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search thoughts…"
-          className="h-9 w-full max-w-xs rounded-xl border border-foreground/10 bg-background px-3 text-sm text-foreground placeholder:text-foreground focus:border-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          placeholder="SEARCH THOUGHTS…"
+          className="h-10 w-full max-w-xs border-2 border-foreground bg-background px-4 font-mono-terminal text-sm text-foreground placeholder:text-foreground/40 focus:border-foreground focus:outline-none focus:ring-4 focus:ring-foreground/20"
         />
 
         {/* Search mode toggle */}
-        <div role="group" aria-label="Search mode" className="flex rounded-lg border border-foreground/10 overflow-hidden">
+        <div role="group" aria-label="Search mode" className="flex border-2 border-foreground bg-background">
           <button
             type="button"
             aria-pressed={searchMode === 'content'}
             onClick={() => onSearchModeChange('content')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:bg-foreground focus-visible:text-background ${
               searchMode === 'content'
-                ? 'bg-foreground/10 text-foreground border-r border-foreground/30'
-                : 'text-foreground/50 border-r border-foreground/30 hover:text-foreground'
+                ? 'bg-foreground text-background shadow-brutal-sm'
+                : 'text-foreground hover:bg-foreground/10'
             }`}
           >
             Content
           </button>
+          <div className="w-[2px] bg-foreground"></div>
           <button
             type="button"
             aria-pressed={searchMode === 'titles'}
             onClick={() => onSearchModeChange('titles')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:bg-foreground focus-visible:text-background ${
               searchMode === 'titles'
-                ? 'bg-foreground/10 text-foreground'
-                : 'text-foreground/50 hover:text-foreground'
+                ? 'bg-foreground text-background shadow-brutal-sm'
+                : 'text-foreground hover:bg-foreground/10'
             }`}
           >
             Titles
@@ -99,27 +95,28 @@ export function SessionTraceToolbar({
         </div>
 
         {/* View mode toggle */}
-        <div role="group" aria-label="View mode" className="flex rounded-lg border border-foreground/10 overflow-hidden">
+        <div role="group" aria-label="View mode" className="flex border-2 border-foreground bg-background">
           <button
             type="button"
             aria-pressed={viewMode === 'full'}
             onClick={() => onViewModeChange('full')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:bg-foreground focus-visible:text-background ${
               viewMode === 'full'
-                ? 'bg-foreground/10 text-foreground border-r border-foreground/30'
-                : 'text-foreground/50 border-r border-foreground/30 hover:text-foreground'
+                ? 'bg-foreground text-background shadow-brutal-sm'
+                : 'text-foreground hover:bg-foreground/10'
             }`}
           >
             Full Trace
           </button>
+          <div className="w-[2px] bg-foreground"></div>
           <button
             type="button"
             aria-pressed={viewMode === 'decisions'}
             onClick={() => onViewModeChange('decisions')}
-            className={`px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:bg-foreground focus-visible:text-background ${
               viewMode === 'decisions'
-                ? 'bg-foreground/10 text-foreground'
-                : 'text-foreground/50 hover:text-foreground'
+                ? 'bg-foreground text-background shadow-brutal-sm'
+                : 'text-foreground hover:bg-foreground/10'
             }`}
           >
             Decisions
@@ -132,23 +129,23 @@ export function SessionTraceToolbar({
 
         {showLiveIndicator && isLive != null && (
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-lg border ${
+            className={`flex items-center gap-3 px-4 py-2 border-2 ${
               isLive
-                ? 'bg-emerald-500/10 border-emerald-500/20'
-                : 'bg-background/50 border-foreground/10'
+                ? 'border-emerald-500 bg-emerald-500/10'
+                : 'border-foreground/30 bg-background'
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full ${
-                isLive ? 'bg-emerald-500 animate-pulse motion-reduce:animate-none' : 'bg-background0'
+              className={`w-3 h-3 ${
+                isLive ? 'bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20' : 'bg-foreground/30'
               }`}
             />
             <span
-              className={`text-[10px] font-semibold uppercase tracking-wider ${
-                isLive ? 'text-emerald-400' : 'text-foreground'
+              className={`font-mono-terminal text-[10px] font-black uppercase tracking-widest ${
+                isLive ? 'text-emerald-500' : 'text-foreground/50'
               }`}
             >
-              {isLive ? 'Live' : 'Connecting'}
+              {isLive ? 'SYS:LIVE' : 'SYS:CONNECTING'}
             </span>
           </div>
         )}
@@ -156,28 +153,28 @@ export function SessionTraceToolbar({
 
       {/* Match count */}
       {searchResult && (
-        <div className="px-4 pb-2 -mt-1" aria-live="polite">
-          <span className="text-xs font-mono text-foreground/60">
+        <div className="px-4 pb-4 -mt-2" aria-live="polite">
+          <span className="font-mono-terminal text-[10px] uppercase tracking-widest text-foreground/60 bg-foreground/5 px-2 py-1 border border-foreground/20">
             {searchResult.totalMatchCount === 0
-              ? '0 matches'
-              : `${searchResult.totalMatchCount} match${searchResult.totalMatchCount === 1 ? '' : 'es'} in ${searchResult.matchingThoughtCount} thought${searchResult.matchingThoughtCount === 1 ? '' : 's'}`}
+              ? '0 MATCHES'
+              : `${searchResult.totalMatchCount} MATCH${searchResult.totalMatchCount === 1 ? '' : 'ES'} IN ${searchResult.matchingThoughtCount} THOUGHT${searchResult.matchingThoughtCount === 1 ? '' : 'S'}`}
           </span>
         </div>
       )}
 
       {/* Row 2: Type filter chips */}
       {hasAnyNonReasoning && (
-        <div className="px-4 pb-3 flex flex-wrap gap-2">
+        <div className="px-4 pb-4 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={handleTypeFilterClear}
-            className={`${BADGE_BASE} transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+            className={`px-3 py-1 font-black text-[10px] uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 ${
               activeTypeFilters.size === 0
-                ? 'bg-foreground/10 text-foreground ring-1 ring-foreground/30'
-                : 'bg-background text-foreground/50 ring-1 ring-foreground/20 hover:text-foreground'
+                ? 'border-2 border-foreground bg-foreground text-background shadow-brutal-sm'
+                : 'border-2 border-foreground/30 bg-background text-foreground/60 hover:border-foreground hover:text-foreground'
             }`}
           >
-            All
+            ALL
           </button>
           {ALL_TYPES.map((type) => {
             const count = typeCounts[type]
@@ -190,15 +187,16 @@ export function SessionTraceToolbar({
                 type="button"
                 disabled={isDisabled}
                 onClick={() => onTypeFilterToggle(type)}
-                className={`${BADGE_BASE} transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:outline-none ${
+                className={`px-3 py-1 font-black text-[10px] uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/50 flex items-center gap-2 ${
                   isActive
-                    ? THOUGHT_TYPE_BADGE[type]
+                    ? 'border-2 border-foreground bg-foreground text-background shadow-brutal-sm'
                     : isDisabled
-                      ? 'bg-background text-foreground/30 ring-1 ring-foreground/10 cursor-not-allowed'
-                      : 'bg-background text-foreground/60 ring-1 ring-foreground/20 hover:text-foreground'
+                      ? 'border-2 border-foreground/10 bg-background text-foreground/20 cursor-not-allowed'
+                      : 'border-2 border-foreground/30 bg-background text-foreground/60 hover:border-foreground hover:text-foreground'
                 }`}
               >
-                {THOUGHT_TYPE_LABEL[type]} ({count})
+                {type.replace('_', ' ')}
+                <span className={`font-mono-terminal opacity-70 ${isActive ? 'text-background' : 'text-foreground'}`}>[{count}]</span>
               </button>
             )
           })}

@@ -37,24 +37,24 @@ export function DocLayout({
 }) {
   return (
     <div className="px-6 py-16">
-      <div className="mx-auto max-w-5xl lg:grid lg:grid-cols-[200px_1fr] lg:gap-12">
+      <div className="mx-auto max-w-6xl lg:grid lg:grid-cols-[240px_1fr] lg:gap-16">
         {/* Sidebar nav */}
-        <nav className="hidden lg:block">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Documentation
+        <nav className="hidden lg:block border-r-4 border-foreground pr-8">
+          <p className="mb-6 bg-foreground text-background inline-block px-3 py-1 text-sm font-black uppercase tracking-widest shadow-brutal-sm">
+            DOCUMENTATION
           </p>
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-8">
             {navSections.map((section) => (
               <div key={section.label}>
-                <p className="mb-1.5 px-2 text-xs font-semibold uppercase tracking-wider text-foreground/50">
+                <p className="mb-3 border-b-2 border-foreground/20 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60">
                   {section.label}
                 </p>
-                <ul className="flex flex-col gap-0.5">
+                <ul className="flex flex-col gap-1">
                   {section.items.map((item) => (
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className="block px-2 py-1.5 text-sm text-foreground hover:underline hover:underline-thick transition-colors"
+                        className="block px-2 py-2 text-sm font-bold uppercase tracking-wide text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         {item.label}
                       </Link>
@@ -67,16 +67,16 @@ export function DocLayout({
         </nav>
 
         {/* Content */}
-        <div className="max-w-3xl">
-          <nav className="mb-8 flex items-center gap-2 text-sm text-foreground">
+        <div className="max-w-4xl relative">
+          <nav className="mb-12 flex items-center gap-3 text-xs font-mono-terminal font-bold uppercase tracking-widest text-foreground">
             <Link
               href="/docs"
-              className="hover:text-foreground hover:underline-thick transition-colors"
+              className="border-b-2 border-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              Docs
+              DOCS
             </Link>
-            <span>/</span>
-            <span className="text-foreground">{breadcrumb}</span>
+            <span className="text-foreground/30">/</span>
+            <span className="bg-foreground/5 px-2 py-1 border border-foreground/20">{breadcrumb}</span>
           </nav>
 
           <article className="prose-none">{children}</article>

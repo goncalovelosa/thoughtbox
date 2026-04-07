@@ -63,14 +63,18 @@ Spawn a subagent (model: haiku):
 For each thought marked UPDATE, revise it with the `isRevision` flag:
 
 ```javascript
-async () => tb.thought.record({
-  sessionId: "SESSION_ID",
-  content: "Updated content incorporating new insight",
+async () => tb.thought({
+  thought: "Updated content incorporating new insight",
   thoughtType: "revision",
+  nextThoughtNeeded: true,
   isRevision: true,
-  revisesThought: "ORIGINAL_THOUGHT_ID"
+  revisesThought: 3
 })
 ```
+
+Note: use `tb.session.resume("SESSION_ID")` before revising
+thoughts in a prior session. `revisesThought` takes the thought
+number (integer), not a string ID.
 
 ### When to Use
 
