@@ -31,14 +31,14 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   p: (props: ComponentPropsWithoutRef<'p'>) => (
-    <p className="my-5 text-base md:text-lg font-medium leading-relaxed text-foreground" {...props} />
+    <p className="my-5 text-base md:text-lg font-medium leading-relaxed text-foreground font-serif" {...props} />
   ),
   a: ({ href, ...props }: ComponentPropsWithoutRef<'a'>) => {
     if (href?.startsWith('/')) {
       return (
         <Link
           href={href}
-          className="text-foreground font-bold underline decoration-2 underline-offset-4 hover:bg-foreground hover:text-background transition-colors"
+          className="text-accent font-bold underline decoration-2 underline-offset-4 hover:bg-accent hover:text-accent-foreground transition-colors"
           {...props}
         />
       )
@@ -48,16 +48,16 @@ export const mdxComponents: MDXComponents = {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-foreground font-bold underline decoration-2 underline-offset-4 hover:bg-foreground hover:text-background transition-colors"
+        className="text-accent font-bold underline decoration-2 underline-offset-4 hover:bg-accent hover:text-accent-foreground transition-colors"
         {...props}
       />
     )
   },
   ul: (props: ComponentPropsWithoutRef<'ul'>) => (
-    <ul className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-disc" {...props} />
+    <ul className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-disc font-serif" {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
-    <ol className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-decimal" {...props} />
+    <ol className="my-5 flex flex-col gap-3 pl-6 text-base md:text-lg font-medium text-foreground list-decimal font-serif" {...props} />
   ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
     <li className="leading-relaxed text-foreground" {...props} />
@@ -76,11 +76,11 @@ export const mdxComponents: MDXComponents = {
   ),
   table: (props: ComponentPropsWithoutRef<'table'>) => (
     <div className="my-8 overflow-x-auto border-4 border-foreground bg-background shadow-brutal-sm">
-      <table className="w-full text-base md:text-lg font-medium" {...props} />
+      <table className="w-full text-base md:text-lg font-medium font-serif" {...props} />
     </div>
   ),
   thead: (props: ComponentPropsWithoutRef<'thead'>) => (
-    <thead className="bg-foreground text-background" {...props} />
+    <thead className="bg-foreground text-background font-sans" {...props} />
   ),
   th: (props: ComponentPropsWithoutRef<'th'>) => (
     <th className="px-4 py-3 text-left text-xs md:text-sm font-black uppercase tracking-widest" {...props} />
@@ -92,7 +92,7 @@ export const mdxComponents: MDXComponents = {
     <strong className="font-black text-foreground" {...props} />
   ),
   blockquote: (props: ComponentPropsWithoutRef<'blockquote'>) => (
-    <blockquote className="my-8 border-l-8 border-foreground bg-foreground/5 p-6 text-lg md:text-xl font-bold italic text-foreground" {...props} />
+    <blockquote className="my-8 border-l-8 border-foreground bg-foreground/5 p-6 text-lg md:text-xl font-bold italic text-foreground font-serif" {...props} />
   ),
   hr: () => <hr className="my-12 border-t-4 border-foreground" />,
   img: ({ src, alt }: ComponentPropsWithoutRef<'img'>) => {

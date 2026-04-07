@@ -23,10 +23,10 @@ export function Callout({
     <div className={`my-8 border-4 px-6 py-5 text-base md:text-lg font-medium relative ${styles[type]}`}>
       <div className="absolute top-0 right-0 w-8 h-8 diagonal-lines opacity-10 pointer-events-none"></div>
       <p className="mb-3 text-xs md:text-sm font-black uppercase tracking-widest flex items-center gap-2">
-        <span className={`w-2 h-2 ${type === 'warning' ? 'bg-amber-500' : type === 'tip' ? 'bg-emerald-500' : 'bg-foreground'}`}></span>
+        <span className={`w-2 h-2 ${type === 'warning' ? 'bg-amber-500' : type === 'tip' ? 'bg-emerald-500' : 'bg-accent'}`}></span>
         {labels[type]}
       </p>
-      <div className="text-foreground leading-relaxed">{children}</div>
+      <div className="text-foreground leading-relaxed font-serif">{children}</div>
     </div>
   )
 }

@@ -54,7 +54,7 @@ export function DocLayout({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className="block px-2 py-2 text-sm font-bold uppercase tracking-wide text-foreground hover:bg-foreground hover:text-background transition-colors"
+                        className="block px-2 py-2 text-sm font-bold uppercase tracking-wide text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         {item.label}
                       </Link>
@@ -71,7 +71,7 @@ export function DocLayout({
           <nav className="mb-12 flex items-center gap-3 text-xs font-mono-terminal font-bold uppercase tracking-widest text-foreground">
             <Link
               href="/docs"
-              className="border-b-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+              className="border-b-2 border-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               DOCS
             </Link>
