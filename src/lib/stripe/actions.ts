@@ -2,7 +2,8 @@
 
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import { stripe, PLAN_CONFIG, type PlanId } from '@/lib/stripe/server'
+import type Stripe from 'stripe'
+import { getStripe, PLAN_CONFIG, type PlanId } from '@/lib/stripe/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function createCheckoutSession(workspaceId: string, planId: PlanId) {
@@ -27,7 +28,7 @@ export async function createCheckoutSession(workspaceId: string, planId: PlanId)
   const headersList = await headers()
   const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
 
-  const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
     line_items: [{ price: config.priceId, quantity: 1 }],
     success_url: `${origin}/w/${workspace.slug}/billing?upgraded=true`,
@@ -46,7 +47,7 @@ export async function createCheckoutSession(workspaceId: string, planId: PlanId)
     sessionParams.customer_email = user.email
   }
 
-  const session = await stripe.checkout.sessions.create(sessionParams)
+  const session = await getStripe().checkout.sessions.create(sessionParams)
 
   if (!session.url) throw new Error('Stripe did not return a checkout URL')
   redirect(session.url)
@@ -70,7 +71,7 @@ export async function createBillingPortalSession(workspaceId: string) {
   const headersList = await headers()
   const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
 
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: workspace.stripe_customer_id,
     return_url: `${origin}/w/${workspace.slug}/billing`,
   })

@@ -18,6 +18,7 @@ function formatDuration(ms: number): string {
 
 export type RawThoughtRecord = {
   id: string
+  runId?: string
   thoughtNumber?: number
   totalThoughts?: number
   thought: string
@@ -139,6 +140,7 @@ export type ThoughtDisplayType =
 
 export type ThoughtRowVM = {
   id: string
+  runId?: string
   thoughtNumber: number
   totalThoughts?: number
   shortId: string
@@ -352,6 +354,7 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
 
     const rowVM: ThoughtRowVM = {
       id: raw.id,
+      runId: raw.runId,
       thoughtNumber: raw.thoughtNumber ?? (index + 1), // fallback
       totalThoughts: raw.totalThoughts,
       shortId: raw.id.slice(0, 7),

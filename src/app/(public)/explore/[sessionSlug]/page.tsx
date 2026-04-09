@@ -93,7 +93,6 @@ export default async function ExplorerPage({
       <ExplorerTimeline
         thoughts={data.thoughts}
         keyMoments={data.keyMoments}
-        sessionCreatedAt={data.session.createdAt}
       />
 
       <ExplorerCTA thoughtCount={data.session.thoughtCount} />

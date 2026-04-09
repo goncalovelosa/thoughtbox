@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { RawThoughtRecord, ThoughtRowVM, ThoughtDetailVM, ThoughtDisplayType } from '@/lib/session/view-models'
+import type { RawThoughtRecord, ThoughtDisplayType } from '@/lib/session/view-models'
 import { createThoughtViewModels } from '@/lib/session/view-models'
 import { ThoughtRow } from '@/components/session-area/thought-row'
 import { ThoughtCard } from '@/components/session-area/thought-card'
@@ -15,7 +15,6 @@ type KeyMoment = {
 type Props = {
   thoughts: RawThoughtRecord[]
   keyMoments: KeyMoment[]
-  sessionCreatedAt: string
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -28,7 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   progress: 'Progress',
 }
 
-export function ExplorerTimeline({ thoughts, keyMoments, sessionCreatedAt }: Props) {
+export function ExplorerTimeline({ thoughts, keyMoments }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<ThoughtDisplayType | 'all'>('all')
   const [visibleCount, setVisibleCount] = useState(30)
@@ -118,12 +117,6 @@ export function ExplorerTimeline({ thoughts, keyMoments, sessionCreatedAt }: Pro
     }
   }, [rows])
 
-  // Key moment numbers for inline CTA detection
-  const keyMomentNumbers = useMemo(
-    () => new Set(keyMoments.map((m) => m.thoughtNumber)),
-    [keyMoments],
-  )
-
   return (
     <section className="border-b-4 border-foreground">
       {/* Filter chips */}
@@ -158,7 +151,7 @@ export function ExplorerTimeline({ thoughts, keyMoments, sessionCreatedAt }: Pro
 
       {/* Timeline */}
       <div className="divide-y-0">
-        {visibleRows.map((row, index) => {
+        {visibleRows.map((row) => {
           const isExpanded = expandedId === row.id
 
           return (
