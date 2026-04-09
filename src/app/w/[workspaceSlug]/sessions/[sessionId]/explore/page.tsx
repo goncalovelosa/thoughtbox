@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { ExplorerTimeline } from '@/components/explorer/explorer-timeline'
-import type { RawThoughtRecord } from '@/lib/session/view-models'
+import { SessionDetailHeader } from '@/components/session-area/session-detail-header'
+import {
+  createSessionDetailVM,
+  type RawSessionRecord,
+  type RawThoughtRecord,
+} from '@/lib/session/view-models'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Session Explorer' }
@@ -84,9 +88,21 @@ export default async function SessionExplorePage({ params }: Props) {
   )
 
   const beliefCount = typeCounts['belief_snapshot'] || 0
-  const title = sessionRow.title || `Session ${sessionId.slice(0, 7)}`
-  const tags = sessionRow.tags ?? []
   const thoughtCount = sessionRow.thought_count ?? thoughts.length
+
+  const rawSession: RawSessionRecord = {
+    id: sessionRow.id,
+    title: sessionRow.title ?? undefined,
+    tags: sessionRow.tags ?? undefined,
+    createdAt: sessionRow.created_at,
+    completedAt: sessionRow.completed_at ?? undefined,
+    updatedAt: sessionRow.updated_at ?? undefined,
+    status: (sessionRow.status || 'abandoned') as RawSessionRecord['status'],
+  }
+  const sessionVM = createSessionDetailVM(rawSession)
+  if (sessionRow.thought_count != null) {
+    sessionVM.thoughtCount = sessionRow.thought_count
+  }
 
   const minutes = Math.round(durationMs / 60000)
   const durationLabel =
@@ -95,55 +111,28 @@ export default async function SessionExplorePage({ params }: Props) {
       : `${Math.floor(minutes / 60)}h ${minutes % 60}m`
 
   return (
-    <main className="min-h-screen">
-      {/* Hero */}
-      <section className="border-b-4 border-foreground">
-        <div className="border-b-2 border-foreground/20 px-6 py-3 flex items-center justify-between">
-          <span className="font-mono-terminal text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">
-            Session Explorer
-          </span>
-          <Link
-            href={`/w/${workspaceSlug}/sessions/${sessionId}`}
-            className="font-mono-terminal text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60 hover:text-foreground transition-colors"
-          >
-            Trace View
-          </Link>
-        </div>
+    <div className="mx-auto max-w-[1600px] px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))] text-foreground">
+      <SessionDetailHeader
+        session={sessionVM}
+        workspaceSlug={workspaceSlug}
+        activeView="explore"
+      />
 
-        <div className="px-6 py-10 md:px-12 md:py-16">
-          {tags.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="border-2 border-foreground/30 px-2 py-0.5 font-mono-terminal text-[10px] font-black uppercase tracking-widest text-foreground/70"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          <h1 className="mb-6 max-w-4xl text-3xl font-black uppercase tracking-tight text-foreground md:text-5xl">
-            {title}
-          </h1>
-
-          <div className="mb-8 flex flex-wrap gap-6 border-4 border-foreground bg-foreground/5 p-6">
-            <Stat value={thoughtCount} label="thoughts" />
-            <Stat value={durationLabel} label="duration" />
-            <Stat value={beliefCount} label="belief snapshots" />
-            <Stat value={entityCount} label="knowledge entities" />
-            <Stat value={relationCount} label="relations" />
-          </div>
-        </div>
-      </section>
+      {/* Explorer stats */}
+      <div className="mb-8 flex flex-wrap gap-6 border-4 border-foreground bg-foreground/5 p-6">
+        <Stat value={thoughtCount} label="thoughts" />
+        <Stat value={durationLabel} label="duration" />
+        <Stat value={beliefCount} label="belief snapshots" />
+        <Stat value={entityCount} label="knowledge entities" />
+        <Stat value={relationCount} label="relations" />
+      </div>
 
       <ExplorerTimeline
         thoughts={thoughts}
         keyMoments={[]}
         showInlineCTAs={false}
       />
-    </main>
+    </div>
   )
 }
 

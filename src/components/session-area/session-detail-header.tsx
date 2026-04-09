@@ -4,9 +4,11 @@ import type { SessionDetailVM } from '@/lib/session/view-models'
 type Props = {
   session: SessionDetailVM
   workspaceSlug: string
+  activeView?: 'trace' | 'explore'
 }
 
-export function SessionDetailHeader({ session, workspaceSlug }: Props) {
+export function SessionDetailHeader({ session, workspaceSlug, activeView = 'trace' }: Props) {
+  const sessionBase = `/w/${workspaceSlug}/sessions/${session.id}`
   // Override soft status badge styling to raw B&W styles
   const getBrutalistStatusStyles = (status: string) => {
     switch (status) {
@@ -63,6 +65,31 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
             <span className="text-foreground">{session.thoughtCount}</span>
             <span className="opacity-50">THOUGHTS</span>
           </div>
+        </div>
+
+        {/* View toggle */}
+        <div className="flex border-2 border-foreground mt-2 w-fit">
+          <Link
+            href={sessionBase}
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+              activeView === 'trace'
+                ? 'bg-foreground text-background'
+                : 'text-foreground hover:bg-foreground/10'
+            }`}
+          >
+            Trace
+          </Link>
+          <div className="w-[2px] bg-foreground" />
+          <Link
+            href={`${sessionBase}/explore`}
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${
+              activeView === 'explore'
+                ? 'bg-foreground text-background'
+                : 'text-foreground hover:bg-foreground/10'
+            }`}
+          >
+            Explorer
+          </Link>
         </div>
       </div>
     </div>
