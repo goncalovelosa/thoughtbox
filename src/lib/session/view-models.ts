@@ -494,6 +494,17 @@ export function mergeTimeline(
     return otelEvents
   }
 
+  // Drop OTEL events that predate the first thought — they belong to
+  // activity before the run started and should not appear in the timeline.
+  const firstThoughtTime = new Date(taggedThoughts[0].timestampISO).getTime()
+  const inScopeEvents = otelEvents.filter(
+    (ev) => new Date(ev.timestampISO).getTime() >= firstThoughtTime,
+  )
+
+  if (inScopeEvents.length === 0) {
+    return taggedThoughts
+  }
+
   const result: TimelineItem[] = []
   let otelIdx = 0
 
@@ -502,10 +513,10 @@ export function mergeTimeline(
     const thoughtTime = new Date(thought.timestampISO).getTime()
 
     // Insert OTEL events that occurred before this thought
-    while (otelIdx < otelEvents.length) {
-      const eventTime = new Date(otelEvents[otelIdx].timestampISO).getTime()
+    while (otelIdx < inScopeEvents.length) {
+      const eventTime = new Date(inScopeEvents[otelIdx].timestampISO).getTime()
       if (eventTime < thoughtTime) {
-        result.push(otelEvents[otelIdx])
+        result.push(inScopeEvents[otelIdx])
         otelIdx++
       } else {
         break
@@ -516,8 +527,8 @@ export function mergeTimeline(
   }
 
   // Remaining OTEL events after the last thought
-  while (otelIdx < otelEvents.length) {
-    result.push(otelEvents[otelIdx])
+  while (otelIdx < inScopeEvents.length) {
+    result.push(inScopeEvents[otelIdx])
     otelIdx++
   }
 
