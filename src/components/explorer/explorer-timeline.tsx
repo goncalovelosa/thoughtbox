@@ -15,6 +15,7 @@ type KeyMoment = {
 type Props = {
   thoughts: RawThoughtRecord[]
   keyMoments: KeyMoment[]
+  showInlineCTAs?: boolean
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -27,7 +28,7 @@ const TYPE_LABELS: Record<string, string> = {
   progress: 'Progress',
 }
 
-export function ExplorerTimeline({ thoughts }: Props) {
+export function ExplorerTimeline({ thoughts, showInlineCTAs = true }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<ThoughtDisplayType | 'all'>('all')
   const [visibleCount, setVisibleCount] = useState(30)
@@ -156,8 +157,8 @@ export function ExplorerTimeline({ thoughts }: Props) {
 
           return (
             <div key={row.id} id={`thought-${row.thoughtNumber}`}>
-              {/* Inline CTA at thought 50 and 100 */}
-              {activeFilter === 'all' &&
+              {/* Inline CTA at thought 50 and 100 (public explorer only) */}
+              {showInlineCTAs && activeFilter === 'all' &&
                 (row.thoughtNumber === 50 || row.thoughtNumber === 100) && (
                   <InlineCTA thoughtNumber={row.thoughtNumber} total={rows.length} />
                 )}

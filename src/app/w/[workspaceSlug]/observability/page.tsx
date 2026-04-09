@@ -281,6 +281,12 @@ export default async function ObservabilityPage({ params }: Props) {
               Telemetry active — {otelEventCount.toLocaleString()} events ingested.
               {totalCost > 0 && ` Total cost: $${totalCost.toFixed(4)}.`}
             </p>
+            {totalCost > 0 && (
+              <p className="text-xs text-muted-foreground/70 max-w-2xl -mt-2">
+                Costs reflect Claude API usage pricing. If you use Claude Code with a Claude AI subscription (Pro, Max, or Team),
+                your actual billing may differ — API cost figures here represent the equivalent API token cost, not your subscription charges.
+              </p>
+            )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {/* Cost by model */}
