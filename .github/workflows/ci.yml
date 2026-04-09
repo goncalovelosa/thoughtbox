@@ -79,8 +79,42 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@1355578ed5ec77de81fa10b47de81d0bfbf1fe13 # v1.6.1
+        with:
+          version: 2.84.2
+
+      - name: Start local Supabase
+        run: supabase start -x gotrue,realtime,storage-api,imgproxy,inbucket,postgrest-manager,pgbouncer,logflare,edge-runtime,vector
+
       - name: Run test suite
         run: pnpm test
+
+  schema-check:
+    name: Schema Drift Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@1355578ed5ec77de81fa10b47de81d0bfbf1fe13 # v1.6.1
+        with:
+          version: 2.84.2
+
+      - name: Start local Supabase
+        run: supabase start -x gotrue,realtime,storage-api,imgproxy,inbucket,postgrest-manager,pgbouncer,logflare,edge-runtime,vector
+
+      - name: Check for schema drift against production
+        run: |
+          DIFF=$(supabase db diff --linked 2>&1) || true
+          if [ -n "$DIFF" ] && ! echo "$DIFF" | grep -q "^$"; then
+            echo "::error::Schema drift detected between migrations and production"
+            echo "$DIFF"
+            exit 1
+          fi
+          echo "No schema drift detected"
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
