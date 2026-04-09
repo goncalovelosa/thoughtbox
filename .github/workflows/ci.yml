@@ -85,7 +85,7 @@ jobs:
           version: 2.84.2
 
       - name: Start local Supabase
-        run: supabase start -x gotrue,realtime,storage-api,imgproxy,inbucket,postgrest-manager,pgbouncer,logflare,edge-runtime,vector
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Run test suite
         run: pnpm test
@@ -104,7 +104,7 @@ jobs:
           version: 2.84.2
 
       - name: Start local Supabase
-        run: supabase start -x gotrue,realtime,storage-api,imgproxy,inbucket,postgrest-manager,pgbouncer,logflare,edge-runtime,vector
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Check for schema drift against production
         run: |
