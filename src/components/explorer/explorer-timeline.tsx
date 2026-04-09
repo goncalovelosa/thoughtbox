@@ -27,7 +27,7 @@ const TYPE_LABELS: Record<string, string> = {
   progress: 'Progress',
 }
 
-export function ExplorerTimeline({ thoughts, keyMoments }: Props) {
+export function ExplorerTimeline({ thoughts }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<ThoughtDisplayType | 'all'>('all')
   const [visibleCount, setVisibleCount] = useState(30)

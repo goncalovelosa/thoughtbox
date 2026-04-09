@@ -29,6 +29,9 @@ type Props = {
   typeCounts: Record<ThoughtDisplayType, number>
   viewMode: ViewMode
   onViewModeChange: (mode: ViewMode) => void
+  runIds: string[]
+  selectedRunId: string | null
+  onRunSelect: (runId: string | null) => void
   exportSlot?: React.ReactNode
 }
 
@@ -46,6 +49,9 @@ export function SessionTraceToolbar({
   typeCounts,
   viewMode,
   onViewModeChange,
+  runIds,
+  selectedRunId,
+  onRunSelect,
   exportSlot,
 }: Props) {
   const showLiveIndicator = sessionStatus === 'active'
@@ -122,6 +128,22 @@ export function SessionTraceToolbar({
             Decisions
           </button>
         </div>
+
+        {/* Run selector */}
+        {runIds.length > 1 && (
+          <select
+            value={selectedRunId || ''}
+            onChange={(e) => onRunSelect(e.target.value || null)}
+            className="h-10 border-2 border-foreground bg-background px-2 font-mono-terminal text-[10px] uppercase tracking-widest focus:outline-none"
+          >
+            <option value="">ALL RUNS</option>
+            {runIds.map((id) => (
+              <option key={id} value={id}>
+                RUN {id.slice(0, 8)}
+              </option>
+            ))}
+          </select>
+        )}
 
         <div className="flex-1" />
 
