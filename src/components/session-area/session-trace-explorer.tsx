@@ -38,6 +38,8 @@ type Props = {
   sessionId: string
   sessionStatus: 'active' | 'completed' | 'abandoned'
   sessionVM: SessionDetailVM
+  runStartedAt: string
+  runCompletedAt?: string
 }
 
 export function SessionTraceExplorer({
@@ -48,6 +50,8 @@ export function SessionTraceExplorer({
   sessionId,
   sessionStatus,
   sessionVM,
+  runStartedAt,
+  runCompletedAt,
 }: Props) {
   const { rows, details, isLive } = useSessionRealtime(
     initialThoughts,
@@ -56,8 +60,17 @@ export function SessionTraceExplorer({
   )
 
   const allOtelEventVMs = useMemo(
-    () => createOtelEventVMs(initialOtelEvents),
-    [initialOtelEvents],
+    () => {
+      const vms = createOtelEventVMs(initialOtelEvents)
+      const start = new Date(runStartedAt).getTime()
+      const end = runCompletedAt ? new Date(runCompletedAt).getTime() : Infinity
+
+      return vms.filter(ev => {
+        const ts = new Date(ev.timestampISO).getTime()
+        return ts >= start && ts <= end
+      })
+    },
+    [initialOtelEvents, runStartedAt, runCompletedAt],
   )
 
   // OTEL event view models — only tool use events belong in the timeline
