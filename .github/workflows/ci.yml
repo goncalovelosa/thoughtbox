@@ -80,7 +80,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@1355578ed5ec77de81fa10b47de81d0bfbf1fe13 # v1.6.1
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
         with:
           version: 2.84.2
 
@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@1355578ed5ec77de81fa10b47de81d0bfbf1fe13 # v1.6.1
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
         with:
           version: 2.84.2
 
