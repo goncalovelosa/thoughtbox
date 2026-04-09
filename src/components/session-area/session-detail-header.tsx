@@ -24,7 +24,7 @@ export function SessionDetailHeader({ session, workspaceSlug }: Props) {
       <div className="absolute top-0 right-0 w-32 h-32 diagonal-lines opacity-10 pointer-events-none"></div>
       
       <Link 
-        href={`/w/${workspaceSlug}/runs`}
+        href={`/w/${workspaceSlug}/sessions`}
         className="inline-flex w-fit items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-foreground hover:bg-foreground hover:text-background border-2 border-transparent hover:border-foreground px-2 py-1 transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">

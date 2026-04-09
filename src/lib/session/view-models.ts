@@ -233,7 +233,7 @@ export function createSessionSummaryVM(raw: RawSessionRecord, workspaceSlug: str
     startedAtISO: raw.createdAt,
     startedAtLabel: format(startedAt, 'MMM d, yyyy HH:mm'),
     durationLabel,
-    href: `/w/${workspaceSlug}/runs/${raw.id}`
+    href: `/w/${workspaceSlug}/sessions/${raw.id}`
   }
 }
 

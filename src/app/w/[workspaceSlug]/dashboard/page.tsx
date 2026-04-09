@@ -99,9 +99,9 @@ export default async function DashboardPage({ params }: Props) {
           icon="🔑"
         />
         <QuickAction
-          title="Explore your runs"
+          title="Explore your sessions"
           description="View every MCP session recorded in this workspace."
-          href={`${base}/runs`}
+          href={`${base}/sessions`}
           icon="🔍"
         />
       </div>
@@ -109,9 +109,9 @@ export default async function DashboardPage({ params }: Props) {
       {/* Recent runs */}
       <div className="mt-8 rounded-2xl border border-foreground/10 bg-foreground/[0.03] shadow-sm">
         <div className="flex items-center justify-between border-b border-foreground/10 px-6 py-4">
-          <h2 className="text-sm font-semibold text-foreground">Recent runs</h2>
+          <h2 className="text-sm font-semibold text-foreground">Recent sessions</h2>
           <Link
-            href={`${base}/runs`}
+            href={`${base}/sessions`}
             className="text-xs text-foreground hover:underline-thick hover:text-foreground transition-colors"
           >
             View all →
@@ -121,9 +121,9 @@ export default async function DashboardPage({ params }: Props) {
         {recentSessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
             <p className="text-2xl">📋</p>
-            <p className="font-medium text-foreground">No runs yet</p>
+            <p className="font-medium text-foreground">No sessions yet</p>
             <p className="text-sm text-foreground">
-              Runs appear here once your MCP client connects and makes its first call.
+              Sessions appear here once your MCP client connects and makes its first call.
             </p>
             <Link
               href={`${base}/docs/quickstart`}
@@ -139,7 +139,7 @@ export default async function DashboardPage({ params }: Props) {
               return (
                 <li key={session.id}>
                   <Link
-                    href={`${base}/runs/${session.id}`}
+                    href={`${base}/sessions/${session.id}`}
                     className="flex items-center justify-between px-6 py-3 hover:bg-background transition-colors"
                   >
                     <div className="flex flex-col gap-0.5 min-w-0">
