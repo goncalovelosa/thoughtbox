@@ -3,8 +3,10 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Pricing — Thoughtbox',
-  description: 'Mind-expansion for AI agents. Free to self-host, $29/mo for cloud. Try it today.',
+  description: 'Mind-expansion for AI agents. Free founding beta through April 23. Join now.',
 }
+
+const BETA_END = 'April 23, 2026'
 
 type Tier = {
   name: string
@@ -15,6 +17,7 @@ type Tier = {
   cta: string
   ctaHref: string
   highlighted: boolean
+  badge?: string
 }
 
 const tiers: Tier[] = [
@@ -36,9 +39,9 @@ const tiers: Tier[] = [
   },
   {
     name: 'Pro',
-    price: '$27',
-    period: '/month',
-    description: 'Hosted Thoughtbox with web dashboard. No Docker, no maintenance. Just think. $270/year with annual billing (2 months free).',
+    price: '$0',
+    period: `free until ${BETA_END}`,
+    description: `Founding beta — full Pro access at no cost through ${BETA_END}. After beta: $27/month or $270/year.`,
     features: [
       'Everything in Free, plus:',
       'Hosted on our infrastructure',
@@ -49,15 +52,16 @@ const tiers: Tier[] = [
       'Unlimited data retention',
       'Email support',
     ],
-    cta: 'Start free trial',
+    cta: 'Join founding beta',
     ctaHref: '/sign-up',
     highlighted: true,
+    badge: 'Founding Beta',
   },
   {
     name: 'Team',
-    price: '$91',
-    period: '/month',
-    description: 'Shared reasoning for teams. 5 seats, Hub collaboration, and priority support. $910/year with annual billing (2 months free).',
+    price: '$0',
+    period: `free until ${BETA_END}`,
+    description: `Founding beta — full Team access at no cost through ${BETA_END}. After beta: $91/month or $910/year.`,
     features: [
       'Everything in Pro, plus:',
       '5 team seats',
@@ -67,9 +71,10 @@ const tiers: Tier[] = [
       'Hub multi-agent collaboration',
       'Priority email support',
     ],
-    cta: 'Start team trial',
+    cta: 'Join founding beta',
     ctaHref: '/sign-up',
     highlighted: false,
+    badge: 'Founding Beta',
   },
 ]
 
@@ -83,8 +88,7 @@ export default function PricingPage() {
             Mind-expansion for AI agents
           </h1>
           <p className="mt-4 text-lg text-foreground/70">
-            Open source and free to self-host. Cloud tiers for teams that want
-            hosted infrastructure and a web dashboard.
+            Open source and free to self-host. Cloud is free during the founding beta through {BETA_END}.
           </p>
         </div>
 
@@ -99,9 +103,9 @@ export default function PricingPage() {
                   : 'border-foreground/10 bg-background'
               }`}
             >
-              {tier.highlighted && (
+              {tier.badge && (
                 <span className="mb-3 inline-block w-fit rounded-full bg-foreground px-3 py-0.5 text-xs font-semibold text-background">
-                  Popular
+                  {tier.badge}
                 </span>
               )}
 
@@ -196,9 +200,9 @@ export default function PricingPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-foreground">Can I try before paying?</h3>
+            <h3 className="text-sm font-bold text-foreground">What does the founding beta include?</h3>
             <p className="mt-1 text-sm text-foreground">
-              Yes. The self-hosted version is completely free with no limits. Cloud Pro and Team have a 14-day free trial. And you can browse a real 167-thought session right now on the{' '}
+              Everything. Full Pro and Team access at no cost through {BETA_END}. No credit card required. After beta, paid plans kick in — or you can continue self-hosting for free. Browse a real 167-thought session right now on the{' '}
               <Link href="/explore/agentic-reasoning-research" className="text-foreground hover:underline-thick hover:underline font-semibold">
                 session explorer
               </Link>.

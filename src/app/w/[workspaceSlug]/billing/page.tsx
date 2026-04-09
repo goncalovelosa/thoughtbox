@@ -18,7 +18,8 @@ export default async function BillingPage({ params }: Props) {
     .eq('slug', workspaceSlug)
     .single()
 
-  const planId = (workspace?.plan_id as PlanId) || 'free'
+  const rawPlanId = workspace?.plan_id ?? 'free'
+  const planId: PlanId = rawPlanId in PLAN_CONFIG ? rawPlanId as PlanId : 'free'
   const planConfig = PLAN_CONFIG[planId]
   const subscriptionStatus = workspace?.subscription_status || 'active'
   const hasStripeCustomer = Boolean(workspace?.stripe_customer_id)
