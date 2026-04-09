@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, AlertTriangle, Minus } from 'lucide-react'
+import { CheckCircle2, Info, Minus, AlertTriangle } from 'lucide-react'
 
 type Props = {
   thoughtboxSessionId: string
@@ -26,9 +26,12 @@ export function SessionIdDiagnostic({ thoughtboxSessionId, otelSessionId, otelSh
             OTEL matched
           </span>
         ) : (
-          <span className="flex items-center gap-1 text-amber-600">
-            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
-            OTEL ID differs: <code className="font-mono">{otelSessionId.slice(0, 12)}</code>
+          <span
+            className="flex items-center gap-1 text-blue-600 cursor-help"
+            title="This session is bound to OTEL traces from a different session ID. This is normal when linking external observability data to Thoughtbox sessions."
+          >
+            <Info className="h-3 w-3" aria-hidden="true" />
+            Bound to OTEL: <code className="font-mono">{otelSessionId.slice(0, 12)}</code>
           </span>
         )
       ) : (

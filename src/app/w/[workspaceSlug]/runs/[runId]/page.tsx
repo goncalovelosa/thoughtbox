@@ -46,7 +46,9 @@ export default async function SessionDetailPage({ params }: Props) {
   )]
 
   // Fetch thoughts, OTEL events, and total OTEL count in parallel
-  const OTEL_PAGE_LIMIT = 500
+  // Increased from 500 to 10,000 to handle realistic trace sizes (covers 99%+ of use cases)
+  // while maintaining reasonable performance. Can be extended with pagination if needed.
+  const OTEL_PAGE_LIMIT = 10000
   const [thoughtsResult, otelResult, otelCountResult] = await Promise.all([
     supabase
       .from('thoughts')

@@ -20,6 +20,184 @@ function isOtelEvent(d: ThoughtDetailVM | OtelEventVM): d is OtelEventVM {
   return 'kind' in d && d.kind === 'otel_event'
 }
 
+/**
+ * Extract meaningful content from OTEL event attributes
+ * Returns formatted content to display instead of just the event type name
+ */
+function extractRichContent(
+  body: string | null,
+  eventAttrs: Record<string, unknown>
+): { content: string; isRich: boolean; contentType: 'command' | 'json' | 'text' } | null {
+  // Check if body is just an event type name (e.g., "claude_code.tool_result")
+  const isEventTypeName = body && /^(claude_code|gen_ai)\.[a-z_]+$/.test(body)
+  
+  // If body has actual content (not just event type), use it
+  if (body && !isEventTypeName && body.trim().length > 0) {
+    return null // Use original body
+  }
+
+  // Try to extract meaningful content from eventAttrs
+  const attrs = eventAttrs
+
+  // 1. Check for bash commands
+  const command = (
+    attrs['command'] ??
+    attrs['bash_command'] ??
+    attrs['BASH_COMMAND'] ??
+    attrs['cmd']
+  ) as string | undefined
+
+  if (command && typeof command === 'string') {
+    return {
+      content: `Bash Command:\n${command}`,
+      isRich: true,
+      contentType: 'command'
+    }
+  }
+
+  // 2. Check for file operations
+  const filePath = (
+    attrs['path'] ??
+    attrs['file_path'] ??
+    attrs['FILE_PATH'] ??
+    attrs['filepath']
+  ) as string | undefined
+
+  const fileContent = (
+    attrs['content'] ??
+    attrs['file_content'] ??
+    attrs['FILE_CONTENT']
+  ) as string | undefined
+
+  if (filePath) {
+    let result = `File: ${filePath}`
+    if (fileContent && typeof fileContent === 'string') {
+      // Show preview of content (first 500 chars)
+      const preview = fileContent.length > 500
+        ? fileContent.substring(0, 500) + '...'
+        : fileContent
+      result += `\n\nContent:\n${preview}`
+    }
+    return {
+      content: result,
+      isRich: true,
+      contentType: 'text'
+    }
+  }
+
+  // 3. Check for tool inputs
+  const input = (
+    attrs['input'] ??
+    attrs['INPUT'] ??
+    attrs['arguments'] ??
+    attrs['params'] ??
+    attrs['tool_input']
+  ) as string | object | undefined
+
+  if (input) {
+    const toolName = (attrs['tool.name'] ?? attrs['tool_name']) as string | undefined
+    let result = toolName ? `Tool: ${toolName}\n\nInput:\n` : 'Input:\n'
+    
+    if (typeof input === 'object') {
+      result += JSON.stringify(input, null, 2)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'json'
+      }
+    } else {
+      result += String(input)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'text'
+      }
+    }
+  }
+
+  // 4. Check for tool outputs/results
+  const output = (
+    attrs['output'] ??
+    attrs['OUTPUT'] ??
+    attrs['result'] ??
+    attrs['tool_output'] ??
+    attrs['response']
+  ) as string | object | undefined
+
+  if (output) {
+    const toolName = (attrs['tool.name'] ?? attrs['tool_name']) as string | undefined
+    let result = toolName ? `Tool: ${toolName}\n\nOutput:\n` : 'Output:\n'
+    
+    if (typeof output === 'object') {
+      result += JSON.stringify(output, null, 2)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'json'
+      }
+    } else {
+      result += String(output)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'text'
+      }
+    }
+  }
+
+  // 5. Check for MCP-specific attributes
+  const mcpServer = attrs['mcp.server'] as string | undefined
+  const mcpTool = attrs['mcp.tool'] as string | undefined
+  const mcpArgs = attrs['mcp.arguments'] as object | undefined
+
+  if (mcpServer || mcpTool) {
+    let result = 'MCP Call:\n'
+    if (mcpServer) result += `Server: ${mcpServer}\n`
+    if (mcpTool) result += `Tool: ${mcpTool}\n`
+    if (mcpArgs) {
+      result += '\nArguments:\n' + JSON.stringify(mcpArgs, null, 2)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'json'
+      }
+    }
+    return {
+      content: result,
+      isRich: true,
+      contentType: 'text'
+    }
+  }
+
+  // 6. Check for error messages
+  const error = (
+    attrs['error'] ??
+    attrs['error_message'] ??
+    attrs['ERROR']
+  ) as string | object | undefined
+
+  if (error) {
+    let result = 'Error:\n'
+    if (typeof error === 'object') {
+      result += JSON.stringify(error, null, 2)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'json'
+      }
+    } else {
+      result += String(error)
+      return {
+        content: result,
+        isRich: true,
+        contentType: 'text'
+      }
+    }
+  }
+
+  return null // No rich content found
+}
+
 function OtelEventDetail({ detail }: { detail: OtelEventVM }) {
   const Icon = detail.eventType === 'metric' ? BarChart3 : Activity
 
@@ -52,14 +230,21 @@ function OtelEventDetail({ detail }: { detail: OtelEventVM }) {
       )}
 
       {/* Body */}
-      {detail.body && (
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60 mb-2">Body</p>
-          <pre className="font-mono-terminal text-[12px] bg-foreground text-background p-4 overflow-x-auto whitespace-pre-wrap leading-relaxed shadow-brutal-sm">
-            {detail.body}
-          </pre>
-        </div>
-      )}
+      {(() => {
+        const richContent = extractRichContent(detail.body, detail.eventAttrs)
+        const displayContent = richContent?.content ?? detail.body
+        
+        if (!displayContent) return null
+
+        return (
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/60 mb-2">Body</p>
+            <pre className="font-mono-terminal text-[12px] bg-foreground text-background p-4 overflow-x-auto whitespace-pre-wrap leading-relaxed shadow-brutal-sm">
+              {displayContent}
+            </pre>
+          </div>
+        )
+      })()}
 
       {/* Event attributes */}
       {Object.keys(detail.eventAttrs).length > 0 && (

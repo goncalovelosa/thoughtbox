@@ -93,7 +93,7 @@ export function SessionTraceExplorer({
   const [activeTypeFilters, setActiveTypeFilters] = useState<
     Set<ThoughtDisplayType>
   >(new Set())
-  const [viewMode, setViewMode] = useState<ViewMode>('full')
+  const [viewMode, setViewMode] = useState<ViewMode>('decisions')
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(
     new Set(),
   )
