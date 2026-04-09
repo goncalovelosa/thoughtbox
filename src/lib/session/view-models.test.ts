@@ -35,7 +35,7 @@ describe('Session View Models (Spec 09)', () => {
       expect(summary.shortId).toBe('sess_12')
       expect(summary.title).toBe('My Test Session')
       expect(summary.thoughtCount).toBe(2)
-      expect(summary.href).toBe('/w/my-workspace/runs/sess_123456789')
+      expect(summary.href).toBe('/w/my-workspace/sessions/sess_123456789')
       expect(summary.durationLabel).toBe('5m')
 
       const detail = createSessionDetailVM(raw)

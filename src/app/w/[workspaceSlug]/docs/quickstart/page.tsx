@@ -8,7 +8,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 export default async function WorkspaceQuickstartPage({ params }: Props) {
   const { workspaceSlug } = await params
   const apiKeysHref = `/w/${workspaceSlug}/api-keys`
-  const runsHref = `/w/${workspaceSlug}/runs`
+  const runsHref = `/w/${workspaceSlug}/sessions`
 
   return (
     <div className="mx-auto max-w-3xl">

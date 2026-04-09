@@ -1,6 +1,6 @@
 'use client'
 
-import { Activity, BarChart3 } from 'lucide-react'
+import { Activity, BarChart3, Check, X } from 'lucide-react'
 import { formatOtelDisplayLabel, type OtelEventVM } from '@/lib/session/view-models'
 
 type Props = {
@@ -30,10 +30,41 @@ const SEVERITY_COLORS: Record<string, string> = {
   DEBUG: 'bg-muted text-muted-foreground',
 }
 
+function formatDurationCompact(ms: number): string {
+  if (ms < 1000) {
+    return `${Math.round(ms)}ms`
+  }
+  return `${(ms / 1000).toFixed(1)}s`
+}
+
+function extractDuration(attrs: Record<string, unknown>): number | null {
+  const duration = attrs['DURATION_MS'] ?? attrs['duration_ms'] ?? attrs['duration']
+  if (typeof duration === 'number') return duration
+  if (typeof duration === 'string') {
+    const parsed = parseFloat(duration)
+    return isNaN(parsed) ? null : parsed
+  }
+  return null
+}
+
+function extractSuccess(attrs: Record<string, unknown>): boolean | null {
+  const success = attrs['SUCCESS'] ?? attrs['success']
+  if (typeof success === 'boolean') return success
+  if (typeof success === 'string') {
+    const lower = success.toLowerCase()
+    if (lower === 'true') return true
+    if (lower === 'false') return false
+  }
+  return null
+}
+
 export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
   const Icon = row.eventType === 'metric' ? BarChart3 : Activity
   const severityClass = row.severity ? SEVERITY_COLORS[row.severity] ?? 'bg-muted text-muted-foreground' : null
   const { label, detail } = formatOtelDisplayLabel(row.eventName, row.eventAttrs)
+  
+  const duration = extractDuration(row.eventAttrs)
+  const success = extractSuccess(row.eventAttrs)
 
   return (
     <button
@@ -49,10 +80,28 @@ export function OtelEventRow({ row, isSelected, onClick, searchQuery }: Props) {
     >
       <Icon className="h-3.5 w-3.5 shrink-0 text-blue-500/70" aria-hidden="true" />
 
-      <span className="flex-1 min-w-0 truncate text-foreground">
-        {highlightMatch(label, searchQuery ?? '')}
-        {detail && (
-          <span className="ml-1.5 text-muted-foreground">{detail}</span>
+      <span className="flex-1 min-w-0 flex items-center gap-1.5">
+        <span className="truncate text-foreground">
+          {highlightMatch(label, searchQuery ?? '')}
+          {detail && (
+            <span className="ml-1.5 text-muted-foreground">{detail}</span>
+          )}
+        </span>
+        
+        {success !== null && (
+          <span className="shrink-0 inline-flex items-center" title={success ? 'Success' : 'Failed'}>
+            {success ? (
+              <Check className="h-3 w-3 text-green-600" aria-label="Success" />
+            ) : (
+              <X className="h-3 w-3 text-rose-600" aria-label="Failed" />
+            )}
+          </span>
+        )}
+        
+        {duration !== null && (
+          <span className="shrink-0 text-[10px] font-medium text-muted-foreground tabular-nums" title={`Duration: ${duration}ms`}>
+            {formatDurationCompact(duration)}
+          </span>
         )}
       </span>
 

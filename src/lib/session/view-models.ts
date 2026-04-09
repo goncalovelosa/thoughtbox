@@ -18,6 +18,7 @@ function formatDuration(ms: number): string {
 
 export type RawThoughtRecord = {
   id: string
+  runId?: string
   thoughtNumber?: number
   totalThoughts?: number
   thought: string
@@ -171,6 +172,7 @@ export type ThoughtDisplayType =
 
 export type ThoughtRowVM = {
   id: string
+  runId?: string
   thoughtNumber: number
   totalThoughts?: number
   shortId: string
@@ -263,7 +265,7 @@ export function createSessionSummaryVM(raw: RawSessionRecord, workspaceSlug: str
     startedAtISO: raw.createdAt,
     startedAtLabel: format(startedAt, 'MMM d, yyyy HH:mm'),
     durationLabel,
-    href: `/w/${workspaceSlug}/runs/${raw.id}`
+    href: `/w/${workspaceSlug}/sessions/${raw.id}`
   }
 }
 
@@ -384,6 +386,7 @@ export function createThoughtViewModels(rawThoughts: RawThoughtRecord[]): { rows
 
     const rowVM: ThoughtRowVM = {
       id: raw.id,
+      runId: raw.runId,
       thoughtNumber: raw.thoughtNumber ?? (index + 1), // fallback
       totalThoughts: raw.totalThoughts,
       shortId: raw.id.slice(0, 7),
@@ -523,6 +526,17 @@ export function mergeTimeline(
     return otelEvents
   }
 
+  // Drop OTEL events that predate the first thought — they belong to
+  // activity before the run started and should not appear in the timeline.
+  const firstThoughtTime = new Date(taggedThoughts[0].timestampISO).getTime()
+  const inScopeEvents = otelEvents.filter(
+    (ev) => new Date(ev.timestampISO).getTime() >= firstThoughtTime,
+  )
+
+  if (inScopeEvents.length === 0) {
+    return taggedThoughts
+  }
+
   const result: TimelineItem[] = []
   let otelIdx = 0
 
@@ -531,10 +545,10 @@ export function mergeTimeline(
     const thoughtTime = new Date(thought.timestampISO).getTime()
 
     // Insert OTEL events that occurred before this thought
-    while (otelIdx < otelEvents.length) {
-      const eventTime = new Date(otelEvents[otelIdx].timestampISO).getTime()
+    while (otelIdx < inScopeEvents.length) {
+      const eventTime = new Date(inScopeEvents[otelIdx].timestampISO).getTime()
       if (eventTime < thoughtTime) {
-        result.push(otelEvents[otelIdx])
+        result.push(inScopeEvents[otelIdx])
         otelIdx++
       } else {
         break
@@ -545,8 +559,8 @@ export function mergeTimeline(
   }
 
   // Remaining OTEL events after the last thought
-  while (otelIdx < otelEvents.length) {
-    result.push(otelEvents[otelIdx])
+  while (otelIdx < inScopeEvents.length) {
+    result.push(inScopeEvents[otelIdx])
     otelIdx++
   }
 
@@ -570,6 +584,15 @@ export function formatOtelDisplayLabel(
   const model = attrs['model'] as string | null
   const decision = attrs['decision'] as string | null
   const tokenType = attrs['type'] as string | null
+
+  // Hook-emitted events: "tool.Read", "tool.Edit", etc.
+  if (eventName.startsWith('tool.')) {
+    const hookToolName = toolName ?? eventName.slice(5)
+    return {
+      label: hookToolName === 'mcp_tool' ? 'MCP call' : hookToolName,
+      detail: null,
+    }
+  }
 
   switch (stripped) {
     case 'tool_result':

@@ -55,17 +55,23 @@ export function SessionTraceExplorer({
     sessionId,
   )
 
+  // OTEL events are already scoped to this session via otel_session_id in the DB query.
+  // No client-side time-window filter is needed — such a filter would incorrectly drop events
+  // whose timestamps (from the MCP/Claude Code process clock) predate sessions.created_at
+  // (a Postgres server-side timestamp), causing all events to be silently excluded.
   const allOtelEventVMs = useMemo(
     () => createOtelEventVMs(initialOtelEvents),
     [initialOtelEvents],
   )
 
-  // OTEL event view models — only tool use events belong in the timeline
+  // OTEL event view models — tool use events belong in the timeline
   const otelEventVMs = useMemo(() => {
     const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
     return allOtelEventVMs.filter(ev => {
       const stripped = ev.eventName.replace(/^claude_code\./, '').replace(/^gen_ai\./, '')
-      return TOOL_EVENT_SUFFIXES.has(stripped)
+      // Match Claude Code native names (tool_result, hook_tool_result)
+      // and hook-emitted names (tool.Read, tool.Edit, tool.Bash, etc.)
+      return TOOL_EVENT_SUFFIXES.has(stripped) || ev.eventName.startsWith('tool.')
     })
   }, [allOtelEventVMs])
 
@@ -93,7 +99,8 @@ export function SessionTraceExplorer({
   const [activeTypeFilters, setActiveTypeFilters] = useState<
     Set<ThoughtDisplayType>
   >(new Set())
-  const [viewMode, setViewMode] = useState<ViewMode>('full')
+  const [viewMode, setViewMode] = useState<ViewMode>('decisions')
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [collapsedPhases, setCollapsedPhases] = useState<Set<string>>(
     new Set(),
   )
@@ -132,6 +139,11 @@ export function SessionTraceExplorer({
   } => {
     let result = rows
 
+    // [SPEC-000] Run filter
+    if (selectedRunId) {
+      result = result.filter((r) => r.runId === selectedRunId)
+    }
+
     // [SPEC-001] Type filter (OR logic)
     if (activeTypeFilters.size > 0) {
       result = result.filter((r) => activeTypeFilters.has(r.displayType))
@@ -147,7 +159,7 @@ export function SessionTraceExplorer({
     const filtered = result.filter((r) => sr.matchingRowIds.has(r.id))
 
     return { filteredRows: filtered, searchResult: sr }
-  }, [rows, details, activeTypeFilters, debouncedSearch, searchMode])
+  }, [rows, details, activeTypeFilters, debouncedSearch, searchMode, selectedRunId])
 
   // --- Type filter handlers ---
   const handleTypeFilterToggle = useCallback(
@@ -206,12 +218,17 @@ export function SessionTraceExplorer({
   }, [])
 
   const hasActiveFilters =
-    activeTypeFilters.size > 0 || debouncedSearch.trim() !== ''
+    activeTypeFilters.size > 0 || debouncedSearch.trim() !== '' || selectedRunId !== null
 
   // Build the list of ThoughtDetailVMs for export
   const exportThoughts = useMemo(() => {
     return filteredRows.map((r) => details[r.id]).filter(Boolean)
   }, [filteredRows, details])
+
+  const runIds = useMemo(() => {
+    const ids = new Set(rows.map((r) => r.runId).filter(Boolean) as string[])
+    return Array.from(ids)
+  }, [rows])
 
   // --- Merged timeline (thoughts + tool use events) ---
   const timelineItems = useMemo(
@@ -329,6 +346,9 @@ export function SessionTraceExplorer({
           typeCounts={typeCounts}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          runIds={runIds}
+          selectedRunId={selectedRunId}
+          onRunSelect={setSelectedRunId}
           exportSlot={
             <ExportDropdown
               session={sessionVM}

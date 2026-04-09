@@ -88,7 +88,7 @@ export function WorkspaceSidebar({ workspaceSlug }: { workspaceSlug: string }) {
 
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: `${base}/dashboard`, icon: <DashboardIcon /> },
-    { label: 'Runs', href: `${base}/runs`, icon: <RunsIcon /> },
+    { label: 'Sessions', href: `${base}/sessions`, icon: <RunsIcon /> },
     { label: 'Observability', href: `${base}/observability`, icon: <ObservabilityIcon /> },
     { label: 'API Keys', href: `${base}/api-keys`, icon: <KeyIcon /> },
   ]

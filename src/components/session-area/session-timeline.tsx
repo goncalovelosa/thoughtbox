@@ -28,6 +28,17 @@ export function SessionTimeline({
   collapsedPhases = new Set(),
   onPhaseToggle,
 }: Props) {
+  // Group rows by runId
+  const rowsByRun = useMemo(() => {
+    const groups = new Map<string, TimelineItem[]>()
+    for (const row of rows) {
+      const runId = ('runId' in row ? row.runId : undefined) || 'default'
+      if (!groups.has(runId)) groups.set(runId, [])
+      groups.get(runId)!.push(row)
+    }
+    return groups
+  }, [rows])
+
   // Extract only thought rows for the rail and phase logic
   const thoughtRows = useMemo(
     () => rows.filter((r): r is ThoughtRowVM & { kind: 'thought' } => r.kind === 'thought'),
@@ -89,7 +100,16 @@ export function SessionTimeline({
       </div>
 
       <div className="flex-1 py-4 flex flex-col relative z-0">
-        {rows.map((item) => {
+        {Array.from(rowsByRun.entries()).map(([runId, runRows]) => (
+          <div key={runId} className="mb-8">
+            {runId !== 'default' && (
+              <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-zinc-800 py-2 px-4">
+                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                  Run: {runId.slice(0, 8)}
+                </h3>
+              </div>
+            )}
+            {runRows.map((item) => {
           if (item.kind === 'otel_event') {
             return (
               <OtelEventRow
@@ -134,7 +154,9 @@ export function SessionTimeline({
               )}
             </div>
           )
-        })}
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )

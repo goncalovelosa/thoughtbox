@@ -14,10 +14,10 @@ import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Session' }
 
-type Props = { params: Promise<{ workspaceSlug: string, runId: string }> }
+type Props = { params: Promise<{ workspaceSlug: string, sessionId: string }> }
 
 export default async function SessionDetailPage({ params }: Props) {
-  const { workspaceSlug, runId } = await params
+  const { workspaceSlug, sessionId } = await params
 
   const supabase = await createClient()
   
@@ -25,7 +25,7 @@ export default async function SessionDetailPage({ params }: Props) {
   const { data: sessionRow, error: sessionError } = await supabase
     .from('sessions')
     .select('*, workspace_id')
-    .eq('id', runId)
+    .eq('id', sessionId)
     .single()
     
   if (sessionError || !sessionRow) {
@@ -38,7 +38,7 @@ export default async function SessionDetailPage({ params }: Props) {
     .from('runs')
     .select('otel_session_id')
     .eq('workspace_id', sessionRow.workspace_id)
-    .eq('session_id', runId)
+    .eq('session_id', sessionId)
     .not('otel_session_id', 'is', null)
 
   const otelSessionIds = [...new Set(
@@ -46,12 +46,14 @@ export default async function SessionDetailPage({ params }: Props) {
   )]
 
   // Fetch thoughts, OTEL events, and total OTEL count in parallel
-  const OTEL_PAGE_LIMIT = 500
+  // Increased from 500 to 10,000 to handle realistic trace sizes (covers 99%+ of use cases)
+  // while maintaining reasonable performance. Can be extended with pagination if needed.
+  const OTEL_PAGE_LIMIT = 10000
   const [thoughtsResult, otelResult, otelCountResult] = await Promise.all([
     supabase
       .from('thoughts')
       .select('*')
-      .eq('session_id', runId)
+      .eq('session_id', sessionId)
       .order('thought_number', { ascending: true }),
     otelSessionIds.length > 0
       ? supabase
@@ -138,7 +140,7 @@ export default async function SessionDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))] text-foreground">
-      <SessionDetailHeader session={sessionVM} workspaceSlug={workspaceSlug} />
+      <SessionDetailHeader session={sessionVM} workspaceSlug={workspaceSlug} activeView="trace" />
 
       <SessionSummaryCard
         {...summary}
@@ -151,7 +153,7 @@ export default async function SessionDetailPage({ params }: Props) {
         initialOtelEvents={otelEvents}
         otelTotalCount={totalOtelCount}
         workspaceId={sessionRow.workspace_id}
-        sessionId={runId}
+        sessionId={sessionId}
         sessionStatus={sessionVM.status}
         sessionVM={sessionVM}
       />

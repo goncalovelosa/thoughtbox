@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-const MCP_SERVER_URL = 'https://thoughtbox-mcp-272720136470.us-central1.run.app/mcp'
+const MCP_SERVER_URL = 'https://mcp.kastalienresearch.ai/mcp'
 const PLACEHOLDER_KEY = '<YOUR_API_KEY>'
 
 type ApiKeyOption = { id: string; name: string; prefix: string }

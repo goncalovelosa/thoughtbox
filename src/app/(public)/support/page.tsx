@@ -44,10 +44,10 @@ export default function SupportPage() {
             For account issues, billing questions, or anything not covered in the docs:
           </p>
           <a
-            href="mailto:support@thoughtbox.dev"
+            href="mailto:thoughtboxsupport@kastalienresearch.ai"
             className="mt-4 inline-block rounded-full bg-foreground text-background px-6 py-3 text-sm font-semibold transition-all hover:bg-foreground/80"
           >
-            support@thoughtbox.dev
+            thoughtboxsupport@kastalienresearch.ai
           </a>
           <p className="mt-3 text-xs text-foreground">
             Pro and Enterprise customers receive priority responses.

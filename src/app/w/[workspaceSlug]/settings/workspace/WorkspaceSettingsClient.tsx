@@ -180,8 +180,8 @@ function DangerSection() {
         </button>
         <p className="mt-2 text-xs text-muted-foreground">
           To delete your workspace, email{' '}
-          <a href="mailto:support@thoughtbox.dev" className="underline underline-offset-2 hover:text-foreground transition-colors">
-            support@thoughtbox.dev
+          <a href="mailto:thoughtboxsupport@kastalienresearch.ai" className="underline underline-offset-2 hover:text-foreground transition-colors">
+            thoughtboxsupport@kastalienresearch.ai
           </a>.
         </p>
       </div>
