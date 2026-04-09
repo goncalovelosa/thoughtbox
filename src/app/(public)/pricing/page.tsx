@@ -8,152 +8,90 @@ export const metadata: Metadata = {
 
 const BETA_END = 'April 23, 2026'
 
-type Tier = {
-  name: string
-  price: string
-  period: string
-  description: string
-  features: string[]
-  cta: string
-  ctaHref: string
-  highlighted: boolean
-  badge?: string
-}
-
-const tiers: Tier[] = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Self-host with Docker or npx. Full access to all 7 modules. Your data stays on your machine.',
-    features: [
-      'All 7 modules (thought, session, KG, notebook, hub, observability, code mode)',
-      'Unlimited sessions and thoughts',
-      'Local knowledge graph',
-      'Observatory UI',
-      'Community support (GitHub Discussions)',
-    ],
-    cta: 'Install free',
-    ctaHref: 'https://github.com/Kastalien-Research/thoughtbox',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: '$0',
-    period: `free until ${BETA_END}`,
-    description: `Founding beta — full Pro access at no cost through ${BETA_END}. After beta: $27/month or $270/year.`,
-    features: [
-      'Everything in Free, plus:',
-      'Hosted on our infrastructure',
-      'Web dashboard with session explorer',
-      'API access and key management',
-      'Realtime session updates',
-      'OTEL trace integration',
-      'Unlimited data retention',
-      'Email support',
-    ],
-    cta: 'Join founding beta',
-    ctaHref: '/sign-up',
-    highlighted: true,
-    badge: 'Founding Beta',
-  },
-  {
-    name: 'Team',
-    price: '$0',
-    period: `free until ${BETA_END}`,
-    description: `Founding beta — full Team access at no cost through ${BETA_END}. After beta: $91/month or $910/year.`,
-    features: [
-      'Everything in Pro, plus:',
-      '5 team seats',
-      'Shared workspaces (Hub)',
-      'Team knowledge graph',
-      '25 API keys',
-      'Hub multi-agent collaboration',
-      'Priority email support',
-    ],
-    cta: 'Join founding beta',
-    ctaHref: '/sign-up',
-    highlighted: false,
-    badge: 'Founding Beta',
-  },
-]
-
 export default function PricingPage() {
   return (
     <div className="px-6 py-16 md:py-24">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-3xl">
         {/* Heading */}
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Mind-expansion for AI agents
           </h1>
           <p className="mt-4 text-lg text-foreground/70">
-            Open source and free to self-host. Cloud is free during the founding beta through {BETA_END}.
+            Thoughtbox is free during the founding beta through {BETA_END}. No credit card required.
           </p>
         </div>
 
-        {/* Tiers */}
-        <div className="mt-12 grid gap-6 md:grid-cols-3">
-          {tiers.map((tier) => (
-            <div
-              key={tier.name}
-              className={`flex flex-col rounded-2xl border p-6 ${
-                tier.highlighted
-                  ? 'border-foreground bg-foreground/[0.03] shadow-md ring-1 ring-foreground/10'
-                  : 'border-foreground/10 bg-background'
-              }`}
-            >
-              {tier.badge && (
-                <span className="mb-3 inline-block w-fit rounded-full bg-foreground px-3 py-0.5 text-xs font-semibold text-background">
-                  {tier.badge}
-                </span>
-              )}
+        {/* Single plan */}
+        <div className="mt-12 rounded-2xl border border-foreground bg-foreground/[0.03] shadow-md ring-1 ring-foreground/10 p-8">
+          <span className="mb-4 inline-block w-fit rounded-full bg-foreground px-3 py-0.5 text-xs font-semibold text-background">
+            Founding Beta
+          </span>
 
-              <h2 className="text-xl font-bold text-foreground">{tier.name}</h2>
+          <h2 className="text-2xl font-bold text-foreground">Full Access</h2>
 
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-foreground">{tier.price}</span>
-                <span className="text-sm text-foreground">{tier.period}</span>
-              </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-5xl font-bold text-foreground">$0</span>
+            <span className="text-sm text-foreground/70">through {BETA_END}</span>
+          </div>
 
-              <p className="mt-3 text-sm leading-relaxed text-foreground/70">
-                {tier.description}
-              </p>
+          <p className="mt-4 text-sm leading-relaxed text-foreground/70">
+            Everything Thoughtbox offers — hosted cloud, web dashboard, API access,
+            OTEL integration, team features — completely free while we build this together with our founding users.
+          </p>
 
-              <ul className="mt-6 flex flex-1 flex-col gap-3">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <svg
-                      className="mt-0.5 h-4 w-4 shrink-0 text-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-foreground">{f}</span>
-                  </li>
-                ))}
-              </ul>
+          <ul className="mt-6 flex flex-col gap-3">
+            {[
+              'Hosted on our infrastructure — no Docker required',
+              'Web dashboard with session explorer and trace view',
+              'API access and key management',
+              'Realtime session updates',
+              'OTEL trace integration (Claude Code telemetry)',
+              'Knowledge graph persistence',
+              'Team workspaces and Hub collaboration',
+              'Unlimited sessions, thoughts, and data retention',
+              'Email support',
+            ].map((f) => (
+              <li key={f} className="flex items-start gap-2 text-sm">
+                <svg
+                  className="mt-0.5 h-4 w-4 shrink-0 text-foreground"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-foreground">{f}</span>
+              </li>
+            ))}
+          </ul>
 
-              <Link
-                href={tier.ctaHref}
-                target={tier.ctaHref.startsWith('http') ? '_blank' : undefined}
-                rel={tier.ctaHref.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className={`mt-8 block rounded-full px-6 py-3 text-center text-sm font-semibold transition-all ${
-                  tier.highlighted
-                    ? 'bg-foreground text-background hover:bg-foreground/80'
-                    : 'border border-foreground/20 text-foreground hover:bg-foreground/5'
-                }`}
-              >
-                {tier.cta}
-              </Link>
-            </div>
-          ))}
+          <Link
+            href="/sign-up"
+            className="mt-8 block rounded-full bg-foreground px-6 py-3 text-center text-sm font-semibold text-background transition-all hover:bg-foreground/80"
+          >
+            Join the founding beta
+          </Link>
+        </div>
+
+        {/* Self-host option */}
+        <div className="mt-6 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
+          <h3 className="text-sm font-semibold text-foreground">Prefer to self-host?</h3>
+          <p className="mt-2 text-sm text-foreground/70">
+            Thoughtbox is open source. Run it locally with Docker or npx — free forever, no account needed.
+          </p>
+          <Link
+            href="https://github.com/Kastalien-Research/thoughtbox"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block text-sm font-semibold text-foreground hover:underline-thick hover:underline"
+          >
+            View on GitHub
+          </Link>
         </div>
 
         {/* Audit offer */}
-        <div className="mt-12 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8 text-center">
+        <div className="mt-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8 text-center">
           <h3 className="text-lg font-bold text-foreground">Not sure where to start?</h3>
           <p className="mt-2 text-sm text-foreground/70">
             Get a free Agent Reasoning Audit — we analyze your AI agent setup and
@@ -168,16 +106,16 @@ export default function PricingPage() {
         </div>
 
         {/* Enterprise */}
-        <div className="mt-8 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
+        <div className="mt-6 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
           <h3 className="text-sm font-semibold text-foreground">Enterprise</h3>
-          <p className="mt-2 text-sm text-foreground">
+          <p className="mt-2 text-sm text-foreground/70">
             SSO, unlimited seats, SLA, compliance exports, dedicated support.
           </p>
           <Link
             href="/support"
             className="mt-3 inline-block text-sm font-semibold text-foreground hover:underline-thick hover:underline"
           >
-            Contact sales →
+            Contact sales
           </Link>
         </div>
 
@@ -193,19 +131,10 @@ export default function PricingPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-foreground">What&apos;s the difference between self-hosted and Cloud?</h3>
+            <h3 className="text-sm font-bold text-foreground">What happens after the beta?</h3>
             <p className="mt-1 text-sm text-foreground">
-              Same product. Cloud gives you hosted infrastructure, a web dashboard for browsing sessions, and no Docker setup. Self-hosted is free forever — you run the container and own your data.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-bold text-foreground">What does the founding beta include?</h3>
-            <p className="mt-1 text-sm text-foreground">
-              Everything. Full Pro and Team access at no cost through {BETA_END}. No credit card required. After beta, paid plans kick in — or you can continue self-hosting for free. Browse a real 167-thought session right now on the{' '}
-              <Link href="/explore/agentic-reasoning-research" className="text-foreground hover:underline-thick hover:underline font-semibold">
-                session explorer
-              </Link>.
+              Paid plans will be introduced after {BETA_END}. Founding beta users will get advance notice and favorable terms.
+              Self-hosting remains free forever.
             </p>
           </div>
 
@@ -217,9 +146,9 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <p className="mt-16 text-center text-sm text-foreground">
+        <p className="mt-16 text-center text-sm text-foreground/70">
           More questions?{' '}
-          <a href="mailto:glassBead@kastalienresearch.ai" className="text-foreground hover:underline-thick hover:underline">
+          <a href="mailto:thoughtboxsupport@kastalienresearch.ai" className="text-foreground hover:underline-thick hover:underline">
             Email us
           </a>{' '}
           or read the{' '}
