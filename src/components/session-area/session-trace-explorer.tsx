@@ -64,12 +64,14 @@ export function SessionTraceExplorer({
     [initialOtelEvents],
   )
 
-  // OTEL event view models — only tool use events belong in the timeline
+  // OTEL event view models — tool use events belong in the timeline
   const otelEventVMs = useMemo(() => {
     const TOOL_EVENT_SUFFIXES = new Set(['tool_result', 'hook_tool_result'])
     return allOtelEventVMs.filter(ev => {
       const stripped = ev.eventName.replace(/^claude_code\./, '').replace(/^gen_ai\./, '')
-      return TOOL_EVENT_SUFFIXES.has(stripped)
+      // Match Claude Code native names (tool_result, hook_tool_result)
+      // and hook-emitted names (tool.Read, tool.Edit, tool.Bash, etc.)
+      return TOOL_EVENT_SUFFIXES.has(stripped) || ev.eventName.startsWith('tool.')
     })
   }, [allOtelEventVMs])
 

@@ -542,6 +542,15 @@ export function formatOtelDisplayLabel(
   const decision = attrs['decision'] as string | null
   const tokenType = attrs['type'] as string | null
 
+  // Hook-emitted events: "tool.Read", "tool.Edit", etc.
+  if (eventName.startsWith('tool.')) {
+    const hookToolName = toolName ?? eventName.slice(5)
+    return {
+      label: hookToolName === 'mcp_tool' ? 'MCP call' : hookToolName,
+      detail: null,
+    }
+  }
+
   switch (stripped) {
     case 'tool_result':
     case 'hook_tool_result': {
