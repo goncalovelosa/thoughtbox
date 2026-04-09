@@ -156,8 +156,8 @@ export default async function SessionDetailPage({ params }: Props) {
         sessionId={runId}
         sessionStatus={sessionVM.status}
         sessionVM={sessionVM}
-        runStartedAt={sessionRow.created_at}
-        runCompletedAt={sessionRow.completed_at}
+        runStartedAt={sessionRow.created_at ?? undefined}
+        runCompletedAt={sessionRow.completed_at ?? undefined}
       />
     </div>
   )
