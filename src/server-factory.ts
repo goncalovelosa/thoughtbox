@@ -360,7 +360,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
         annotations: toolDef.annotations,
       },
       async (args: any, extra: any) => {
-        await resolveProject(extra.requestId);
+        await resolveProject(extra?.requestId);
         try {
           const result = await toolInstance.handle(args as any);
           if (result && Array.isArray(result.content)) {
