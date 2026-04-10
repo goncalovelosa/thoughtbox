@@ -308,7 +308,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
   // Auto-resolve project scope from MCP roots (or THOUGHTBOX_PROJECT env var)
   // Deferred: transport isn't connected during createMcpServer()
   let projectResolved = false;
-  const resolveProject = async (extra?: { sendRequest: (...a: any[]) => Promise<any> }) => {
+  const resolveProject = async (requestId?: string | number) => {
     if (projectResolved) return;
     projectResolved = true;
     const envProject = process.env.THOUGHTBOX_PROJECT;
@@ -324,18 +324,13 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
       return;
     }
     try {
-      // Use extra.sendRequest (routes through the active POST response stream
-      // via relatedRequestId) rather than server.server.listRoots() which tries
-      // a standalone SSE channel that hangs over streamable HTTP.
-      // See: modelcontextprotocol/typescript-sdk#1167
-      const { ListRootsResultSchema } = await import('@modelcontextprotocol/sdk/types.js');
-      const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('listRoots timed out')), 3000),
-      );
-      const listRoots = extra?.sendRequest
-        ? extra.sendRequest({ method: 'roots/list' }, ListRootsResultSchema)
-        : server.server.listRoots();
-      const { roots } = await Promise.race([listRoots, timeout]);
+      // Pass relatedRequestId so the transport routes through the active
+      // POST response stream instead of the standalone GET SSE stream,
+      // which hangs over streamable HTTP (typescript-sdk#1167).
+      const options = requestId !== undefined
+        ? { relatedRequestId: requestId }
+        : undefined;
+      const { roots } = await server.server.listRoots(undefined, options);
       if (roots.length > 0) {
         const root = roots[0];
         const name = root.name
@@ -365,7 +360,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
         annotations: toolDef.annotations,
       },
       async (args: any, extra: any) => {
-        await resolveProject(extra);
+        await resolveProject(extra.requestId);
         try {
           const result = await toolInstance.handle(args as any);
           if (result && Array.isArray(result.content)) {
