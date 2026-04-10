@@ -165,7 +165,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl text-center relative z-10">
           <h2 className="text-5xl font-black uppercase tracking-tighter sm:text-7xl mb-8">KNOW WHY THEY DECIDED WHAT THEY DID</h2>
           <p className="text-2xl font-bold uppercase tracking-wide text-background/60 max-w-2xl mx-auto mb-12 leading-relaxed">
-            FREE THROUGH MAY 1. FULL ACCESS, NO CREDIT CARD. START RECORDING AGENT REASONING TODAY.
+            FREE THROUGH MAY 10. FULL ACCESS, NO CREDIT CARD. START RECORDING AGENT REASONING TODAY.
           </p>
           <Link
             href="/pricing"
