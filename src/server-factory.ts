@@ -308,7 +308,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
   // Auto-resolve project scope from MCP roots (or THOUGHTBOX_PROJECT env var)
   // Deferred: transport isn't connected during createMcpServer()
   let projectResolved = false;
-  const resolveProject = async () => {
+  const resolveProject = async (requestId?: string | number) => {
     if (projectResolved) return;
     projectResolved = true;
     const envProject = process.env.THOUGHTBOX_PROJECT;
@@ -324,7 +324,13 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
       return;
     }
     try {
-      const { roots } = await server.server.listRoots();
+      // Pass relatedRequestId so the transport routes through the active
+      // POST response stream instead of the standalone GET SSE stream,
+      // which hangs over streamable HTTP (typescript-sdk#1167).
+      const options = requestId !== undefined
+        ? { relatedRequestId: requestId }
+        : undefined;
+      const { roots } = await server.server.listRoots(undefined, options);
       if (roots.length > 0) {
         const root = roots[0];
         const name = root.name
@@ -353,8 +359,8 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
         inputSchema: toolDef.inputSchema as any,
         annotations: toolDef.annotations,
       },
-      async (args: any) => {
-        await resolveProject();
+      async (args: any, extra: any) => {
+        await resolveProject(extra?.requestId);
         try {
           const result = await toolInstance.handle(args as any);
           if (result && Array.isArray(result.content)) {
