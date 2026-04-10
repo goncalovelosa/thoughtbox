@@ -324,7 +324,13 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
       return;
     }
     try {
-      const { roots } = await server.server.listRoots();
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('listRoots timed out')), 3000),
+      );
+      const { roots } = await Promise.race([
+        server.server.listRoots(),
+        timeout,
+      ]) as { roots: Array<{ uri: string; name?: string }> };
       if (roots.length > 0) {
         const root = roots[0];
         const name = root.name
