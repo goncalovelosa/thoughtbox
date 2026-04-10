@@ -3,10 +3,10 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Pricing — Thoughtbox',
-  description: 'Mind-expansion for AI agents. Free founding beta through April 23. Join now.',
+  description: 'Mind-expansion for AI agents. Free founding beta through May 10. Join now.',
 }
 
-const BETA_END = 'April 23, 2026'
+const BETA_END = 'May 10, 2026'
 
 export default function PricingPage() {
   return (
