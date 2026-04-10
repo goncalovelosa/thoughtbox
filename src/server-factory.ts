@@ -308,7 +308,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
   // Auto-resolve project scope from MCP roots (or THOUGHTBOX_PROJECT env var)
   // Deferred: transport isn't connected during createMcpServer()
   let projectResolved = false;
-  const resolveProject = async () => {
+  const resolveProject = async (extra?: { sendRequest: (...a: any[]) => Promise<any> }) => {
     if (projectResolved) return;
     projectResolved = true;
     const envProject = process.env.THOUGHTBOX_PROJECT;
@@ -324,13 +324,18 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
       return;
     }
     try {
-      const timeout = new Promise((_, reject) =>
+      // Use extra.sendRequest (routes through the active POST response stream
+      // via relatedRequestId) rather than server.server.listRoots() which tries
+      // a standalone SSE channel that hangs over streamable HTTP.
+      // See: modelcontextprotocol/typescript-sdk#1167
+      const { ListRootsResultSchema } = await import('@modelcontextprotocol/sdk/types.js');
+      const timeout = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('listRoots timed out')), 3000),
       );
-      const { roots } = await Promise.race([
-        server.server.listRoots(),
-        timeout,
-      ]) as { roots: Array<{ uri: string; name?: string }> };
+      const listRoots = extra?.sendRequest
+        ? extra.sendRequest({ method: 'roots/list' }, ListRootsResultSchema)
+        : server.server.listRoots();
+      const { roots } = await Promise.race([listRoots, timeout]);
       if (roots.length > 0) {
         const root = roots[0];
         const name = root.name
@@ -359,8 +364,8 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
         inputSchema: toolDef.inputSchema as any,
         annotations: toolDef.annotations,
       },
-      async (args: any) => {
-        await resolveProject();
+      async (args: any, extra: any) => {
+        await resolveProject(extra);
         try {
           const result = await toolInstance.handle(args as any);
           if (result && Array.isArray(result.content)) {
