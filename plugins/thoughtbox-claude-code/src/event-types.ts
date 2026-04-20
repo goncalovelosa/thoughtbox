@@ -1,16 +1,7 @@
 /**
- * Unified Thoughtbox event types (standalone copy for plugin runtime).
- * Must stay in sync with src/events/types.ts in the main package.
+ * Thoughtbox event types consumed by the Claude Code channel transport.
+ * Must stay in sync with the server-side event emitter.
  */
-
-export type HubEventType =
-  | 'problem_created'
-  | 'problem_status_changed'
-  | 'message_posted'
-  | 'proposal_created'
-  | 'proposal_merged'
-  | 'consensus_marked'
-  | 'workspace_created';
 
 export type ProtocolEventType =
   | 'theseus_init'
@@ -24,9 +15,9 @@ export type ProtocolEventType =
   | 'ulysses_complete';
 
 export interface ThoughtboxEvent {
-  source: 'hub' | 'protocol';
-  type: HubEventType | ProtocolEventType;
-  workspaceId: string;
+  source: 'protocol';
+  type: ProtocolEventType;
+  sessionId: string;
   timestamp: string;
   data: Record<string, unknown>;
 }
