@@ -7,7 +7,6 @@ import {
   hasRequiredOtelConfig,
   loadLocalThoughtboxConfig,
   mergeThoughtboxInitConfig,
-  normalizeBaseUrl,
   saveLocalThoughtboxConfig,
   warnIfClaudeDirNotGitignored,
 } from './config.js';
@@ -41,8 +40,8 @@ function flagValue(args: string[], flag: string): string | undefined {
 }
 
 function printHelp(writeStdout: (line: string) => void): void {
-  writeStdout('thoughtbox init --key <api_key> [--base-url <url>]');
-  writeStdout('thoughtbox doctor [--key <api_key>] [--base-url <url>]');
+  writeStdout('thoughtbox init --key <api_key>');
+  writeStdout('thoughtbox doctor [--key <api_key>]');
 }
 
 async function handleInit(
@@ -55,9 +54,7 @@ async function handleInit(
     return 1;
   }
 
-  const baseUrl = normalizeBaseUrl(
-    flagValue(args, '--base-url') ?? DEFAULT_BASE_URL,
-  );
+  const baseUrl = DEFAULT_BASE_URL;
 
   let validation;
   try {
@@ -102,19 +99,16 @@ async function handleDoctor(
   const config = await loadLocalThoughtboxConfig(runtime.cwd);
   const configuredKey =
     flagValue(args, '--key') ?? extractApiKeyFromLocalConfig(config.settingsLocal);
-  const configuredBaseUrl = normalizeBaseUrl(
-    flagValue(args, '--base-url')
-      ?? findOtelEndpoint(config.settingsLocal)
-      ?? (() => {
-        const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
-        if (!mcpUrl) return DEFAULT_BASE_URL;
-        try {
-          return new URL(mcpUrl).origin;
-        } catch {
-          return DEFAULT_BASE_URL;
-        }
-      })(),
-  );
+  const configuredBaseUrl = findOtelEndpoint(config.settingsLocal)
+    ?? (() => {
+      const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
+      if (!mcpUrl) return DEFAULT_BASE_URL;
+      try {
+        return new URL(mcpUrl).origin;
+      } catch {
+        return DEFAULT_BASE_URL;
+      }
+    })();
 
   const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
   if (!mcpUrl) {
