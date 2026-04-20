@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { DEFAULT_BASE_URL, extractApiKeyFromLocalConfig, findOtelEndpoint, findThoughtboxMcpUrl, hasRequiredOtelConfig, loadLocalThoughtboxConfig, mergeThoughtboxInitConfig, normalizeBaseUrl, saveLocalThoughtboxConfig, warnIfClaudeDirNotGitignored, } from './config.js';
+import { DEFAULT_BASE_URL, extractApiKeyFromLocalConfig, findOtelEndpoint, findThoughtboxMcpUrl, hasRequiredOtelConfig, loadLocalThoughtboxConfig, mergeThoughtboxInitConfig, saveLocalThoughtboxConfig, warnIfClaudeDirNotGitignored, } from './config.js';
 import { validateApiKey, } from './http.js';
 function createDefaultWriter(stream) {
     return (line) => {
@@ -13,8 +13,8 @@ function flagValue(args, flag) {
     return args[index + 1];
 }
 function printHelp(writeStdout) {
-    writeStdout('thoughtbox init --key <api_key> [--base-url <url>]');
-    writeStdout('thoughtbox doctor [--key <api_key>] [--base-url <url>]');
+    writeStdout('thoughtbox init --key <api_key>');
+    writeStdout('thoughtbox doctor [--key <api_key>]');
 }
 async function handleInit(args, runtime) {
     const apiKey = flagValue(args, '--key');
@@ -22,7 +22,7 @@ async function handleInit(args, runtime) {
         runtime.writeStderr('error: thoughtbox init requires --key <api_key>');
         return 1;
     }
-    const baseUrl = normalizeBaseUrl(flagValue(args, '--base-url') ?? DEFAULT_BASE_URL);
+    const baseUrl = DEFAULT_BASE_URL;
     let validation;
     try {
         validation = await validateApiKey({
@@ -56,8 +56,7 @@ async function handleInit(args, runtime) {
 async function handleDoctor(args, runtime) {
     const config = await loadLocalThoughtboxConfig(runtime.cwd);
     const configuredKey = flagValue(args, '--key') ?? extractApiKeyFromLocalConfig(config.settingsLocal);
-    const configuredBaseUrl = normalizeBaseUrl(flagValue(args, '--base-url')
-        ?? findOtelEndpoint(config.settingsLocal)
+    const configuredBaseUrl = findOtelEndpoint(config.settingsLocal)
         ?? (() => {
             const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
             if (!mcpUrl)
@@ -68,7 +67,7 @@ async function handleDoctor(args, runtime) {
             catch {
                 return DEFAULT_BASE_URL;
             }
-        })());
+        })();
     const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
     if (!mcpUrl) {
         runtime.writeStderr('mcp_missing: Thoughtbox MCP server configuration is missing');
