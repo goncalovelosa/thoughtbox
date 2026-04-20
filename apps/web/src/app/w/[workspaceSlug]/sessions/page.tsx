@@ -1,0 +1,132 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { SessionsIndexHeader } from '@/components/session-area/sessions-index-header'
+import { SessionsIndexClient } from '@/components/session-area/sessions-index-client'
+import { createSessionSummaryVM, type RawSessionRecord, type SessionSignals } from '@/lib/session/view-models'
+import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = { title: 'Runs' }
+
+type Props = { params: Promise<{ workspaceSlug: string }> }
+
+export default async function RunsPage({ params }: Props) {
+  const { workspaceSlug } = await params
+
+  const supabase = await createClient()
+
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('slug', workspaceSlug)
+    .single()
+
+  if (!workspace) notFound()
+
+  const { data: rawSessions, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('workspace_id', workspace.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) {
+    console.error('Failed to fetch sessions:', error)
+  }
+
+  // Fetch OTEL presence per session via the runs binding table.
+  // runs.session_id = Thoughtbox UUID, runs.otel_session_id = OTEL session ID.
+  const sessionIds = (rawSessions || []).map(r => r.id)
+  const otelCountMap = new Map<string, number>()
+  if (sessionIds.length > 0) {
+    // Step 1: get otel_session_id → thoughtbox session_id mapping from runs
+    const { data: runRows } = await supabase
+      .from('runs')
+      .select('session_id, otel_session_id')
+      .eq('workspace_id', workspace.id)
+      .in('session_id', sessionIds)
+      .not('otel_session_id', 'is', null)
+
+    const otelToSession = new Map<string, string>()
+    for (const r of runRows ?? []) {
+      if (r.otel_session_id) {
+        otelToSession.set(r.otel_session_id, r.session_id)
+      }
+    }
+
+    // Step 2: count OTEL events per otel_session_id
+    const otelIds = [...otelToSession.keys()]
+    if (otelIds.length > 0) {
+      const { data: otelRows } = await supabase
+        .from('otel_events')
+        .select('session_id')
+        .eq('workspace_id', workspace.id)
+        .in('session_id', otelIds)
+        .limit(5000)
+
+      for (const row of otelRows ?? []) {
+        if (row.session_id) {
+          const tbSessionId = otelToSession.get(row.session_id)
+          if (tbSessionId) {
+            otelCountMap.set(tbSessionId, (otelCountMap.get(tbSessionId) ?? 0) + 1)
+          }
+        }
+      }
+    }
+  }
+
+  // Fetch thought type breakdown per session for reasoning signals
+  const signalsMap = new Map<string, SessionSignals>()
+  if (sessionIds.length > 0) {
+    const { data: thoughtRows } = await supabase
+      .from('thoughts')
+      .select('session_id, thought_type, is_revision')
+      .eq('workspace_id', workspace.id)
+      .in('session_id', sessionIds)
+      .limit(5000)
+
+    for (const row of thoughtRows ?? []) {
+      const sid = row.session_id as string
+      if (!signalsMap.has(sid)) {
+        signalsMap.set(sid, { decisions: 0, assumptions: 0, beliefs: 0, actions: 0, revisions: 0 })
+      }
+      const s = signalsMap.get(sid)!
+      switch (row.thought_type) {
+        case 'decision_frame': s.decisions++; break
+        case 'assumption_update': s.assumptions++; break
+        case 'belief_snapshot': s.beliefs++; break
+        case 'action_report': s.actions++; break
+      }
+      if (row.is_revision) s.revisions++
+    }
+  }
+
+  const sessions = (rawSessions || []).map(row => {
+    const raw: RawSessionRecord = {
+      id: row.id,
+      title: row.title ?? undefined,
+      tags: row.tags ?? undefined,
+      createdAt: row.created_at,
+      completedAt: row.completed_at ?? undefined,
+      updatedAt: row.updated_at ?? undefined,
+      status: (row.status || 'abandoned') as RawSessionRecord['status'],
+    }
+
+    const vm = createSessionSummaryVM(raw, workspaceSlug)
+
+    if (row.thought_count != null) {
+      vm.thoughtCount = row.thought_count
+    }
+
+    vm.otelEventCount = otelCountMap.get(row.id) ?? 0
+    vm.signals = signalsMap.get(row.id)
+
+    return vm
+  })
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-8 bg-background min-h-[calc(100vh-theme(spacing.16))]">
+      <SessionsIndexHeader />
+      <SessionsIndexClient sessions={sessions} />
+    </div>
+  )
+}
