@@ -9,7 +9,8 @@ import type { ThoughtboxEvent } from "./event-types.js";
 
 export interface EventClientConfig {
   baseUrl: string;
-  workspaceId: string;
+  apiKey: string;
+  sessionId?: string;
   onEvent: (event: ThoughtboxEvent) => void;
   onError?: (error: Error) => void;
   onConnect?: () => void;
@@ -42,15 +43,25 @@ export class EventClient {
     }
   }
 
+  setSessionId(sessionId: string): void {
+    this.config.sessionId = sessionId;
+  }
+
   private async doConnect(): Promise<void> {
     if (this.closed) return;
 
     this.controller = new AbortController();
-    const url = `${this.config.baseUrl}/events?workspace_id=${encodeURIComponent(this.config.workspaceId)}`;
+    const params = new URLSearchParams();
+    if (this.config.sessionId) params.set("session_id", this.config.sessionId);
+    const qs = params.toString();
+    const url = `${this.config.baseUrl}/events${qs ? `?${qs}` : ""}`;
 
     try {
       const response = await fetch(url, {
-        headers: { Accept: "text/event-stream" },
+        headers: {
+          Accept: "text/event-stream",
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
         signal: this.controller.signal,
       });
 

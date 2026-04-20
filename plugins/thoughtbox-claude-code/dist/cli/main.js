@@ -1,6 +1,5 @@
 import process from 'node:process';
-import { DEFAULT_BASE_URL, extractApiKeyFromLocalConfig, findOtelEndpoint, findThoughtboxMcpUrl, hasRequiredOtelConfig, loadLocalThoughtboxConfig, mergeThoughtboxInitConfig, saveLocalThoughtboxConfig, warnIfClaudeDirNotGitignored, } from './config.js';
-import { validateApiKey, } from './http.js';
+import { DEFAULT_BASE_URL, loadLocalThoughtboxConfig, mergeThoughtboxInitConfig, saveLocalThoughtboxConfig, warnIfClaudeDirNotGitignored, } from './config.js';
 function createDefaultWriter(stream) {
     return (line) => {
         stream.write(`${line}\n`);
@@ -14,7 +13,6 @@ function flagValue(args, flag) {
 }
 function printHelp(writeStdout) {
     writeStdout('thoughtbox init --key <api_key>');
-    writeStdout('thoughtbox doctor [--key <api_key>]');
 }
 async function handleInit(args, runtime) {
     const apiKey = flagValue(args, '--key');
@@ -23,18 +21,6 @@ async function handleInit(args, runtime) {
         return 1;
     }
     const baseUrl = DEFAULT_BASE_URL;
-    let validation;
-    try {
-        validation = await validateApiKey({
-            fetchImpl: runtime.fetchImpl,
-            baseUrl,
-            apiKey,
-        });
-    }
-    catch (error) {
-        runtime.writeStderr(`auth_failed: ${error instanceof Error ? error.message : 'validation failed'}`);
-        return 1;
-    }
     const config = await loadLocalThoughtboxConfig(runtime.cwd);
     const merged = mergeThoughtboxInitConfig({
         settingsLocal: config.settingsLocal,
@@ -44,56 +30,13 @@ async function handleInit(args, runtime) {
     config.settingsLocal = merged.settingsLocal;
     await saveLocalThoughtboxConfig(config);
     const gitignoreWarning = await warnIfClaudeDirNotGitignored(runtime.cwd);
-    runtime.writeStdout(`configured workspace ${validation.workspaceId}`);
+    runtime.writeStdout('configured local Thoughtbox settings');
     runtime.writeStdout(`mcp: ${baseUrl}/mcp?key=...`);
     runtime.writeStdout(`otel: ${baseUrl}/v1/logs`);
     if (gitignoreWarning) {
         runtime.writeStderr(gitignoreWarning);
     }
-    runtime.writeStdout('next: thoughtbox doctor');
-    return 0;
-}
-async function handleDoctor(args, runtime) {
-    const config = await loadLocalThoughtboxConfig(runtime.cwd);
-    const configuredKey = flagValue(args, '--key') ?? extractApiKeyFromLocalConfig(config.settingsLocal);
-    const configuredBaseUrl = findOtelEndpoint(config.settingsLocal)
-        ?? (() => {
-            const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
-            if (!mcpUrl)
-                return DEFAULT_BASE_URL;
-            try {
-                return new URL(mcpUrl).origin;
-            }
-            catch {
-                return DEFAULT_BASE_URL;
-            }
-        })();
-    const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
-    if (!mcpUrl) {
-        runtime.writeStderr('mcp_missing: Thoughtbox MCP server configuration is missing');
-        return 1;
-    }
-    if (!hasRequiredOtelConfig(config.settingsLocal)) {
-        runtime.writeStderr('otel_missing: required OTEL exporter configuration is missing');
-        return 1;
-    }
-    if (!configuredKey) {
-        runtime.writeStderr('auth_failed: no API key is configured locally');
-        return 1;
-    }
-    try {
-        await validateApiKey({
-            fetchImpl: runtime.fetchImpl,
-            baseUrl: configuredBaseUrl,
-            apiKey: configuredKey,
-        });
-    }
-    catch (error) {
-        runtime.writeStderr(`auth_failed: ${error instanceof Error ? error.message : 'validation failed'}`);
-        return 1;
-    }
-    runtime.writeStdout('doctor: ready');
-    runtime.writeStdout('workspace_status: ready');
+    runtime.writeStdout('next: restart your Claude Code session to load the Thoughtbox MCP server');
     return 0;
 }
 export async function runCli(argv, runtime = {}) {
@@ -116,9 +59,9 @@ export async function runCli(argv, runtime = {}) {
     switch (command) {
         case 'init':
             return handleInit(argv.slice(1), shared);
-        case 'doctor':
-            return handleDoctor(argv.slice(1), shared);
         default:
-            return null;
+            writeStderr(`error: unknown command "${command}"`);
+            printHelp(writeStdout);
+            return 1;
     }
 }

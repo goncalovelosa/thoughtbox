@@ -10,8 +10,8 @@
     {
       "name": "thoughtbox-claude-code",
       "source": "./plugins/thoughtbox-claude-code",
-      "description": "Observability hooks, protocol enforcement, and the thoughtbox CLI (init, doctor, daemon)",
-      "version": "0.1.2",
+      "description": "Observability hooks, protocol enforcement, and the thoughtbox CLI",
+      "version": "0.1.5",
       "category": "observability",
       "keywords": ["thoughtbox", "observability", "otlp", "protocols"]
     }
