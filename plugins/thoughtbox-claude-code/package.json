@@ -2,15 +2,18 @@
   "name": "thoughtbox-claude-code",
   "version": "0.1.0",
   "type": "module",
-  "description": "Thoughtbox plugin for Claude Code — hooks, protocol enforcement, and channel server",
+  "description": "Thoughtbox plugin for Claude Code — hooks, channel, and CLI",
   "bin": {
-    "thoughtbox-channel": "./dist/thoughtbox-channel.js"
+    "thoughtbox": "./bin/thoughtbox"
   },
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.25.3",
-    "zod": "^3.25.76"
+    "@modelcontextprotocol/sdk": "1.25.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.12",
+    "typescript": "^5.3.3"
   }
 }

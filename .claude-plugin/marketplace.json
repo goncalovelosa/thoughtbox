@@ -1,0 +1,19 @@
+{
+  "name": "thoughtbox",
+  "owner": {
+    "name": "Kastalien Research"
+  },
+  "metadata": {
+    "description": "Thoughtbox plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "thoughtbox-claude-code",
+      "source": "./plugins/thoughtbox-claude-code",
+      "description": "Observability hooks, protocol enforcement, and the thoughtbox CLI (init, doctor, daemon)",
+      "version": "0.1.0",
+      "category": "observability",
+      "keywords": ["thoughtbox", "observability", "otlp", "protocols"]
+    }
+  ]
+}

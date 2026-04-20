@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+import { pathToFileURL, fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const entry = resolve(here, "..", "dist", "cli", "main.js");
+
+try {
+  const mod = await import(pathToFileURL(entry).href);
+  const rc = await mod.runCli(process.argv.slice(2));
+  process.exit(typeof rc === "number" ? rc : 0);
+} catch (err) {
+  console.error(err instanceof Error ? err.message : String(err));
+  process.exit(1);
+}
