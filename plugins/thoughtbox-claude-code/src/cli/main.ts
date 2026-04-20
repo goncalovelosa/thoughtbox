@@ -65,7 +65,7 @@ async function handleInit(
   if (gitignoreWarning) {
     runtime.writeStderr(gitignoreWarning);
   }
-  runtime.writeStdout('next: thoughtbox doctor');
+  runtime.writeStdout('next: restart your Claude Code session to load the Thoughtbox MCP server');
 
   return 0;
 }

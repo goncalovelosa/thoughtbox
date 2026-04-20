@@ -36,7 +36,7 @@ async function handleInit(args, runtime) {
     if (gitignoreWarning) {
         runtime.writeStderr(gitignoreWarning);
     }
-    runtime.writeStdout('next: thoughtbox doctor');
+    runtime.writeStdout('next: restart your Claude Code session to load the Thoughtbox MCP server');
     return 0;
 }
 export async function runCli(argv, runtime = {}) {
