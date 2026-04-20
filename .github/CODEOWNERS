@@ -18,3 +18,6 @@ AGENTS.md @glassbead-tc
 
 # Spec directory - architectural specs require review
 /.specs/ @glassbead-tc
+
+# Web app - Next.js 15 frontend
+/apps/web/ @glassbead-tc

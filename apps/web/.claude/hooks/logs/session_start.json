@@ -1,0 +1,47 @@
+[
+  {
+    "test": "data"
+  },
+  {
+    "ts": "2026-02-13T05:53:58Z",
+    "load_context": true,
+    "payload": {
+      "session_id": "manual-test"
+    }
+  },
+  {
+    "ts": "2026-02-13T06:00:44Z",
+    "load_context": true,
+    "payload": {
+      "session_id": "049c8632-701f-43da-b550-5b84ff2dee15",
+      "transcript_path": "/Users/b.c.nims/.claude/projects/-Users-b-c-nims-kastalien-research-thoughtboxes-parity-thoughtbox/049c8632-701f-43da-b550-5b84ff2dee15.jsonl",
+      "cwd": "/Users/b.c.nims/kastalien-research/thoughtboxes-parity/thoughtbox",
+      "hook_event_name": "SessionStart",
+      "source": "compact",
+      "model": "claude-opus-4-6"
+    }
+  },
+  {
+    "ts": "2026-02-13T06:05:36Z",
+    "load_context": true,
+    "payload": {
+      "session_id": "66435ca1-a11d-4d85-87ce-a216939a8b6a",
+      "transcript_path": "/Users/b.c.nims/.claude/projects/-Users-b-c-nims-kastalien-research-thoughtboxes-parity-thoughtbox/66435ca1-a11d-4d85-87ce-a216939a8b6a.jsonl",
+      "cwd": "/Users/b.c.nims/kastalien-research/thoughtboxes-parity/thoughtbox",
+      "hook_event_name": "SessionStart",
+      "source": "clear"
+    }
+  },
+  {
+    "ts": "2026-02-13T06:14:27Z",
+    "load_context": true,
+    "payload": {
+      "session_id": "a3707101-7100-4007-b391-06f6fa5bd92c",
+      "transcript_path": "/Users/b.c.nims/.claude/projects/-Users-b-c-nims-kastalien-research-thoughtboxes-parity-thoughtbox/a3707101-7100-4007-b391-06f6fa5bd92c.jsonl",
+      "cwd": "/Users/b.c.nims/kastalien-research/thoughtboxes-parity/thoughtbox",
+      "hook_event_name": "SessionStart",
+      "source": "startup",
+      "model": "claude-opus-4-6"
+    }
+  }
+]

@@ -1,4 +1,8 @@
 
+## Scope
+
+This file is authoritative for the MCP server, plugin, hub, and repo-level tooling. For web app conventions (Next.js 15 app under `apps/web/`), see `apps/web/AGENTS.md`.
+
 ## Development Workflow (Source of Truth)
 
 Every unit of work runs through a mandatory skill. Two additional protocols activate conditionally.

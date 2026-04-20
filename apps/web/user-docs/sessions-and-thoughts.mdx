@@ -1,0 +1,92 @@
+# Sessions & Thoughts
+
+Thoughtbox captures agent reasoning as a structured trace. The two core primitives are **sessions** and **thoughts**.
+
+## Sessions
+
+A session is thought 1 through thought N — the full reasoning trace from one agent interaction. Every session has:
+
+- A **title** (auto-generated from the first thought, or set explicitly)
+- **Tags** for organization and filtering
+- A **status**: `active`, `completed`, or `abandoned`
+- Auto-maintained **thought count** and **branch count**
+
+Sessions are created automatically when your agent records its first thought. You don't need to explicitly start one.
+
+## Thoughts
+
+A thought is a single, numbered unit of reasoning. Each thought is:
+
+- **Numbered** sequentially within its session
+- **Timestamped** at creation
+- **Linked** to its predecessor
+- **Append-only** — once recorded, a thought is never edited
+
+### Thought types
+
+Every thought has a type that describes what kind of reasoning it captures. There are seven types:
+
+| Type | When to use | Extra data |
+|------|-------------|------------|
+| `reasoning` | General analysis, exploration, working through a problem | — |
+| `decision_frame` | Choosing between options — captures the alternatives considered | `options[]` |
+| `action_report` | Recording what was done and what happened | `actionResult` |
+| `belief_snapshot` | Stating current beliefs for later comparison | `beliefs` |
+| `assumption_update` | Flagging that an assumption has changed | `assumptionChange` |
+| `context_snapshot` | Capturing environmental state (files open, errors seen, etc.) | `contextData` |
+| `progress` | Tracking completion toward a goal | `progressData` |
+
+Most agent interactions use `reasoning` and `action_report` heavily. The other types add structure when the reasoning warrants it.
+
+### Confidence
+
+Each thought can carry a confidence level: `high`, `medium`, or `low`. This is optional but useful for identifying where an agent was uncertain, especially in retrospect.
+
+## Branching
+
+Sometimes an agent needs to explore multiple approaches before committing. Branching lets you create parallel reasoning tracks from a common point.
+
+Two fields control branching:
+
+- **`branchFromThought`** — the thought number where the branch diverges
+- **`branchId`** — a name for the branch (e.g., `"approach-a"`, `"approach-b"`)
+
+```
+Session: "Evaluate caching strategies"
+
+Thought 1: Define the problem          (main)
+Thought 2: Identify constraints         (main)
+  |
+  +-- Thought 3: Redis approach         (branch: "redis")
+  |   Thought 4: Redis tradeoffs        (branch: "redis")
+  |
+  +-- Thought 3: In-memory approach     (branch: "in-memory")
+  |   Thought 4: In-memory tradeoffs    (branch: "in-memory")
+  |
+Thought 5: Compare and decide          (main)
+```
+
+Thought numbers are scoped per session + branch, so both branches above have their own thought 3 and 4. The main track continues at thought 5 with a synthesis.
+
+## Revisions
+
+When new information changes an earlier conclusion, the agent records a **revision** rather than pretending the original thought never happened.
+
+Two fields control revisions:
+
+- **`isRevision: true`** — marks this thought as a revision
+- **`revisesThought`** — the thought number being superseded
+
+The original thought is preserved. The revision is a new thought that logically replaces it. This creates an honest record: you can see what the agent originally concluded, when it changed its mind, and why.
+
+```
+Thought 3: "The bug is in the parser"        (original conclusion)
+Thought 7: "Actually, the bug is in the       (isRevision: true,
+            tokenizer — the parser was           revisesThought: 3)
+            handling bad input correctly"
+```
+
+## What's next?
+
+- [Code Mode](/docs/code-mode) — the two-tool interface for recording thoughts and querying sessions
+- [Authentication](/docs/authentication) — API key management

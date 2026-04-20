@@ -1,0 +1,83 @@
+{
+  "workflow": "hdd",
+  "version": "2.1",
+  "adr_number": "RLS-001",
+  "title": "Revert product table RLS to project_isolation",
+  "phase": "complete",
+  "phases_requested": [1, 2, 3, 4, 5],
+  "epicId": "thoughtbox-webpage-2026-9in",
+  "phaseIds": {
+    "research": "thoughtbox-webpage-2026-rao",
+    "stage": "thoughtbox-webpage-2026-w1e",
+    "implement": "thoughtbox-webpage-2026-2y5",
+    "validate": "thoughtbox-webpage-2026-xi3",
+    "decide": "thoughtbox-webpage-2026-2ka"
+  },
+  "status": "complete",
+  "artifacts": [
+    ".adr/accepted/ADR-RLS-001-revert-project-isolation.md",
+    ".specs/deployment/rls-revert-migration.md",
+    ".specs/codebase-spec.md"
+  ],
+  "hypotheses": [
+    {
+      "id": "H1",
+      "claim": "Migration SQL correctly drops user_project_access and restores project_isolation on all 5 product tables",
+      "prediction": "All 5 tables have project_isolation policy; user_can_access_project() function is gone",
+      "validation": "Query pg_policies after execution",
+      "outcome": "VALIDATED"
+    },
+    {
+      "id": "H2",
+      "claim": "Restored project_isolation policies match MCP server's JWT minting (project claim in JWT)",
+      "prediction": "JWT with { project: 'demo' } enables CRUD; different project returns 0 rows",
+      "validation": "Integration test with setProject() against live Supabase",
+      "outcome": "VALIDATED"
+    },
+    {
+      "id": "H3",
+      "claim": "service_role_bypass policies remain functional alongside restored project_isolation",
+      "prediction": "Service role sees all rows regardless of project; authenticated client sees only its project",
+      "validation": "Query with both service_role and authenticated clients",
+      "outcome": "VALIDATED"
+    },
+    {
+      "id": "H4",
+      "claim": "33 integration tests pass after the revert migration is applied",
+      "prediction": "pnpm test -- --grep supabase shows 33 passing tests",
+      "validation": "Test runner output in thoughtbox-staging",
+      "outcome": "VALIDATED"
+    },
+    {
+      "id": "H5",
+      "claim": "Cross-project isolation holds — two projects see zero overlap",
+      "prediction": "Two storage instances with different projects see only their own rows; cross-project INSERT rejected by WITH CHECK",
+      "validation": "Integration test with two SupabaseStorage instances scoped to different projects",
+      "outcome": "VALIDATED"
+    }
+  ],
+  "accepted_adr_path": ".adr/accepted/ADR-RLS-001-revert-project-isolation.md",
+  "spec_path": ".specs/deployment/rls-revert-migration.md",
+  "open_risks": [
+    "No workspace auto-provisioning timeline — interim solution has no defined end",
+    "SUPABASE_JWT_SECRET correctness on Cloud Run unverified",
+    "auth.jwt() requires Postgres 13+ / standard Supabase tier",
+    "Service role key must never be exposed to clients",
+    "CREATE POLICY not idempotent (documented workaround exists)"
+  ],
+  "reconciliation_flags": [
+    {
+      "adr": "ADR-AUTH-01",
+      "signal": "context_mismatch",
+      "evidence": "ADR assumes workspace memberships are auto-populated on signup. No auto-provisioning code exists.",
+      "disposition": "NEEDS_AMENDMENT"
+    },
+    {
+      "adr": "ADR-AUTH-01",
+      "signal": "rejected_alternative_resurfacing",
+      "evidence": "AUTH-01 rejected custom JWT middleware. Revert temporarily restores it as interim.",
+      "disposition": "NEEDS_AMENDMENT"
+    }
+  ],
+  "updated_at": "2026-03-16T02:00:00Z"
+}

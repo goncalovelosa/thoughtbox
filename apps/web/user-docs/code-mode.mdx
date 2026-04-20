@@ -1,0 +1,159 @@
+# Code Mode
+
+Thoughtbox exposes exactly two MCP tools: `thoughtbox_search` and `thoughtbox_execute`. Your agent writes JavaScript to discover and call operations through them.
+
+## Why two tools instead of dozens?
+
+Every MCP tool definition consumes context window tokens — even when unused. Most MCP servers expose 10-50 individual tools, burning thousands of tokens on tool descriptions alone.
+
+Thoughtbox compresses its entire API surface into two tools. The agent writes short JavaScript snippets to discover operations (`search`) and execute them (`execute`). This keeps the context window clean while giving access to everything.
+
+## `thoughtbox_search` — discover what's available
+
+Write a JavaScript arrow function that receives a `catalog` object and returns filtered results.
+
+```javascript
+// Find all session operations
+async (catalog) => {
+  return catalog.operations.session;
+}
+```
+
+```javascript
+// Search for anything related to "export"
+async (catalog) => {
+  const results = {};
+  for (const [module, ops] of Object.entries(catalog.operations)) {
+    for (const [name, op] of Object.entries(ops)) {
+      if (name.includes("export") || op.description.includes("export")) {
+        results[`${module}.${name}`] = op;
+      }
+    }
+  }
+  return results;
+}
+```
+
+The catalog is organized by module: `session`, `thought`, `knowledge`, `notebook`, `theseus`, `ulysses`, and `observability`. It also includes `prompts`, `resources`, and `resourceTemplates`.
+
+Search is read-only with a 10-second timeout.
+
+## `thoughtbox_execute` — do things
+
+Write a JavaScript arrow function using the `tb` SDK. All methods return unwrapped results directly — no MCP envelope parsing needed.
+
+```javascript
+// Record a reasoning thought
+async (tb) => {
+  return await tb.thought({
+    thought: "The retry logic fails because the backoff multiplier resets on partial success.",
+    thoughtType: "reasoning",
+    nextThoughtNeeded: true,
+    confidence: "medium"
+  });
+}
+```
+
+Execute has a 30-second timeout.
+
+## The `tb` SDK
+
+### `tb.thought(input)`
+
+Record a single thought. See [Sessions & Thoughts](/docs/sessions-and-thoughts) for the full type system.
+
+Required fields:
+- `thought` — the content
+- `thoughtType` — one of the [seven types](/docs/sessions-and-thoughts#thought-types)
+- `nextThoughtNeeded` — whether more thinking follows
+
+Optional fields include `confidence`, `branchId`, `branchFromThought`, `isRevision`, `revisesThought`, `sessionTitle`, `sessionTags`, and type-specific payloads (`options`, `actionResult`, `beliefs`, `assumptionChange`, `contextData`, `progressData`).
+
+### `tb.session.*`
+
+| Method | What it does |
+|--------|-------------|
+| `tb.session.list({ limit?, offset?, tags? })` | List sessions, optionally filtered by tags |
+| `tb.session.get(sessionId)` | Get a session with all its thoughts |
+| `tb.session.search(query, limit?)` | Full-text search across sessions |
+| `tb.session.resume(sessionId)` | Resume a previous session |
+| `tb.session.export(sessionId, format?)` | Export as `"markdown"`, `"cipher"`, or `"json"` |
+| `tb.session.analyze(sessionId)` | Get analysis of reasoning patterns used |
+| `tb.session.extractLearnings(sessionId)` | Extract key insights from a session |
+
+### `tb.knowledge.*`
+
+| Method | What it does |
+|--------|-------------|
+| `tb.knowledge.createEntity({ name, type, label })` | Create a knowledge entity |
+| `tb.knowledge.getEntity(entityId)` | Get an entity by ID |
+| `tb.knowledge.listEntities({ types?, name_pattern? })` | List entities with optional filters |
+| `tb.knowledge.addObservation(entityId, content)` | Add an observation to an entity |
+| `tb.knowledge.createRelation({ from_id, to_id, relation_type })` | Link two entities |
+| `tb.knowledge.queryGraph(startEntityId, { max_depth? })` | Traverse the knowledge graph |
+| `tb.knowledge.stats()` | Get knowledge graph statistics |
+
+Entity types: `Insight`, `Concept`, `Workflow`, `Decision`, `Agent`.
+
+Relation types: `RELATES_TO`, `BUILDS_ON`, `CONTRADICTS`, `EXTRACTED_FROM`, `APPLIED_IN`, `LEARNED_BY`, `DEPENDS_ON`, `SUPERSEDES`, `MERGED_FROM`.
+
+## Examples
+
+### Record a decision
+
+```javascript
+async (tb) => {
+  return await tb.thought({
+    thought: "Choosing between Redis and in-memory caching for session state.",
+    thoughtType: "decision_frame",
+    nextThoughtNeeded: true,
+    options: [
+      { text: "Redis — survives restarts, shared across instances", pros: ["durable", "scalable"], cons: ["added infrastructure"] },
+      { text: "In-memory — zero dependencies", pros: ["simple"], cons: ["lost on restart", "per-instance"] }
+    ]
+  });
+}
+```
+
+### List recent sessions
+
+```javascript
+async (tb) => {
+  return await tb.session.list({ limit: 5 });
+}
+```
+
+### Export a session as markdown
+
+```javascript
+async (tb) => {
+  return await tb.session.export("session-id-here", "markdown");
+}
+```
+
+### Build a knowledge graph entry
+
+```javascript
+async (tb) => {
+  const entity = await tb.knowledge.createEntity({
+    name: "Rate Limiting Strategy",
+    type: "Decision",
+    label: "Chose token bucket over sliding window"
+  });
+
+  await tb.knowledge.addObservation(
+    entity.id,
+    "Token bucket chosen for its burst tolerance and simpler implementation."
+  );
+
+  return entity;
+}
+```
+
+### Search across sessions
+
+```javascript
+async (tb) => {
+  return await tb.session.search("authentication bug", 10);
+}
+```
