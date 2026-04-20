@@ -8,13 +8,11 @@ type JsonObject = Record<string, unknown>;
 
 export interface ThoughtboxConfigPaths {
   claudeDir: string;
-  settingsPath: string;
   settingsLocalPath: string;
   gitignorePath: string;
 }
 
 export interface LocalThoughtboxConfig {
-  settings: JsonObject;
   settingsLocal: JsonObject;
   paths: ThoughtboxConfigPaths;
 }
@@ -71,7 +69,6 @@ export function getThoughtboxConfigPaths(cwd: string): ThoughtboxConfigPaths {
   const claudeDir = path.join(cwd, '.claude');
   return {
     claudeDir,
-    settingsPath: path.join(claudeDir, 'settings.json'),
     settingsLocalPath: path.join(claudeDir, 'settings.local.json'),
     gitignorePath: path.join(cwd, '.gitignore'),
   };
@@ -82,7 +79,6 @@ export async function loadLocalThoughtboxConfig(
 ): Promise<LocalThoughtboxConfig> {
   const paths = getThoughtboxConfigPaths(cwd);
   return {
-    settings: await readJsonObject(paths.settingsPath),
     settingsLocal: await readJsonObject(paths.settingsLocalPath),
     paths,
   };
@@ -91,18 +87,15 @@ export async function loadLocalThoughtboxConfig(
 export async function saveLocalThoughtboxConfig(
   config: LocalThoughtboxConfig,
 ): Promise<void> {
-  await writeJsonObject(config.paths.settingsPath, config.settings);
   await writeJsonObject(config.paths.settingsLocalPath, config.settingsLocal);
 }
 
 export function mergeThoughtboxInitConfig(input: {
-  settings: JsonObject;
   settingsLocal: JsonObject;
   baseUrl: string;
   apiKey: string;
-}): { settings: JsonObject; settingsLocal: JsonObject } {
+}): { settingsLocal: JsonObject } {
   const baseUrl = normalizeBaseUrl(input.baseUrl);
-  const settings = { ...input.settings };
   const settingsLocal = { ...input.settingsLocal };
 
   const mcpServers = ensureObject(settingsLocal.mcpServers, 'mcpServers');
@@ -120,7 +113,7 @@ export function mergeThoughtboxInitConfig(input: {
   env.OTEL_LOGS_EXPORTER = 'otlp';
   settingsLocal.env = env;
 
-  return { settings, settingsLocal };
+  return { settingsLocal };
 }
 
 export async function warnIfClaudeDirNotGitignored(

@@ -13,7 +13,6 @@ import {
 } from './config.js';
 import {
   validateApiKey,
-  writeWorkspaceSetupStatus,
 } from './http.js';
 
 type FetchLike = typeof fetch;
@@ -76,32 +75,12 @@ async function handleInit(
 
   const config = await loadLocalThoughtboxConfig(runtime.cwd);
   const merged = mergeThoughtboxInitConfig({
-    settings: config.settings,
     settingsLocal: config.settingsLocal,
     baseUrl,
     apiKey,
   });
-  config.settings = merged.settings;
   config.settingsLocal = merged.settingsLocal;
   await saveLocalThoughtboxConfig(config);
-
-  try {
-    await writeWorkspaceSetupStatus({
-      fetchImpl: runtime.fetchImpl,
-      baseUrl,
-      apiKey,
-      status: 'configured',
-      evidence: {
-        configured_at: new Date().toISOString(),
-        settings_path: config.paths.settingsPath,
-        settings_local_path: config.paths.settingsLocalPath,
-      },
-    });
-  } catch (error) {
-    runtime.writeStderr(
-      `warning: configured state was not persisted: ${error instanceof Error ? error.message : 'unknown error'}`,
-    );
-  }
 
   const gitignoreWarning = await warnIfClaudeDirNotGitignored(runtime.cwd);
 
@@ -139,29 +118,11 @@ async function handleDoctor(
 
   const mcpUrl = findThoughtboxMcpUrl(config.settingsLocal);
   if (!mcpUrl) {
-    if (configuredKey) {
-      await writeWorkspaceSetupStatus({
-        fetchImpl: runtime.fetchImpl,
-        baseUrl: configuredBaseUrl,
-        apiKey: configuredKey,
-        status: 'mcp_missing',
-        lastError: 'Thoughtbox MCP server configuration is missing',
-      }).catch(() => {});
-    }
     runtime.writeStderr('mcp_missing: Thoughtbox MCP server configuration is missing');
     return 1;
   }
 
   if (!hasRequiredOtelConfig(config.settingsLocal)) {
-    if (configuredKey) {
-      await writeWorkspaceSetupStatus({
-        fetchImpl: runtime.fetchImpl,
-        baseUrl: configuredBaseUrl,
-        apiKey: configuredKey,
-        status: 'otel_missing',
-        lastError: 'Required OTEL exporter configuration is missing',
-      }).catch(() => {});
-    }
     runtime.writeStderr('otel_missing: required OTEL exporter configuration is missing');
     return 1;
   }
@@ -183,19 +144,6 @@ async function handleDoctor(
     );
     return 1;
   }
-
-  await writeWorkspaceSetupStatus({
-    fetchImpl: runtime.fetchImpl,
-    baseUrl: configuredBaseUrl,
-    apiKey: configuredKey,
-    status: 'ready',
-    evidence: {
-      checked_at: new Date().toISOString(),
-      mcp_url: mcpUrl,
-      otel_endpoint: findOtelEndpoint(config.settingsLocal) ?? configuredBaseUrl,
-    },
-    lastError: null,
-  });
 
   runtime.writeStdout('doctor: ready');
   runtime.writeStdout('workspace_status: ready');

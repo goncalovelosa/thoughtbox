@@ -7,7 +7,7 @@ set -uo pipefail
 
 input_json=$(cat)
 
-endpoint="${THOUGHTBOX_URL:-http://localhost:1731}"
+endpoint="${THOUGHTBOX_URL:-https://mcp.kastalienresearch.ai}"
 target_path=$(echo "$input_json" | jq -r '.tool_input.file_path // .tool_input.notebook_path // .tool_input.path // ""')
 
 [[ -z "$target_path" || "$target_path" == "null" ]] && exit 0
