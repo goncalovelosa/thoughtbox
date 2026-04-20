@@ -92,6 +92,8 @@ adat.md
 
 # Claude Code plugins
 .claude-plugin/
+!.claude-plugin/
+!.claude-plugin/marketplace.json
 
 # Workflow conductor runtime state (ephemeral, per-workflow)
 .workflow/

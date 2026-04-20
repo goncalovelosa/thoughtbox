@@ -1,20 +1,41 @@
 {
   "name": "thoughtbox-claude-code",
   "version": "0.1.0",
-  "description": "Thoughtbox observability hooks, protocol enforcement, and channel server for Claude Code",
+  "description": "Thoughtbox observability, protocol enforcement, and CLI for Claude Code",
   "author": {
     "name": "Kastalien Research"
   },
   "repository": "https://github.com/kastalien-research/thoughtbox",
   "license": "MIT",
-  "keywords": ["thoughtbox", "observability", "otlp", "tracing", "protocols"],
+  "keywords": ["thoughtbox", "observability", "otlp", "protocols"],
   "hooks": "./hooks/hooks.json",
+  "userConfig": {
+    "thoughtbox_url": {
+      "title": "Thoughtbox URL",
+      "type": "string",
+      "description": "Thoughtbox server URL (e.g. https://thoughtbox-mcp.run.app)",
+      "sensitive": false
+    },
+    "thoughtbox_api_key": {
+      "title": "Thoughtbox API key",
+      "type": "string",
+      "description": "Thoughtbox API key from the web app",
+      "sensitive": true
+    }
+  },
+  "mcpServers": {
+    "thoughtbox-channel": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/thoughtbox-channel.js"],
+      "env": {
+        "THOUGHTBOX_URL": "${user_config.thoughtbox_url}",
+        "THOUGHTBOX_API_KEY": "${user_config.thoughtbox_api_key}"
+      }
+    }
+  },
   "channels": [
     {
-      "id": "thoughtbox-channel",
-      "transport": "stdio",
-      "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/thoughtbox-channel.js"]
+      "server": "thoughtbox-channel"
     }
   ]
 }
