@@ -6,11 +6,11 @@ expertise:
     updatable: true
     max-lines: 10000
 skills:
-  - ~/.pi/agent/skills/multi-team/ooda.md
-  - ~/.pi/agent/skills/multi-team/active-listener.md
-  - ~/.pi/agent/skills/multi-team/mental-model.md
-  - ~/.pi/agent/skills/multi-team/escalation.md
-  - ~/.pi/agent/skills/multi-team/operational-epistemics.md
+  - .pi/multi-team/skills/ooda.md
+  - .pi/multi-team/skills/active-listener.md
+  - .pi/multi-team/skills/mental-model.md
+  - .pi/multi-team/skills/escalation.md
+  - .pi/multi-team/skills/operational-epistemics.md
 domain:
   - path: "**"
     access: read

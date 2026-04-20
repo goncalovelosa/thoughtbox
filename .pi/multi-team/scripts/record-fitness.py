@@ -586,8 +586,11 @@ def main() -> None:
                 current = float(m.group(1)) if m else 0.0
                 print(f"  · Elite unchanged  (current {current:.0%}, this {record.fitness:.0%})")
             else:
-                update_elite(record)
-                print(f"  ✓ First elite → {elite_path.relative_to(PROJECT_DIR)}")
+                promoted2 = update_elite(record)
+                if promoted2:
+                    print(f"  ✓ First elite → {elite_path.relative_to(PROJECT_DIR)}")
+                else:
+                    print("  · First elite skipped (fitness could not be determined)")
 
         if post_to_langsmith(record):
             print(f"  ✓ LangSmith → dataset '{CONFIG.get('langsmith_dataset')}'")

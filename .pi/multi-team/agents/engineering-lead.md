@@ -6,14 +6,14 @@ expertise:
     updatable: true
     max-lines: 10000
 skills:
-  - ~/.pi/agent/skills/multi-team/ooda.md
-  - ~/.pi/agent/skills/multi-team/active-listener.md
-  - ~/.pi/agent/skills/multi-team/zero-micromanagement.md
-  - ~/.pi/agent/skills/multi-team/conversational-response.md
-  - ~/.pi/agent/skills/multi-team/delegate.md
-  - ~/.pi/agent/skills/multi-team/mental-model.md
-  - ~/.pi/agent/skills/multi-team/escalation.md
-  - ~/.pi/agent/skills/multi-team/ulysses-protocol.md
+  - .pi/multi-team/skills/ooda.md
+  - .pi/multi-team/skills/active-listener.md
+  - .pi/multi-team/skills/zero-micromanagement.md
+  - .pi/multi-team/skills/conversational-response.md
+  - .pi/multi-team/skills/delegate.md
+  - .pi/multi-team/skills/mental-model.md
+  - .pi/multi-team/skills/escalation.md
+  - .pi/multi-team/skills/ulysses-protocol.md
 domain:
   - path: "**"
     access: read
