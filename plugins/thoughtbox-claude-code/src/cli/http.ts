@@ -48,35 +48,3 @@ export async function validateApiKey(args: {
 
   return payload as CliValidateResponse;
 }
-
-export async function writeWorkspaceSetupStatus(args: {
-  fetchImpl: FetchLike;
-  baseUrl: string;
-  apiKey: string;
-  status: string;
-  evidence?: JsonValue;
-  lastError?: string | null;
-}): Promise<void> {
-  const response = await args.fetchImpl(
-    `${normalizeBaseUrl(args.baseUrl)}/cli/setup-status`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${args.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        status: args.status,
-        evidence: args.evidence ?? {},
-        lastError: args.lastError ?? null,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    },
-  );
-
-  if (!response.ok) {
-    const payload = await parseJsonResponse(response);
-    const message = (payload as { error?: string }).error ?? response.statusText;
-    throw new Error(message);
-  }
-}
