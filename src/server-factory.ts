@@ -305,32 +305,58 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
   const thoughtTool = new ThoughtTool(thoughtHandler);
   const notebookTool = new NotebookTool(notebookHandler);
 
-  // Auto-resolve project scope from MCP roots (or THOUGHTBOX_PROJECT env var)
-  // Deferred: transport isn't connected during createMcpServer()
+  // Resolve project scope.
+  //
+  // Hosted path: args.workspaceId is set by the auth layer. storage and
+  // knowledgeStorage are already workspace-scoped at construction (their
+  // setProject methods are deprecated no-ops). protocolHandler.setProject
+  // still does real work — it assigns the handler's workspaceId. Calling
+  // these synchronously with args.workspaceId gives us correct protocol
+  // scoping AND avoids server.server.listRoots(), which hangs on streamable
+  // HTTP clients that don't cooperate with the relatedRequestId routing
+  // (typescript-sdk#1167). This is the "first tool call on every session
+  // hangs for 300s" bug — with args.workspaceId we never make that call.
+  //
+  // Legacy path (no workspaceId and no env): listRoots retained with a 3s
+  // Promise.race timeout as a seatbelt. Not expected to be reached in any
+  // currently-deployed configuration.
   let projectResolved = false;
   const resolveProject = async (requestId?: string | number) => {
     if (projectResolved) return;
     projectResolved = true;
-    const envProject = process.env.THOUGHTBOX_PROJECT;
-    if (envProject) {
+
+    const project = args.workspaceId || process.env.THOUGHTBOX_PROJECT;
+    if (project) {
       try {
-        await storage.setProject(envProject);
-        if (knowledgeStorage) await knowledgeStorage.setProject(envProject);
-        if (protocolHandler) protocolHandler.setProject(envProject);
-        logger.info(`Project set from THOUGHTBOX_PROJECT: ${envProject}`);
+        await storage.setProject(project);
+        if (knowledgeStorage) await knowledgeStorage.setProject(project);
+        if (protocolHandler) protocolHandler.setProject(project);
+        logger.info(
+          `Project scoped from ${args.workspaceId ? 'workspaceId' : 'THOUGHTBOX_PROJECT'}: ${project}`,
+        );
       } catch (err) {
-        logger.warn('Failed to set project from env:', err);
+        logger.warn('Failed to scope project:', err);
       }
       return;
     }
+
     try {
       // Pass relatedRequestId so the transport routes through the active
       // POST response stream instead of the standalone GET SSE stream,
-      // which hangs over streamable HTTP (typescript-sdk#1167).
+      // which hangs over streamable HTTP (typescript-sdk#1167). Even with
+      // this routing, some clients don't cooperate — the Promise.race with
+      // 3s timeout is a seatbelt that caps the worst case at 3s instead of
+      // the Cloud Run request timeout (300s).
       const options = requestId !== undefined
         ? { relatedRequestId: requestId }
         : undefined;
-      const { roots } = await server.server.listRoots(undefined, options);
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('listRoots timed out (3s)')), 3000),
+      );
+      const { roots } = await Promise.race([
+        server.server.listRoots(undefined, options),
+        timeout,
+      ]);
       if (roots.length > 0) {
         const root = roots[0];
         const name = root.name
