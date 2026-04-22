@@ -70,8 +70,12 @@ export default async function ClaimPage({ searchParams }: Props) {
   const admin = adminClient()
 
   // Create-or-find: createUser errors on duplicate email (refresh of this page,
-  // or retry after a previous run partially completed).
+  // or retry after a previous run partially completed). Only fall back to the
+  // existing-user lookup on duplicate-email errors — other failures (rate
+  // limits, validation, transient 5xx) must not silently overwrite an
+  // unrelated existing user's workspace with this session's Stripe state.
   let userId: string
+  let userWasJustCreated = false
   const { data: createData, error: createError } = await admin.auth.admin.createUser({
     email,
     email_confirm: true,
@@ -82,6 +86,14 @@ export default async function ClaimPage({ searchParams }: Props) {
   })
 
   if (createError) {
+    const isDuplicate =
+      createError.code === 'email_exists' ||
+      createError.code === 'user_already_exists' ||
+      createError.status === 422
+    if (!isDuplicate) {
+      console.error('Claim: user creation failed (non-duplicate):', createError)
+      return <ClaimError />
+    }
     const existing = await findAuthUserByEmail(email)
     if (!existing) {
       console.error('Claim: user creation failed and no existing user:', createError)
@@ -89,7 +101,12 @@ export default async function ClaimPage({ searchParams }: Props) {
     }
     userId = existing.id
   } else {
+    if (!createData.user) {
+      console.error('Claim: createUser returned no user and no error')
+      return <ClaimError />
+    }
     userId = createData.user.id
+    userWasJustCreated = true
   }
 
   // DB trigger `handle_new_user` creates a workspace row on auth.users insert.
@@ -117,14 +134,18 @@ export default async function ClaimPage({ searchParams }: Props) {
     return <ClaimError />
   }
 
-  // Send the set-password link. Non-fatal if it fails — the claim page exposes
-  // a "Resend the email" button that calls the same action.
-  const siteUrl = getSiteUrl()
-  const { error: mailError } = await admin.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
-  })
-  if (mailError) {
-    console.error('Claim: welcome email failed:', mailError)
+  // Send the set-password link only on fresh creation. Refreshes, retries, and
+  // bookmarked revisits skip the send to avoid duplicate emails and tripping
+  // GoTrue's per-email rate limit. The "Resend the email" button in ClaimPanel
+  // is the supported path for getting another link.
+  if (userWasJustCreated) {
+    const siteUrl = getSiteUrl()
+    const { error: mailError } = await admin.auth.resetPasswordForEmail(email, {
+      redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
+    })
+    if (mailError) {
+      console.error('Claim: welcome email failed:', mailError)
+    }
   }
 
   return <ClaimPanel email={email} stripeSessionId={sessionId} />
