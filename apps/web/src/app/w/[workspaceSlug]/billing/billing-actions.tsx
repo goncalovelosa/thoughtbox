@@ -10,20 +10,25 @@ type Props = {
 }
 
 export function BillingActions({ workspaceId, currentPlanId, hasStripeCustomer }: Props) {
+  // Only one paid tier is actively sold right now: Founding Beta. The `pro`
+  // and `team` PlanIds remain in the type for forward-compat and for any
+  // workspaces that may have been on those legacy tiers historically, but
+  // their Stripe prices are not configured — clicking an upgrade button for
+  // them would throw at createCheckoutSession's `!config.priceId` guard.
   if (currentPlanId === 'free') {
     return (
       <div className="flex flex-wrap gap-3">
-        <UpgradeButton workspaceId={workspaceId} targetPlan="pro" label="Upgrade to Pro — $27/mo" />
-        <UpgradeButton workspaceId={workspaceId} targetPlan="team" label="Upgrade to Team — $91/mo" />
+        <UpgradeButton
+          workspaceId={workspaceId}
+          targetPlan="founding"
+          label="Upgrade to Founding Beta — $17.29/mo"
+        />
       </div>
     )
   }
 
   return (
     <div className="flex flex-wrap gap-3">
-      {currentPlanId === 'pro' && (
-        <UpgradeButton workspaceId={workspaceId} targetPlan="team" label="Upgrade to Team — $91/mo" />
-      )}
       {hasStripeCustomer && (
         <form action={async () => { await createBillingPortalSession(workspaceId) }}>
           <button
