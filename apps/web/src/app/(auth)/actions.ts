@@ -58,7 +58,7 @@ export async function forgotPasswordAction(
 
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
+    redirectTo: `${siteUrl}/reset-password`,
   })
 
   if (error) {
@@ -79,7 +79,7 @@ export async function resendWelcomeEmailAction(email: string): Promise<{ ok: boo
   const siteUrl = getSiteUrl()
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
+    redirectTo: `${siteUrl}/reset-password`,
   })
   if (error) {
     console.error('resendWelcomeEmailAction failed:', error)
