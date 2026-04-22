@@ -19,6 +19,12 @@ export const PLAN_CONFIG = {
     annualPrice: 0,
     priceId: null,
   },
+  founding: {
+    name: 'Founding Beta',
+    price: 17.29,
+    annualPrice: null,
+    priceId: process.env.STRIPE_PRICE_FOUNDING ?? null,
+  },
   pro: {
     name: 'Pro',
     price: 27,
@@ -34,3 +40,5 @@ export const PLAN_CONFIG = {
 } as const
 
 export type PlanId = keyof typeof PLAN_CONFIG
+
+export const PUBLIC_SIGNUP_PLAN: PlanId = 'founding'

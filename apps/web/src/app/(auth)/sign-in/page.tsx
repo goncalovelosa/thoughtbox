@@ -20,10 +20,10 @@ export default function SignInPage() {
         <p className="mt-6 text-center text-sm text-foreground">
           Don&apos;t have an account?{' '}
           <Link
-            href="/sign-up"
+            href="/pricing"
             className="font-medium text-foreground hover:underline-thick hover:text-foreground transition-colors"
           >
-            Sign up
+            Get access
           </Link>
         </p>
       </div>

@@ -3,8 +3,48 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import type Stripe from 'stripe'
-import { getStripe, PLAN_CONFIG, type PlanId } from '@/lib/stripe/server'
+import { getStripe, PLAN_CONFIG, PUBLIC_SIGNUP_PLAN, type PlanId } from '@/lib/stripe/server'
 import { createClient } from '@/lib/supabase/server'
+
+// Public (unauthenticated) checkout session for Stripe-gated signup.
+// Creates a subscription Checkout Session that does NOT require a pre-existing
+// workspace or authenticated user. The webhook at /api/stripe/webhook is the
+// authoritative account creator: it fires on checkout.session.completed,
+// creates the Supabase auth user via admin API, and the auto-provisioning
+// trigger creates the workspace.
+//
+// This eliminates the "money charged, no account" race — the account is
+// created by the same asynchronous side effect as the charge, not by a
+// client redirect that the user might never complete.
+export async function createPublicCheckoutSession(): Promise<void> {
+  const config = PLAN_CONFIG[PUBLIC_SIGNUP_PLAN]
+  if (!config.priceId) {
+    throw new Error(
+      `STRIPE_PRICE_FOUNDING is not configured — cannot create public checkout session`,
+    )
+  }
+
+  const headersList = await headers()
+  const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
+
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
+    mode: 'subscription',
+    line_items: [{ price: config.priceId, quantity: 1 }],
+    allow_promotion_codes: true,
+    customer_creation: 'always',
+    success_url: `${origin}/sign-up/claim?stripe_session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/pricing`,
+    metadata: {
+      signup_flow: 'public',
+      plan_id: PUBLIC_SIGNUP_PLAN,
+    },
+  }
+
+  const session = await getStripe().checkout.sessions.create(sessionParams)
+
+  if (!session.url) throw new Error('Stripe did not return a checkout URL')
+  redirect(session.url)
+}
 
 export async function createCheckoutSession(workspaceId: string, planId: PlanId) {
   const config = PLAN_CONFIG[planId]

@@ -1,34 +1,9 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { SignUpForm } from './SignUpForm'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'Create account',
-}
-
+// The public self-service signup path is closed — signup is gated by a paid
+// Stripe Checkout session. Account creation happens in the webhook at
+// /api/stripe/webhook (see ADR-021 and .specs/launch/stripe-gated-signup-runbook.src.md).
+// Users finish setting up their account at /sign-up/claim after payment.
 export default function SignUpPage() {
-  return (
-    <div className="w-full max-w-md">
-      <div className="rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
-          <p className="mt-1 text-sm text-foreground">
-            Free through May 10, 2026
-          </p>
-        </div>
-
-        <SignUpForm />
-
-        <p className="mt-6 text-center text-sm text-foreground">
-          Already have an account?{' '}
-          <Link
-            href="/sign-in"
-            className="font-medium text-foreground hover:underline-thick hover:text-foreground transition-colors"
-          >
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
-  )
+  redirect('/pricing')
 }

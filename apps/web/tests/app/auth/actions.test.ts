@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   signInAction,
-  signUpAction,
   forgotPasswordAction,
   resetPasswordAction,
+  resendWelcomeEmailAction,
 } from '@/app/(auth)/actions'
 import { redirect } from 'next/navigation'
 
@@ -13,7 +13,6 @@ vi.mock('next/navigation', () => ({
 }))
 
 const mockSignInWithPassword = vi.fn()
-const mockSignUp = vi.fn()
 const mockResetPasswordForEmail = vi.fn()
 const mockUpdateUser = vi.fn()
 const mockSingle = vi.fn()
@@ -25,7 +24,6 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => ({
     auth: {
       signInWithPassword: mockSignInWithPassword,
-      signUp: mockSignUp,
       resetPasswordForEmail: mockResetPasswordForEmail,
       updateUser: mockUpdateUser,
     },
@@ -80,58 +78,32 @@ describe('Auth Actions', () => {
     })
   })
 
-  describe('signUpAction', () => {
-    it('returns success object on success', async () => {
-      mockSignUp.mockResolvedValueOnce({ error: null })
-      formData.append('email', 'test@example.com')
-      formData.append('password', 'password123456')
-
+  describe('resendWelcomeEmailAction', () => {
+    it('returns ok:true on success', async () => {
+      mockResetPasswordForEmail.mockResolvedValueOnce({ error: null })
       process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000'
 
-      const result = await signUpAction(null, formData)
+      const result = await resendWelcomeEmailAction('test@example.com')
 
-      expect(mockSignUp).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123456',
-        options: {
-          emailRedirectTo: 'http://localhost:3000/api/auth/callback',
-          data: {
-            first_name: '',
-            last_name: '',
-          },
-        },
+      expect(mockResetPasswordForEmail).toHaveBeenCalledWith('test@example.com', {
+        redirectTo: 'http://localhost:3000/api/auth/callback?next=/reset-password',
       })
-      expect(result).toEqual({ success: true })
+      expect(result).toEqual({ ok: true })
     })
 
-    it('returns error message on failure', async () => {
-      mockSignUp.mockResolvedValueOnce({ error: { message: 'Email already in use' } })
-      formData.append('email', 'test@example.com')
-      formData.append('password', 'password123456')
+    it('returns ok:false on Supabase failure', async () => {
+      mockResetPasswordForEmail.mockResolvedValueOnce({ error: { message: 'boom' } })
 
-      const result = await signUpAction(null, formData)
+      const result = await resendWelcomeEmailAction('test@example.com')
 
-      expect(result).toEqual({ error: 'Email already in use' })
+      expect(result).toEqual({ ok: false })
     })
 
-    it('uses http localhost fallback when site URL is not configured', async () => {
-      mockSignUp.mockResolvedValueOnce({ error: null })
-      formData.append('email', 'test@example.com')
-      formData.append('password', 'password123456')
+    it('rejects empty email without calling Supabase', async () => {
+      const result = await resendWelcomeEmailAction('')
 
-      await signUpAction(null, formData)
-
-      expect(mockSignUp).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123456',
-        options: {
-          emailRedirectTo: 'http://localhost:3000/api/auth/callback',
-          data: {
-            first_name: '',
-            last_name: '',
-          },
-        },
-      })
+      expect(result).toEqual({ ok: false })
+      expect(mockResetPasswordForEmail).not.toHaveBeenCalled()
     })
   })
 
