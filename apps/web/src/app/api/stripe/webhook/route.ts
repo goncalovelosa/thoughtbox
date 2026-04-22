@@ -35,8 +35,19 @@ export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
 
-  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Missing signature or webhook secret' }, { status: 400 })
+  // Split the header check from the env-var check so each returns the
+  // appropriate status code:
+  //  - Missing stripe-signature header → 400 (request is not from Stripe, or
+  //    is malformed; retrying won't help and we want the forgery defense)
+  //  - Missing STRIPE_WEBHOOK_SECRET env var → 500 (server misconfiguration;
+  //    we want Stripe to retry so the problem can self-heal once ops fixes
+  //    the config, rather than Stripe giving up permanently)
+  if (!signature) {
+    return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
+  }
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('STRIPE_WEBHOOK_SECRET not configured in runtime env')
+    return NextResponse.json({ error: 'webhook not configured' }, { status: 500 })
   }
 
   let event: Stripe.Event
@@ -65,13 +76,18 @@ export async function POST(request: NextRequest) {
         const customerId = session.customer as string | null
         const subscriptionId = session.subscription as string | null
 
+        // All three guards return 500 (not 400) so Stripe retries with
+        // exponential backoff for up to ~3 days. 4xx would make Stripe give up
+        // immediately, which is catastrophic here: the user has already been
+        // charged, so we need a recovery window to either auto-heal (transient
+        // race) or manually intervene (genuine anomaly surfaced in logs).
         if (!email) {
           console.error('public signup webhook missing customer_details.email:', session.id)
-          return NextResponse.json({ error: 'missing email' }, { status: 400 })
+          return NextResponse.json({ error: 'missing email' }, { status: 500 })
         }
         if (!customerId || !subscriptionId) {
           console.error('public signup webhook missing customer or subscription:', session.id)
-          return NextResponse.json({ error: 'missing stripe ids' }, { status: 400 })
+          return NextResponse.json({ error: 'missing stripe ids' }, { status: 500 })
         }
 
         // Find or create the auth user. createUser is idempotent from our side:
