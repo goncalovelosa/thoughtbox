@@ -69,19 +69,27 @@ export default async function BillingPage({ params }: Props) {
         )}
       </div>
 
-      {/* Plan comparison */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        {(Object.entries(PLAN_CONFIG) as [PlanId, typeof PLAN_CONFIG[PlanId]][]).map(
-          ([id, config]) => (
-            <PlanCard
-              key={id}
-              planId={id}
-              name={config.name}
-              price={config.price}
-              isCurrent={id === planId}
-            />
-          ),
-        )}
+      {/* Plan comparison — only show plans we actively sell. Legacy Pro/Team
+          tiers stay in PLAN_CONFIG for type-safety and to render the "current
+          plan" card if a workspace is somehow on one, but they are never
+          marketed as upgrade destinations. */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {(() => {
+          const visible: PlanId[] = ['free', 'founding']
+          const plansToShow = visible.includes(planId) ? visible : [...visible, planId]
+          return plansToShow.map((id) => {
+            const config = PLAN_CONFIG[id]
+            return (
+              <PlanCard
+                key={id}
+                planId={id}
+                name={config.name}
+                price={config.price}
+                isCurrent={id === planId}
+              />
+            )
+          })
+        })()}
       </div>
 
       <p className="mt-6 text-center text-xs text-foreground">
