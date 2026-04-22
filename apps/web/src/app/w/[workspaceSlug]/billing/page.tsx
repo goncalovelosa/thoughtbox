@@ -108,6 +108,7 @@ export default async function BillingPage({ params }: Props) {
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
   free: ['5 sessions', '100 thoughts', '2 API keys', '30-day retention', 'Community support'],
+  founding: ['Unlimited sessions', 'Unlimited thoughts', '10 API keys', 'Unlimited retention', 'Realtime', 'OTEL traces', 'Email support'],
   pro: ['Unlimited sessions', 'Unlimited thoughts', '10 API keys', 'Unlimited retention', 'Realtime', 'OTEL traces', 'Email support'],
   team: ['Everything in Pro', '5 seats', '25 API keys', 'Shared workspaces', 'Hub collaboration', 'Priority support'],
 }

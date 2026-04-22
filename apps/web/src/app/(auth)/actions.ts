@@ -46,43 +46,6 @@ export async function signInAction(
   redirect(`/w/${workspaceSlug}/dashboard`)
 }
 
-// ── Sign Up ───────────────────────────────────────────────────────────────────
-
-export async function signUpAction(
-  _prevState: AuthFormState,
-  formData: FormData,
-): Promise<AuthFormState> {
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const firstName = (formData.get('firstName') as string | null)?.trim() ?? ''
-  const lastName = (formData.get('lastName') as string | null)?.trim() ?? ''
-
-  if (password.length < 12) {
-    return { error: 'Password must be at least 12 characters.' }
-  }
-
-  const siteUrl = getSiteUrl()
-
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${siteUrl}/api/auth/callback`,
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-      },
-    },
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  return { success: true }
-}
-
 // ── Forgot Password ───────────────────────────────────────────────────────────
 
 export async function forgotPasswordAction(
@@ -103,6 +66,26 @@ export async function forgotPasswordAction(
   }
 
   return { success: true }
+}
+
+// ── Resend Welcome Email (Stripe-gated signup) ────────────────────────────────
+
+// Used by /sign-up/claim to re-send the set-password link to a user whose
+// account was just created by the Stripe webhook. Wraps resetPasswordForEmail
+// so the claim page can expose a "resend" button without exposing the admin key.
+export async function resendWelcomeEmailAction(email: string): Promise<{ ok: boolean }> {
+  if (!email || typeof email !== 'string') return { ok: false }
+
+  const siteUrl = getSiteUrl()
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
+  })
+  if (error) {
+    console.error('resendWelcomeEmailAction failed:', error)
+    return { ok: false }
+  }
+  return { ok: true }
 }
 
 // ── Reset Password ────────────────────────────────────────────────────────────

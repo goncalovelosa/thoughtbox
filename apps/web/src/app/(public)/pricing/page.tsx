@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { createPublicCheckoutSession } from '@/lib/stripe/actions'
 
 export const metadata: Metadata = {
   title: 'Pricing — Thoughtbox',
-  description: 'Mind-expansion for AI agents. Free founding beta through May 10. Join now.',
+  description: 'Persistent reasoning for AI agents. $17.29/month.',
 }
-
-const BETA_END = 'May 10, 2026'
 
 export default function PricingPage() {
   return (
@@ -18,7 +17,7 @@ export default function PricingPage() {
             Mind-expansion for AI agents
           </h1>
           <p className="mt-4 text-lg text-foreground/70">
-            Thoughtbox is free during the founding beta through {BETA_END}. No credit card required.
+            Thoughtbox gives your AI agents persistent, queryable memory via MCP. One plan, one price.
           </p>
         </div>
 
@@ -31,13 +30,13 @@ export default function PricingPage() {
           <h2 className="text-2xl font-bold text-foreground">Full Access</h2>
 
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="text-5xl font-bold text-foreground">$0</span>
-            <span className="text-sm text-foreground/70">through {BETA_END}</span>
+            <span className="text-5xl font-bold text-foreground">$17.29</span>
+            <span className="text-sm text-foreground/70">/ month</span>
           </div>
 
           <p className="mt-4 text-sm leading-relaxed text-foreground/70">
-            Everything Thoughtbox offers — hosted cloud, web dashboard, API access,
-            OTEL integration, team features — completely free while we build this together with our founding users.
+            Everything Thoughtbox offers — hosted cloud, web dashboard, API access, OTEL integration, team features.
+            Have a beta invite code? You can redeem it at checkout for a comped subscription.
           </p>
 
           <ul className="mt-6 flex flex-col gap-3">
@@ -66,57 +65,18 @@ export default function PricingPage() {
             ))}
           </ul>
 
-          <Link
-            href="/sign-up"
-            className="mt-8 block rounded-full bg-foreground px-6 py-3 text-center text-sm font-semibold text-background transition-all hover:bg-foreground/80"
-          >
-            Join the founding beta
-          </Link>
-        </div>
+          <form action={createPublicCheckoutSession} className="mt-8">
+            <button
+              type="submit"
+              className="block w-full rounded-full bg-foreground px-6 py-3 text-center text-sm font-semibold text-background transition-all hover:bg-foreground/80"
+            >
+              Get Access — $17.29/month
+            </button>
+          </form>
 
-        {/* Self-host option */}
-        <div className="mt-6 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
-          <h3 className="text-sm font-semibold text-foreground">Prefer to self-host?</h3>
-          <p className="mt-2 text-sm text-foreground/70">
-            Thoughtbox is open source. Run it locally with Docker or npx — free forever, no account needed.
+          <p className="mt-3 text-center text-xs text-foreground/60">
+            Secure checkout via Stripe. Cancel anytime.
           </p>
-          <Link
-            href="https://github.com/Kastalien-Research/thoughtbox"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-block text-sm font-semibold text-foreground hover:underline-thick hover:underline"
-          >
-            View on GitHub
-          </Link>
-        </div>
-
-        {/* Audit offer */}
-        <div className="mt-6 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-8 text-center">
-          <h3 className="text-lg font-bold text-foreground">Not sure where to start?</h3>
-          <p className="mt-2 text-sm text-foreground/70">
-            Get a free Agent Reasoning Audit — we analyze your AI agent setup and
-            show you where structured reasoning would improve your outcomes.
-          </p>
-          <Link
-            href="/support"
-            className="mt-4 inline-block rounded-full bg-foreground px-6 py-2.5 text-sm font-semibold text-background transition-all hover:bg-foreground/80"
-          >
-            Request a free audit
-          </Link>
-        </div>
-
-        {/* Enterprise */}
-        <div className="mt-6 rounded-2xl border border-foreground/10 bg-background p-6 text-center">
-          <h3 className="text-sm font-semibold text-foreground">Enterprise</h3>
-          <p className="mt-2 text-sm text-foreground/70">
-            SSO, unlimited seats, SLA, compliance exports, dedicated support.
-          </p>
-          <Link
-            href="/support"
-            className="mt-3 inline-block text-sm font-semibold text-foreground hover:underline-thick hover:underline"
-          >
-            Contact sales
-          </Link>
         </div>
 
         {/* FAQ */}
@@ -131,10 +91,10 @@ export default function PricingPage() {
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-foreground">What happens after the beta?</h3>
+            <h3 className="text-sm font-bold text-foreground">I have a beta invite code. How do I use it?</h3>
             <p className="mt-1 text-sm text-foreground">
-              Paid plans will be introduced after {BETA_END}. Founding beta users will get advance notice and favorable terms.
-              Self-hosting remains free forever.
+              Click <em>Get Access</em>, then enter your code in Stripe&apos;s <em>Add promotion code</em> field during checkout.
+              If your code is a full comp, your card won&apos;t be charged until the beta period ends.
             </p>
           </div>
 
