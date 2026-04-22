@@ -38,11 +38,14 @@ export async function createPublicCheckoutSession(): Promise<void> {
 
   const origin = await resolveOrigin()
 
+  // `customer_creation` is a payment-mode-only parameter. In subscription
+  // mode, Stripe always creates a Customer automatically (the subscription
+  // requires one), so passing `customer_creation: 'always'` here would make
+  // Stripe reject the session create with 400. Omitting it is correct.
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
     line_items: [{ price: config.priceId, quantity: 1 }],
     allow_promotion_codes: true,
-    customer_creation: 'always',
     success_url: `${origin}/sign-up/claim?stripe_session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pricing`,
     metadata: {
