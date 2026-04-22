@@ -13,8 +13,10 @@ function createServiceClient() {
 }
 
 // Look up an existing auth user by email via Supabase admin API.
-// Returns the user or null. Supabase does not expose direct email lookup in
-// JS SDK admin helpers, so we use the GoTrue REST endpoint.
+// Returns the user or null. As of @supabase/supabase-js 2.99.1, the JS SDK
+// admin surface does not expose a direct getUserByEmail helper (only
+// getUserById and listUsers); we call the GoTrue REST endpoint directly.
+// Revisit if a future SDK upgrade adds a typed email lookup.
 async function findAuthUserByEmail(email: string): Promise<{ id: string } | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -102,7 +104,15 @@ export async function POST(request: NextRequest) {
         // workspace row synchronously when createUser inserts into
         // auth.users, so the UPDATE below will find it. For the re-delivery
         // path (existing user), we still update to reflect latest Stripe state.
-        const { error: updateError } = await supabase
+        //
+        // We chain .select('id') so we can detect the zero-rows-matched case
+        // (e.g. the auto-provisioning trigger failed silently, or the user
+        // pre-dates the trigger). PostgREST does NOT raise an error on a
+        // zero-row UPDATE; without this check the webhook would return 200 to
+        // Stripe and leave the user charged but without Stripe IDs populated
+        // on their workspace. Returning 500 lets Stripe's at-least-once
+        // retry handle the gap.
+        const { data: updatedRows, error: updateError } = await supabase
           .from('workspaces')
           .update({
             stripe_customer_id: customerId,
@@ -111,10 +121,19 @@ export async function POST(request: NextRequest) {
             subscription_status: 'active',
           })
           .eq('owner_user_id', userId)
+          .select('id')
 
-        if (updateError) {
-          console.error('Failed to update workspace after public signup:', updateError)
-          return NextResponse.json({ error: 'workspace update failed' }, { status: 500 })
+        if (updateError || !updatedRows || updatedRows.length === 0) {
+          console.error('Failed to update workspace after public signup:', {
+            userId,
+            email,
+            rowsUpdated: updatedRows?.length ?? 0,
+            updateError,
+          })
+          return NextResponse.json(
+            { error: 'workspace update failed — no rows matched owner_user_id' },
+            { status: 500 },
+          )
         }
 
         // Send the user a set-password link. We use resetPasswordForEmail rather

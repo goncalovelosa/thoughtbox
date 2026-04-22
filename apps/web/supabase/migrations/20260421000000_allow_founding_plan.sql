@@ -5,4 +5,4 @@
 ALTER TABLE workspaces DROP CONSTRAINT IF EXISTS workspaces_plan_id_check;
 ALTER TABLE workspaces
   ADD CONSTRAINT workspaces_plan_id_check
-  CHECK (plan_id IN ('free', 'pro', 'enterprise', 'founding'));
+  CHECK (plan_id IN ('free', 'pro', 'enterprise', 'founding', 'team'));

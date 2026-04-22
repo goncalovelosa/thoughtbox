@@ -5,6 +5,18 @@ import { headers } from 'next/headers'
 import type Stripe from 'stripe'
 import { getStripe, PLAN_CONFIG, PUBLIC_SIGNUP_PLAN, type PlanId } from '@/lib/stripe/server'
 import { createClient } from '@/lib/supabase/server'
+import { getSiteUrl } from '@/lib/thoughtbox-config'
+
+// Resolve the base URL for Stripe redirect URLs. Prefers the request Origin
+// header (which reflects the host the browser actually hit, so it's correct
+// for preview deploys and custom domains) and falls back to getSiteUrl() —
+// which resolves NEXT_PUBLIC_SITE_URL, then VERCEL_URL (per-deploy), then
+// localhost. The previous fallback was a hardcoded production URL, which
+// broke post-checkout redirects on preview/staging deploys.
+async function resolveOrigin(): Promise<string> {
+  const headersList = await headers()
+  return headersList.get('origin') || getSiteUrl()
+}
 
 // Public (unauthenticated) checkout session for Stripe-gated signup.
 // Creates a subscription Checkout Session that does NOT require a pre-existing
@@ -24,8 +36,7 @@ export async function createPublicCheckoutSession(): Promise<void> {
     )
   }
 
-  const headersList = await headers()
-  const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
+  const origin = await resolveOrigin()
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
@@ -65,8 +76,7 @@ export async function createCheckoutSession(workspaceId: string, planId: PlanId)
 
   if (!workspace) throw new Error('Workspace not found')
 
-  const headersList = await headers()
-  const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
+  const origin = await resolveOrigin()
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
@@ -108,8 +118,7 @@ export async function createBillingPortalSession(workspaceId: string) {
     throw new Error('No Stripe customer for this workspace')
   }
 
-  const headersList = await headers()
-  const origin = headersList.get('origin') || 'https://thoughtbox.kastalienresearch.ai'
+  const origin = await resolveOrigin()
 
   const session = await getStripe().billingPortal.sessions.create({
     customer: workspace.stripe_customer_id,
