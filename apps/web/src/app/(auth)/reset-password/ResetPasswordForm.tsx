@@ -1,13 +1,39 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { resetPasswordAction, type AuthFormState } from '../actions'
+import { createClient } from '@/lib/supabase/client'
 
 export function ResetPasswordForm() {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(
     resetPasswordAction,
     null,
   )
+  const [ready, setReady] = useState(false)
+
+  // Supabase recovery emails deliver the access/refresh tokens in the URL hash
+  // fragment (implicit flow). The hash is invisible to server code, so the
+  // session has to be established client-side before the server action runs.
+  // Instantiating the browser client triggers detectSessionInUrl, which reads
+  // the hash and writes session cookies. We clear the hash once processed so
+  // a refresh doesn't re-replay tokens.
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().finally(() => {
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+      setReady(true)
+    })
+  }, [])
+
+  if (!ready) {
+    return (
+      <div className="mt-6 text-center text-sm text-foreground/60" aria-live="polite">
+        Preparing…
+      </div>
+    )
+  }
 
   return (
     <form action={formAction} className="mt-6 space-y-4" aria-label="Set new password form">

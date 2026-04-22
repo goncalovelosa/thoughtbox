@@ -138,10 +138,19 @@ export default async function ClaimPage({ searchParams }: Props) {
   // bookmarked revisits skip the send to avoid duplicate emails and tripping
   // GoTrue's per-email rate limit. The "Resend the email" button in ClaimPanel
   // is the supported path for getting another link.
+  //
+  // redirectTo points at /reset-password directly, not /api/auth/callback.
+  // Supabase recovery emails use the implicit flow — tokens arrive in the URL
+  // hash fragment, which is only visible to client code. The server-side
+  // callback route expects a PKCE `?code=` query param, which recovery emails
+  // don't provide, so routing through it would lose the session. The
+  // reset-password page instantiates the Supabase browser client on mount,
+  // which auto-detects the hash and writes session cookies before the form
+  // submits.
   if (userWasJustCreated) {
     const siteUrl = getSiteUrl()
     const { error: mailError } = await admin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${siteUrl}/api/auth/callback?next=/reset-password`,
+      redirectTo: `${siteUrl}/reset-password`,
     })
     if (mailError) {
       console.error('Claim: welcome email failed:', mailError)
