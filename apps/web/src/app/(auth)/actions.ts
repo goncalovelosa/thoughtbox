@@ -96,6 +96,8 @@ export async function resetPasswordAction(
 ): Promise<AuthFormState> {
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirmPassword') as string
+  const recoveryToken = formData.get('recoveryToken')
+  const recoveryUserId = formData.get('recoveryUserId')
 
   if (password !== confirmPassword) {
     return { error: 'Passwords do not match.' }
@@ -105,7 +107,35 @@ export async function resetPasswordAction(
     return { error: 'Password must be at least 12 characters.' }
   }
 
+  if (typeof recoveryToken !== 'string' || !recoveryToken) {
+    return { error: 'Password reset proof is missing.' }
+  }
+
+  if (typeof recoveryUserId !== 'string' || !recoveryUserId) {
+    return { error: 'Password reset proof is missing.' }
+  }
+
   const supabase = await createClient()
+  const { data: { user: recoveryUser }, error: recoveryError } = await supabase.auth.getUser(recoveryToken)
+
+  if (recoveryError || !recoveryUser) {
+    return { error: 'Password reset proof is invalid or expired.' }
+  }
+
+  if (recoveryUser.id !== recoveryUserId) {
+    return { error: 'Password reset proof does not match this request.' }
+  }
+
+  const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
+
+  if (sessionError || !sessionUser) {
+    return { error: 'Authentication failed' }
+  }
+
+  if (sessionUser.id !== recoveryUser.id) {
+    return { error: 'Password reset session mismatch.' }
+  }
+
   const { data: { user }, error: authError } = await supabase.auth.updateUser({ password })
 
   if (authError) {

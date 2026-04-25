@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
 const mockSignInWithPassword = vi.fn()
 const mockResetPasswordForEmail = vi.fn()
 const mockUpdateUser = vi.fn()
+const mockGetUser = vi.fn()
 const mockSingle = vi.fn()
 const mockEq = vi.fn(() => ({ single: mockSingle }))
 const mockSelect = vi.fn(() => ({ eq: mockEq }))
@@ -25,6 +26,7 @@ vi.mock('@/lib/supabase/server', () => ({
     auth: {
       signInWithPassword: mockSignInWithPassword,
       resetPasswordForEmail: mockResetPasswordForEmail,
+      getUser: mockGetUser,
       updateUser: mockUpdateUser,
     },
     from: mockFrom,
@@ -86,7 +88,7 @@ describe('Auth Actions', () => {
       const result = await resendWelcomeEmailAction('test@example.com')
 
       expect(mockResetPasswordForEmail).toHaveBeenCalledWith('test@example.com', {
-        redirectTo: 'http://localhost:3000/api/auth/callback?next=/reset-password',
+        redirectTo: 'http://localhost:3000/reset-password',
       })
       expect(result).toEqual({ ok: true })
     })
@@ -117,7 +119,7 @@ describe('Auth Actions', () => {
       const result = await forgotPasswordAction(null, formData)
 
       expect(mockResetPasswordForEmail).toHaveBeenCalledWith('test@example.com', {
-        redirectTo: 'http://localhost:3000/api/auth/callback?next=/reset-password',
+        redirectTo: 'http://localhost:3000/reset-password',
       })
       expect(result).toEqual({ success: true })
     })
@@ -134,15 +136,28 @@ describe('Auth Actions', () => {
 
   describe('resetPasswordAction', () => {
     it('redirects on success', async () => {
+      mockGetUser
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-123' } },
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-123' } },
+          error: null,
+        })
       mockUpdateUser.mockResolvedValueOnce({
         data: { user: { id: 'user-123' } },
         error: null,
       })
       formData.append('password', 'newpassword123')
       formData.append('confirmPassword', 'newpassword123')
+      formData.append('recoveryToken', 'recovery-token')
+      formData.append('recoveryUserId', 'user-123')
 
       await resetPasswordAction(null, formData)
 
+      expect(mockGetUser).toHaveBeenNthCalledWith(1, 'recovery-token')
+      expect(mockGetUser).toHaveBeenNthCalledWith(2)
       expect(mockUpdateUser).toHaveBeenCalledWith({ password: 'newpassword123' })
       expect(redirect).toHaveBeenCalledWith('/w/demo/dashboard')
     })
@@ -167,13 +182,88 @@ describe('Auth Actions', () => {
       expect(mockUpdateUser).not.toHaveBeenCalled()
     })
 
+    it('returns error if recovery proof is missing', async () => {
+      formData.append('password', 'newpassword123')
+      formData.append('confirmPassword', 'newpassword123')
+
+      const result = await resetPasswordAction(null, formData)
+
+      expect(result).toEqual({ error: 'Password reset proof is missing.' })
+      expect(mockGetUser).not.toHaveBeenCalled()
+      expect(mockUpdateUser).not.toHaveBeenCalled()
+    })
+
+    it('returns error if recovery proof is invalid', async () => {
+      mockGetUser.mockResolvedValueOnce({
+        data: { user: null },
+        error: { message: 'bad token' },
+      })
+      formData.append('password', 'newpassword123')
+      formData.append('confirmPassword', 'newpassword123')
+      formData.append('recoveryToken', 'bad-token')
+      formData.append('recoveryUserId', 'user-123')
+
+      const result = await resetPasswordAction(null, formData)
+
+      expect(result).toEqual({ error: 'Password reset proof is invalid or expired.' })
+      expect(mockUpdateUser).not.toHaveBeenCalled()
+    })
+
+    it('returns error if recovery proof user id does not match the submitted proof', async () => {
+      mockGetUser.mockResolvedValueOnce({
+        data: { user: { id: 'user-456' } },
+        error: null,
+      })
+      formData.append('password', 'newpassword123')
+      formData.append('confirmPassword', 'newpassword123')
+      formData.append('recoveryToken', 'recovery-token')
+      formData.append('recoveryUserId', 'user-123')
+
+      const result = await resetPasswordAction(null, formData)
+
+      expect(result).toEqual({ error: 'Password reset proof does not match this request.' })
+      expect(mockUpdateUser).not.toHaveBeenCalled()
+    })
+
+    it('returns error if cookie session does not match recovery proof', async () => {
+      mockGetUser
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-123' } },
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-456' } },
+          error: null,
+        })
+      formData.append('password', 'newpassword123')
+      formData.append('confirmPassword', 'newpassword123')
+      formData.append('recoveryToken', 'recovery-token')
+      formData.append('recoveryUserId', 'user-123')
+
+      const result = await resetPasswordAction(null, formData)
+
+      expect(result).toEqual({ error: 'Password reset session mismatch.' })
+      expect(mockUpdateUser).not.toHaveBeenCalled()
+    })
+
     it('returns error message on Supabase failure', async () => {
+      mockGetUser
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-123' } },
+          error: null,
+        })
+        .mockResolvedValueOnce({
+          data: { user: { id: 'user-123' } },
+          error: null,
+        })
       mockUpdateUser.mockResolvedValueOnce({
         data: { user: null },
         error: { message: 'Token expired' },
       })
       formData.append('password', 'newpassword123')
       formData.append('confirmPassword', 'newpassword123')
+      formData.append('recoveryToken', 'recovery-token')
+      formData.append('recoveryUserId', 'user-123')
 
       const result = await resetPasswordAction(null, formData)
 
