@@ -68,6 +68,7 @@ export class BranchHandlers {
       .from("sessions")
       .select("id, workspace_id")
       .eq("id", sessionId)
+      .eq("workspace_id", this.workspaceId)
       .single();
 
     if (sessErr || !session) {
@@ -78,6 +79,7 @@ export class BranchHandlers {
       .from("thoughts")
       .select("id")
       .eq("session_id", sessionId)
+      .eq("workspace_id", this.workspaceId)
       .eq("thought_number", branchFromThought)
       .is("branch_id", null)
       .single();
@@ -88,11 +90,9 @@ export class BranchHandlers {
       );
     }
 
-    const workspaceId = session.workspace_id ?? this.workspaceId;
-
     const { error: insErr } = await this.client.from("branches").insert({
       session_id: sessionId,
-      workspace_id: workspaceId,
+      workspace_id: this.workspaceId,
       branch_id: branchId,
       description: description ?? null,
       branch_from_thought: branchFromThought,
@@ -108,7 +108,7 @@ export class BranchHandlers {
       {
         session_id: sessionId,
         branch_id: branchId,
-        workspace_id: workspaceId,
+        workspace_id: this.workspaceId,
         branch_from_thought: branchFromThought,
         expires_at: new Date(Date.now() + BRANCH_WORKER_TOKEN_TTL_MS).toISOString(),
       },
@@ -137,6 +137,7 @@ export class BranchHandlers {
       .from("branches")
       .select("branch_id, status")
       .eq("session_id", sessionId)
+      .eq("workspace_id", this.workspaceId)
       .in("status", ["active", "completed"]);
 
     if (brErr || !branches?.length) {
@@ -169,6 +170,7 @@ export class BranchHandlers {
       .from("branches")
       .select("branch_id, description, status, branch_from_thought, spawned_at, completed_at")
       .eq("session_id", args.sessionId)
+      .eq("workspace_id", this.workspaceId)
       .order("spawned_at", { ascending: true });
 
     if (error) {
@@ -185,6 +187,7 @@ export class BranchHandlers {
         .from("thoughts")
         .select("branch_id")
         .eq("session_id", args.sessionId)
+        .eq("workspace_id", this.workspaceId)
         .in("branch_id", branchIds);
 
       if (thoughtError) {
@@ -222,6 +225,7 @@ export class BranchHandlers {
       .from("branches")
       .select("*")
       .eq("session_id", args.sessionId)
+      .eq("workspace_id", this.workspaceId)
       .eq("branch_id", args.branchId)
       .single();
 
@@ -235,6 +239,7 @@ export class BranchHandlers {
       .from("thoughts")
       .select("*")
       .eq("session_id", args.sessionId)
+      .eq("workspace_id", this.workspaceId)
       .eq("branch_id", args.branchId)
       .order("thought_number", { ascending: true });
 
@@ -259,6 +264,7 @@ export class BranchHandlers {
         .from("thoughts")
         .select("thought_number")
         .eq("session_id", sessionId)
+        .eq("workspace_id", this.workspaceId)
         .is("branch_id", null)
         .order("thought_number", { ascending: false })
         .limit(1)
@@ -324,6 +330,7 @@ export class BranchHandlers {
         .from("branches")
         .update(updatePayload)
         .eq("session_id", sessionId)
+        .eq("workspace_id", this.workspaceId)
         .eq("branch_id", bid);
 
       if (updateError) {
@@ -341,6 +348,7 @@ export class BranchHandlers {
       .from("sessions")
       .select("id, workspace_id")
       .eq("id", sessionId)
+      .eq("workspace_id", this.workspaceId)
       .single();
 
     if (error || !session?.workspace_id) {
