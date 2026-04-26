@@ -29,8 +29,8 @@ export const ULYSSES_TOOL = {
 
 S (state step) tracks where you are in the cycle:
 - S=0: At a checkpoint. Clean state. Form hypothesis: primary move + backup move.
-- S=1: Primary move produced unexpected outcome. Now executing the backup move.
-- S=2: Backup also produced unexpected outcome. Two unexpected outcomes in a row. Reset to last checkpoint, S→0. Form falsifiable hypotheses about why both moves failed. Those two moves are now forbidden. Generate new primary + backup and loop.
+- S=1: Plan submitted. Primary move executing.
+- S=2: Primary produced unexpected outcome. Backup executing — OR both produced unexpected outcomes (active_step null), reflect required.
 
 Full cycle:
 1. At S=0, form hypothesis (primary move + backup move)

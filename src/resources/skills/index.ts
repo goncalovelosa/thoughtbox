@@ -366,7 +366,7 @@ For architectural decisions, bridge to an ADR via the HDD workflow.`,
     name: "debug",
     title: "Thoughtbox Debug",
     description:
-      "State-step-gated debugging using the Ulysses protocol. Prevents debugging spirals by tracking position in the plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after primary fails (executing backup), S=2 after both fail (reset to checkpoint, reflect, forbid moves).",
+      "State-step-gated debugging using the Ulysses protocol. Prevents debugging spirals by tracking position in the plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after plan submitted (primary executing), S=2 after primary produces unexpected outcome (backup executing) or both fail (reflect required).",
     args: [
       {
         name: "problem",
@@ -376,10 +376,10 @@ For architectural decisions, bridge to an ADR via the HDD workflow.`,
     ],
     content: `# Thoughtbox Debug (Ulysses Protocol)
 
-The S (state step) tracker prevents debugging spirals by tracking your position in the plan→execute→evaluate cycle:
+The S (state step) tracker prevents debugging spirals by tracking your position in the cycle:
 - S=0: At a checkpoint. Clean state. Form hypothesis: primary move + backup move.
-- S=1: Primary move produced unexpected outcome. Now executing the backup move.
-- S=2: Backup also failed. Two unexpected outcomes in a row. Reset to last checkpoint, S→0. Form falsifiable hypotheses about why both moves failed. Those two moves are now forbidden. Generate new primary + backup and loop.
+- S=1: Plan submitted. Primary move executing.
+- S=2: Primary produced unexpected outcome. Backup executing — OR both produced unexpected outcomes (active_step null), reflect required.
 
 Full cycle:
 1. At S=0, form hypothesis (primary move + backup move)

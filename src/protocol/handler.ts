@@ -674,7 +674,7 @@ export class ProtocolHandler {
         active_step: null,
         forbidden_moves: forbidden,
       };
-      resultMsg = 'Both primary and backup moves produced unexpected outcomes. S=2. REFLECT required. Failed moves are now forbidden.';
+      resultMsg = 'Both primary and backup moves produced unexpected outcomes. S=2. REFLECT required. Those moves are now forbidden.';
     }
 
     const { error: stateErr } = await this.client
@@ -710,6 +710,7 @@ export class ProtocolHandler {
     const state = session.state_json as {
       S: number;
       hypotheses: Json[];
+      active_step: Json | null;
     };
 
     if ((state.S ?? 0) !== 2) {
@@ -717,6 +718,9 @@ export class ProtocolHandler {
         `REFLECT requires S=2 (current S=${state.S ?? 0}). ` +
           'Only callable after both primary and backup moves produced unexpected outcomes.',
       );
+    }
+    if (state.active_step !== null && state.active_step !== undefined) {
+      throw new Error('Backup move outcome not yet reported. Run outcome first.');
     }
 
     const hypothesis = {
