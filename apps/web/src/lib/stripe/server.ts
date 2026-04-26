@@ -13,29 +13,11 @@ export function getStripe(): Stripe {
 }
 
 export const PLAN_CONFIG = {
-  free: {
-    name: 'Free',
-    price: 0,
-    annualPrice: 0,
-    priceId: null,
-  },
   founding: {
     name: 'Founding Beta',
     price: 17.29,
     annualPrice: null,
     priceId: process.env.STRIPE_PRICE_FOUNDING ?? null,
-  },
-  pro: {
-    name: 'Pro',
-    price: 27,
-    annualPrice: 270,
-    priceId: process.env.STRIPE_PRICE_PRO ?? null,
-  },
-  team: {
-    name: 'Team',
-    price: 91,
-    annualPrice: 910,
-    priceId: process.env.STRIPE_PRICE_TEAM ?? null,
   },
 } as const
 

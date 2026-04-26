@@ -115,17 +115,19 @@ export async function POST(request: NextRequest) {
 
       if (!workspace) break
 
+      // Single-tier product: only `founding` exists in PLAN_CONFIG, so the
+      // legacy `'free'` tombstone is no longer meaningful. Leave plan_id as-is
+      // and signal cancellation via subscription_status, which the UI uses.
       const { error } = await supabase
         .from('workspaces')
         .update({
-          plan_id: 'free',
           subscription_status: 'canceled',
           stripe_subscription_id: null,
         })
         .eq('id', workspace.id)
 
-      if (error) console.error('Failed to downgrade workspace:', error)
-      else console.log(`Workspace ${workspace.id} downgraded to free`)
+      if (error) console.error('Failed to mark workspace canceled:', error)
+      else console.log(`Workspace ${workspace.id} subscription canceled`)
       break
     }
 

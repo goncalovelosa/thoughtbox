@@ -47,7 +47,6 @@ export default function PricingPage() {
               'Realtime session updates',
               'OTEL trace integration (Claude Code telemetry)',
               'Knowledge graph persistence',
-              'Team workspaces and Hub collaboration',
               'Unlimited sessions, thoughts, and data retention',
               'Email support',
             ].map((f) => (

@@ -15,20 +15,14 @@ const sections = [
   {
     title: 'Core concepts',
     items: [
-      { label: 'Sessions & Thoughts', href: '/docs/sessions-and-thoughts', description: 'The structured reasoning trace — sessions, thoughts, branching, and revisions.' },
-      { label: 'Code Mode', href: '/docs/code-mode', description: 'Two MCP tools replace dozens. Write JavaScript against the tb SDK.' },
-      { label: 'Authentication', href: '/docs/authentication', description: 'API key format, creation, rotation, and workspace scoping.' },
+      { label: 'Sessions & Thoughts', href: '/docs/sessions-and-thoughts', description: 'What your agent records — sessions, thoughts, branches, and revisions.' },
+      { label: 'Authentication', href: '/docs/authentication', description: 'Creating, installing, rotating, and revoking API keys.' },
     ],
   },
   {
-    title: 'Guides',
+    title: 'For developers',
     items: [
-      { label: 'Session Lifecycle', href: '/docs/session-lifecycle', description: 'Session lifecycle, search, resume, export, and analysis.' },
-      { label: 'Knowledge Graph', href: '/docs/knowledge-graph', description: 'Entities, relations, observations, and graph traversal.' },
-      { label: 'Interleaved Thinking', href: '/docs/interleaved-thinking', description: 'IRCoT pattern: think, act, reflect, repeat.' },
-      { label: 'Ulysses Protocol', href: '/docs/ulysses-protocol', description: 'Surprise-gated debugging with forced hypotheses.' },
-      { label: 'Subagent Patterns', href: '/docs/subagent-patterns', description: 'Context isolation for session retrieval and thought evolution.' },
-      { label: 'Observability', href: '/docs/observability', description: 'OTEL setup, cost tracking, and session timelines.' },
+      { label: 'Code Mode', href: '/docs/code-mode', description: 'The underlying MCP surface — for tools and agents that talk to Thoughtbox directly.' },
     ],
   },
 ]

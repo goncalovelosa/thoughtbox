@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { requireActiveSubscription } from '@/lib/stripe/gate'
 
 export const metadata: Metadata = { title: 'Quickstart' }
 
@@ -7,6 +8,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function WorkspaceQuickstartPage({ params }: Props) {
   const { workspaceSlug } = await params
+  await requireActiveSubscription(workspaceSlug)
   const apiKeysHref = `/w/${workspaceSlug}/api-keys`
   const runsHref = `/w/${workspaceSlug}/sessions`
 

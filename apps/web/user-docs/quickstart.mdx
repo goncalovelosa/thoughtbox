@@ -1,14 +1,22 @@
 # Quickstart
 
-Get connected and record your first thought in under 5 minutes.
+Get your AI agent connected to Thoughtbox in about three minutes. You won't write any code in this guide — your agent will.
 
-## 1. Get Your API Key
+## What you're setting up
 
-Sign in to the [Thoughtbox web app](https://thoughtbox.kastalienresearch.ai). Copy your API key from the dashboard. It starts with `tbx_`.
+Thoughtbox gives your AI agent persistent memory across sessions. Once it's connected, your agent can record reasoning, recall prior conclusions, and build a knowledge graph that survives context resets. You don't have to manage any of that during conversations. You configure the connection once, and the agent uses it on its own from then on.
 
-## 2. Connect Claude Code
+Three steps: get an API key, install the connection, verify it works.
 
-Add Thoughtbox to your project's `.mcp.json`:
+## 1. Get an API key
+
+Sign in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai). Open **Settings → API Keys** and click **Create Key**.
+
+Copy the key when it appears — it starts with `tbx_`. The full key is shown once. If you lose it, revoke it and create a new one.
+
+## 2. Install the connection
+
+In the project where you want your agent to use Thoughtbox, open `.claude/settings.local.json` (create the file if it doesn't exist) and add Thoughtbox to the `mcpServers` block:
 
 ```json
 {
@@ -21,87 +29,26 @@ Add Thoughtbox to your project's `.mcp.json`:
 }
 ```
 
-Restart Claude Code. Thoughtbox tools appear as `mcp__thoughtbox__thoughtbox_search` and `mcp__thoughtbox__thoughtbox_execute`.
+Replace `tbx_YOUR_KEY_HERE` with the key you just copied. Make sure `.claude/` is in your `.gitignore` — your key belongs in a local-only file, never in committed config.
 
-## 3. Record Your First Thought
+Restart Claude Code (or your MCP client). Thoughtbox is now available to the agent.
 
-Use `thoughtbox_execute` to start a reasoning session:
+## 3. Verify it's working
 
-```javascript
-// thoughtbox_execute
-async () => {
-  return await tb.thought({
-    thought: "Exploring Thoughtbox for the first time. Testing connection and basic thought recording.",
-    thoughtType: "reasoning",
-    nextThoughtNeeded: true,
-    thoughtNumber: 1,
-    totalThoughts: 5,
-    sessionTitle: "Getting Started",
-    sessionTags: ["onboarding"]
-  });
-}
-```
+Open a conversation with your agent and ask plainly:
 
-The response confirms your thought was recorded:
+> "Are you connected to Thoughtbox? If so, record a thought that says 'first connection test'."
 
-```json
-{
-  "thoughtNumber": 1,
-  "sessionId": "a1b2c3d4-..."
-}
-```
+If everything is wired up, your agent will confirm and record the thought. If the connection failed, the agent will tell you it can't find Thoughtbox — recheck step 2 and restart the client.
 
-The first thought creates a session automatically. Subsequent thoughts append to it.
+## See your agent's reasoning
 
-## 4. Add More Thoughts
+Go back to [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai) and open **Sessions**. You'll see the session your agent just created. Click into it to see the recorded thought.
 
-Record a second thought:
+That's it. Your agent has persistent memory now. Use it normally for whatever you're working on — it'll record its reasoning as it goes, and you can come back to those sessions later to see what it was thinking.
 
-```javascript
-async () => {
-  return await tb.thought({
-    thought: "The session was created automatically. I can branch, revise, and use different thought types.",
-    thoughtType: "reasoning",
-    nextThoughtNeeded: true,
-    thoughtNumber: 2,
-    totalThoughts: 5
-  });
-}
-```
+## What's next
 
-## 5. Complete the Session
-
-Set `nextThoughtNeeded: false` to close the session cleanly:
-
-```javascript
-async () => {
-  return await tb.thought({
-    thought: "Connection works. Session management is automatic. Ready to explore deeper features.",
-    thoughtType: "reasoning",
-    nextThoughtNeeded: false,
-    thoughtNumber: 3,
-    totalThoughts: 3
-  });
-}
-```
-
-## 6. Verify It Persisted
-
-List your sessions to confirm:
-
-```javascript
-async () => {
-  return await tb.session.list({ limit: 5 });
-}
-```
-
-Your "Getting Started" session appears with `status: "completed"` and `thoughtCount: 3`.
-
-## What's Next
-
-- [Sessions](/docs/session-lifecycle) — search, resume, export, and analyze your reasoning
-- [Knowledge Graph](/docs/knowledge-graph) — persist insights across sessions
-- [Interleaved Thinking](/docs/interleaved-thinking) — structure research and development tasks
-- [Ulysses Protocol](/docs/ulysses-protocol) — disciplined debugging when you're stuck
-- [Subagent Patterns](/docs/subagent-patterns) — manage context with subagent isolation
-- [Observability](/docs/observability) — set up telemetry and cost tracking
+- [Sessions & Thoughts](/docs/sessions-and-thoughts) — what your agent is recording and how to read it back
+- [Authentication](/docs/authentication) — creating, rotating, and revoking API keys
+- [Code Mode](/docs/code-mode) — the underlying SDK, for developers building tools that talk to Thoughtbox directly

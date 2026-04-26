@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { ConnectPanel } from './ConnectPanel'
 
 export const metadata: Metadata = { title: 'Connect' }
@@ -8,6 +9,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ConnectPage({ params }: Props) {
   const { workspaceSlug } = await params
+  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

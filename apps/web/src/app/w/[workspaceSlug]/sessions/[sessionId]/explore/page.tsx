@@ -8,6 +8,7 @@ import {
   type RawThoughtRecord,
 } from '@/lib/session/view-models'
 import { createClient } from '@/lib/supabase/server'
+import { requireActiveSubscription } from '@/lib/stripe/gate'
 
 export const metadata: Metadata = { title: 'Session Explorer' }
 
@@ -17,6 +18,7 @@ type Props = {
 
 export default async function SessionExplorePage({ params }: Props) {
   const { workspaceSlug, sessionId } = await params
+  await requireActiveSubscription(workspaceSlug)
   const supabase = await createClient()
 
   const { data: sessionRow, error: sessionError } = await supabase
