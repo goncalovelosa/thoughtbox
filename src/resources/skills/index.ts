@@ -54,7 +54,7 @@ Seven modules, two tools:
 | **knowledge** | Entity graph with observations, relations, traversal | \`tb.knowledge.*\` |
 | **notebook** | Literate programming — create cells, execute code, export | \`tb.notebook.*\` |
 | **theseus** | Friction-gated refactoring protocol (scope locking, visa system) | \`tb.theseus()\` |
-| **ulysses** | State-step-gated debugging protocol (S tracker: 0=checkpoint, 1=executing backup, 2=both failed→reflect) | \`tb.ulysses()\` |
+| **ulysses** | State-step-gated debugging protocol (S tracker: 0=checkpoint, 1=primary executing, 2=backup executing or both failed→reflect) | \`tb.ulysses()\` |
 | **observability** | Health checks, session monitoring, cost tracking | \`tb.observability()\` |
 
 **Two MCP tools** give you access to everything:
@@ -366,7 +366,7 @@ For architectural decisions, bridge to an ADR via the HDD workflow.`,
     name: "debug",
     title: "Thoughtbox Debug",
     description:
-      "State-step-gated debugging using the Ulysses protocol. Prevents debugging spirals by tracking position in the plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after plan submitted (primary executing), S=2 after primary produces unexpected outcome (backup executing) or both fail (reflect required).",
+      "State-step-gated debugging using the Ulysses protocol. Prevents debugging spirals by tracking position in the plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after plan submitted (primary executing), S=2 after primary produces unexpected outcome (backup executing) or both failed (reflect required).",
     args: [
       {
         name: "problem",

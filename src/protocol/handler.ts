@@ -868,8 +868,8 @@ export class ProtocolHandler {
     const workspaceId = input.workspaceId ?? this.workspaceId;
     const ulyssesSession = await this.getActiveSession('ulysses', workspaceId);
     if (ulyssesSession) {
-      const state = ulyssesSession.state_json as { S?: number };
-      if ((state.S ?? 0) === ULYSSES_STATE_NEEDS_REFLECT) {
+      const state = ulyssesSession.state_json as { S?: number; active_step?: unknown };
+      if ((state.S ?? 0) === ULYSSES_STATE_NEEDS_REFLECT && state.active_step == null) {
         return {
           enforce: true,
           blocked: true,
