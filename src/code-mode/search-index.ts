@@ -18,6 +18,7 @@ import {
 import {
   OBSERVABILITY_OPERATIONS,
 } from "../observability/operations.js";
+import { BRANCH_OPERATIONS } from "../branch/operations.js";
 
 export interface SearchCatalog {
   operations: Record<string, Record<string, {
@@ -83,6 +84,7 @@ export function buildSearchCatalog(): SearchCatalog {
       theseus: indexOperations(THESEUS_OPERATIONS),
       ulysses: indexOperations(ULYSSES_OPERATIONS),
       observability: indexOperations(OBSERVABILITY_OPERATIONS),
+      branch: indexOperations(BRANCH_OPERATIONS),
     },
 
     prompts: [

@@ -13,6 +13,7 @@ describe("thoughtbox_search", () => {
     const output = JSON.parse(result.content[0].text);
     expect(output.error).toBeUndefined();
     expect(output.result).toEqual([
+      "branch",
       "knowledge",
       "notebook",
       "observability",
