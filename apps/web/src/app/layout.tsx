@@ -26,7 +26,8 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'Thoughtbox',
     title: 'Thoughtbox — Frontier Reasoning for Claude Code',
-    description: 'Frontier Reasoning for Claude Code',
+    description:
+      'Hours of structured reasoning and decision tracing for Claude Code.',
     images: [
       {
         url: '/thoughtbox.jpg',
