@@ -412,12 +412,14 @@ describe("Ulysses protocol e2e through tool layer", () => {
   it("full S=2 → reflect → resume cycle", async () => {
     await call({ operation: "init", problem: "test" });
 
+    // plan sets S=1 (executing primary)
     await call({ operation: "plan", primary: "a1", recovery: "r1" });
-    const s1 = await call({ operation: "outcome", assessment: "unexpected-unfavorable", severity: 1 });
-    expect(s1.S).toBe(1);
+    // Primary failed → S=2 (now executing backup)
+    const s1 = await call({ operation: "outcome", assessment: "unexpected-unfavorable" });
+    expect(s1.S).toBe(2);
 
-    await call({ operation: "plan", primary: "a2", recovery: "r2" });
-    const s2 = await call({ operation: "outcome", assessment: "unexpected-unfavorable", severity: 1 });
+    // Backup also failed → S=2 (reflect required)
+    const s2 = await call({ operation: "outcome", assessment: "unexpected-unfavorable" });
     expect(s2.S).toBe(2);
 
     await expect(
@@ -449,10 +451,11 @@ describe("Ulysses protocol e2e through tool layer", () => {
   it("expected outcome resets S to 0", async () => {
     await call({ operation: "init", problem: "test" });
     await call({ operation: "plan", primary: "a", recovery: "r" });
-    const surprise = await call({ operation: "outcome", assessment: "unexpected-unfavorable", severity: 1 });
-    expect(surprise.S).toBe(1);
+    // Primary failed → S=2
+    const surprise = await call({ operation: "outcome", assessment: "unexpected-unfavorable" });
+    expect(surprise.S).toBe(2);
 
-    await call({ operation: "plan", primary: "a2", recovery: "r2" });
+    // Backup succeeded → S=0, checkpoint
     const expected = await call({ operation: "outcome", assessment: "expected" });
     expect(expected.S).toBe(0);
   });

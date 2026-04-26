@@ -203,6 +203,9 @@ Thought 16: totalThoughts: 40  // Adjusted upward
 
 ## Best Practices
 
+### 0. One Thought Per Tool Call
+Submit one \`tb.thought()\`, \`tb.ulysses()\`, or \`tb.theseus()\` per \`thoughtbox_execute\` call. Each response contains guidance (patterns, session state, protocol state) that should inform your next operation. Batching multiple state-mutating calls bypasses this feedback loop and produces lower-quality reasoning. Read-only operations (\`tb.session.*\`, \`tb.knowledge.*\`, \`tb.observability()\`, \`tb.branch.*\`) may be freely chained.
+
 ### 1. Start with Problem Statement
 Your thought 1 should clearly define what you're trying to solve.
 

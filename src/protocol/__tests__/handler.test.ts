@@ -235,26 +235,14 @@ describe('Ulysses schema parsing (H4)', () => {
     expect(result.assessment).toBe('expected');
   });
 
-  it('parses outcome with unexpected assessment and severity', () => {
+  it('parses outcome with unexpected assessment', () => {
     const result = ulyssesToolInputSchema.parse({
       operation: 'outcome',
       assessment: 'unexpected-unfavorable',
-      severity: 2,
       details: 'Server crashed',
     });
     expect(result.assessment).toBe('unexpected-unfavorable');
-    expect(result.severity).toBe(2);
     expect(result.details).toBe('Server crashed');
-  });
-
-  it('rejects severity outside 1-2 range', () => {
-    expect(() =>
-      ulyssesToolInputSchema.parse({
-        operation: 'outcome',
-        assessment: 'unexpected-favorable',
-        severity: 3,
-      }),
-    ).toThrow();
   });
 
   it('rejects invalid assessment value', () => {

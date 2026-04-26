@@ -15,7 +15,9 @@ This is an OODA loop (Observe-Orient-Decide-Act), not a sequential pipeline. You
 
 ## How to Think
 
-Use \`thoughtbox_execute\` to record reasoning. Write JavaScript against the \`tb\` SDK:
+Use \`thoughtbox_execute\` to record reasoning. Write JavaScript against the \`tb\` SDK.
+
+**One state-mutating operation per call.** Submit only one \`tb.thought()\`, \`tb.ulysses()\`, or \`tb.theseus()\` per \`thoughtbox_execute\` invocation. Each response contains guidance (patterns, session state, protocol state) that should inform your next operation. Batching multiple calls bypasses this feedback loop and produces lower-quality reasoning. Read-only operations (\`tb.session.*\`, \`tb.knowledge.*\`, \`tb.observability()\`, \`tb.branch.*\`) may be freely chained.
 
 - **tb.thought()** — observations, intermediate conclusions, status checks
 - **decision_frame** thoughtType — when choosing between alternatives (frame the options, criteria, and tradeoffs before deciding)

@@ -97,7 +97,7 @@ interface TB {
     summary?: string;
   }): Promise<unknown>;
 
-  /** Ulysses Protocol: surprise-gated debugging. Source: src/protocol/ulysses-tool.ts */
+  /** Ulysses Protocol: state-step-gated debugging. S tracks position in plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after plan submitted (primary executing), S=2 after primary fails (backup executing) or both fail (reflect required). Source: src/protocol/ulysses-tool.ts */
   ulysses(input: {
     operation: "init" | "plan" | "outcome" | "reflect" | "status" | "complete";
     problem?: string;
@@ -106,7 +106,6 @@ interface TB {
     recovery?: string;
     irreversible?: boolean;
     assessment?: "expected" | "unexpected-favorable" | "unexpected-unfavorable";
-    severity?: number;
     details?: string;
     hypothesis?: string;
     falsification?: string;
