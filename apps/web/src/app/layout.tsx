@@ -25,14 +25,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'Thoughtbox',
-    title: 'Thoughtbox — Persistent memory for AI agents',
-    description:
-      'Capture thoughts, build knowledge graphs, and trace every reasoning step.',
+    title: 'Thoughtbox — Frontier Reasoning for Claude Code',
+    description: 'Frontier Reasoning for Claude Code',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Thoughtbox',
-    description: 'Persistent memory for AI agents.',
+    description: 'Frontier Reasoning for Claude Code',
   },
 }
 
