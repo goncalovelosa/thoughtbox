@@ -9,7 +9,9 @@ type Props = {
 }
 
 export function BillingActions({ workspaceId, isActive, hasStripeCustomer }: Props) {
-  if (!isActive) {
+  // Past-due / canceled subscribers (isActive=false but hasStripeCustomer=true)
+  // need the billing portal to fix payment, not a new checkout.
+  if (!isActive && !hasStripeCustomer) {
     return (
       <div className="flex flex-wrap gap-3">
         <form action={async () => { await createCheckoutSession(workspaceId, 'founding') }}>
@@ -32,7 +34,7 @@ export function BillingActions({ workspaceId, isActive, hasStripeCustomer }: Pro
             type="submit"
             className="rounded-full border border-foreground/20 px-5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-foreground/5"
           >
-            Manage subscription
+            {isActive ? 'Manage subscription' : 'Update payment method'}
           </button>
         </form>
       )}
