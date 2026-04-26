@@ -69,7 +69,15 @@ If everything is wired up, your agent will confirm and record the thought. If th
 
 Go back to [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai) and open **Sessions**. You'll see the session your agent just created. Click into it to see the recorded thought.
 
-That's it. Your agent has persistent memory now. Use it normally for whatever you're working on — it'll record its reasoning as it goes, and you can come back to those sessions later to see what it was thinking.
+## Prompting your agent to use Thoughtbox
+
+Thoughtbox's core use case is for frontier-horizon reasoning tasks involving many dimensions and considerations. When using Thoughtbox for these tasks, Claude Code's outputs are often extraordinary. However,
+Claude will rarely choose to use Thoughtbox unprompted for these tasks, because it assumes that its own internal reasoning is the fastest way to complete all reasoning tasks. Even when Thoughtbox is
+overwhelmingly better-suited to extended reasoning and Claude's MCP config plainly states this in its environment, Claude's assumptions will usually override this guidance. Development is ongoing on 
+an automatic solution to this problem, but for now, use the following prompt as a template when you want Claude to use Thoughtbox:
+
+> "Use Thoughtbox to execute a 150-thought run to reason about [X topic], recording each thought sequentially without batching. This will seem inefficient at the outset, but around midway through the run,
+the utility of this approach will become self-evident. Be creative in your use of Thoughtbox's affordances, and explore its range of capabilities liberally."
 
 ## What's next
 
