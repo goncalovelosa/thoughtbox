@@ -1,92 +1,55 @@
 # Sessions & Thoughts
 
-Thoughtbox captures agent reasoning as a structured trace. The two core primitives are **sessions** and **thoughts**.
+When your agent uses Thoughtbox, it produces a structured reasoning trace. This page explains what's in that trace so you can read it back and understand what your agent was thinking.
+
+You don't write thoughts. Your agent does. This is reference for the human reading the dashboard, not for whoever is making the API calls.
 
 ## Sessions
 
-A session is thought 1 through thought N — the full reasoning trace from one agent interaction. Every session has:
+A **session** is one continuous reasoning trace — usually corresponding to one task your agent worked on. Sessions have:
 
-- A **title** (auto-generated from the first thought, or set explicitly)
-- **Tags** for organization and filtering
-- A **status**: `active`, `completed`, or `abandoned`
-- Auto-maintained **thought count** and **branch count**
+- A **title** the agent picks (or you can review and rename)
+- **Tags** for organization (e.g. `research`, `debug`, `refactor`)
+- A **status**: `active` while the agent is still reasoning, `completed` when it finishes cleanly, `abandoned` if the agent or you stopped it without resolution
+- A **thought count** — how many distinct steps of reasoning it captured
 
-Sessions are created automatically when your agent records its first thought. You don't need to explicitly start one.
+You can list sessions, search them by content, and open any one to see the full trace. Sessions persist across context resets and resume where they left off.
 
 ## Thoughts
 
-A thought is a single, numbered unit of reasoning. Each thought is:
+A **thought** is one step of reasoning. Thoughts are numbered, timestamped, and linked to the one before them. They're append-only — once a thought is recorded, it isn't edited. If the agent's view changes, it records a *revision* instead, which preserves the original.
 
-- **Numbered** sequentially within its session
-- **Timestamped** at creation
-- **Linked** to its predecessor
-- **Append-only** — once recorded, a thought is never edited
+This append-only property is the point. You're reading a faithful record of how the agent's thinking evolved, not a polished summary written after the fact.
 
-### Thought types
+### What kinds of thoughts you'll see
 
-Every thought has a type that describes what kind of reasoning it captures. There are seven types:
+Every thought has a type that says what kind of reasoning it captured. The most common are:
 
-| Type | When to use | Extra data |
-|------|-------------|------------|
-| `reasoning` | General analysis, exploration, working through a problem | — |
-| `decision_frame` | Choosing between options — captures the alternatives considered | `options[]` |
-| `action_report` | Recording what was done and what happened | `actionResult` |
-| `belief_snapshot` | Stating current beliefs for later comparison | `beliefs` |
-| `assumption_update` | Flagging that an assumption has changed | `assumptionChange` |
-| `context_snapshot` | Capturing environmental state (files open, errors seen, etc.) | `contextData` |
-| `progress` | Tracking completion toward a goal | `progressData` |
+- **Reasoning** — general analysis, exploration, working through a problem
+- **Decision frame** — choosing between options; lists the alternatives the agent considered
+- **Action report** — the agent did something (ran a tool, made an API call) and is recording what happened
+- **Belief snapshot** — a stated belief at a moment in time, useful for comparing later
+- **Assumption update** — flagging that an earlier assumption changed
+- **Context snapshot** — capturing the working environment (open files, errors seen, available tools)
+- **Progress** — tracking completion toward a goal
 
-Most agent interactions use `reasoning` and `action_report` heavily. The other types add structure when the reasoning warrants it.
+Most reasoning sessions lean heavily on `reasoning` and `action_report`. The other types appear when the moment warrants more structure.
 
-### Confidence
+Each thought can also carry a **confidence** level — `high`, `medium`, or `low`. This is optional, but it's how you can tell where the agent was sure and where it was guessing.
 
-Each thought can carry a confidence level: `high`, `medium`, or `low`. This is optional but useful for identifying where an agent was uncertain, especially in retrospect.
+## Branches
 
-## Branching
+Sometimes your agent needs to explore two approaches in parallel before picking one. Branches let it do that without losing either track. A branch starts from a specific thought number and continues with its own numbering. When the agent is ready, the main track resumes with a thought that synthesizes what the branches found.
 
-Sometimes an agent needs to explore multiple approaches before committing. Branching lets you create parallel reasoning tracks from a common point.
-
-Two fields control branching:
-
-- **`branchFromThought`** — the thought number where the branch diverges
-- **`branchId`** — a name for the branch (e.g., `"approach-a"`, `"approach-b"`)
-
-```
-Session: "Evaluate caching strategies"
-
-Thought 1: Define the problem          (main)
-Thought 2: Identify constraints         (main)
-  |
-  +-- Thought 3: Redis approach         (branch: "redis")
-  |   Thought 4: Redis tradeoffs        (branch: "redis")
-  |
-  +-- Thought 3: In-memory approach     (branch: "in-memory")
-  |   Thought 4: In-memory tradeoffs    (branch: "in-memory")
-  |
-Thought 5: Compare and decide          (main)
-```
-
-Thought numbers are scoped per session + branch, so both branches above have their own thought 3 and 4. The main track continues at thought 5 with a synthesis.
+In the dashboard, branched sessions render as a tree. You can click into either branch to see what was tried.
 
 ## Revisions
 
-When new information changes an earlier conclusion, the agent records a **revision** rather than pretending the original thought never happened.
+When new evidence overturns an earlier conclusion, the agent records a revision rather than rewriting history. The revision is a new thought that points at the one it supersedes — both stay in the record. You can see what the agent originally concluded, when it changed its mind, and why.
 
-Two fields control revisions:
+This is intellectual honesty over appearing consistent. A trace with revisions in it is a trace where the agent was actually learning.
 
-- **`isRevision: true`** — marks this thought as a revision
-- **`revisesThought`** — the thought number being superseded
+## What's next
 
-The original thought is preserved. The revision is a new thought that logically replaces it. This creates an honest record: you can see what the agent originally concluded, when it changed its mind, and why.
-
-```
-Thought 3: "The bug is in the parser"        (original conclusion)
-Thought 7: "Actually, the bug is in the       (isRevision: true,
-            tokenizer — the parser was           revisesThought: 3)
-            handling bad input correctly"
-```
-
-## What's next?
-
-- [Code Mode](/docs/code-mode) — the two-tool interface for recording thoughts and querying sessions
-- [Authentication](/docs/authentication) — API key management
+- [Authentication](/docs/authentication) — managing keys
+- [Code Mode](/docs/code-mode) — the underlying SDK, for developers

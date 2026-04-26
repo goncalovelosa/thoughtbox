@@ -1,52 +1,64 @@
 # Code Mode
 
-Thoughtbox exposes exactly two MCP tools: `thoughtbox_search` and `thoughtbox_execute`. Your agent writes JavaScript to discover and call operations through them.
+> **For developers building agents or tools that talk to Thoughtbox directly.** If you just want your existing agent to use Thoughtbox, you don't need this page — see the [Quickstart](/docs/quickstart). Reference for the code your agent runs, not for you.
 
-## Why two tools instead of dozens?
+## What Code Mode is
 
-Every MCP tool definition consumes context window tokens — even when unused. Most MCP servers expose 10-50 individual tools, burning thousands of tokens on tool descriptions alone.
+Thoughtbox implements the **Code Mode** pattern, originated by [Cloudflare](https://blog.cloudflare.com/code-mode-mcp/) and explored in parallel by [Anthropic](https://www.anthropic.com/engineering/code-execution-with-mcp). It's a server-side MCP architecture that solves two well-known scaling problems with conventional MCP:
 
-Thoughtbox compresses its entire API surface into two tools. The agent writes short JavaScript snippets to discover operations (`search`) and execute them (`execute`). This keeps the context window clean while giving access to everything.
+1. **Context bloat.** Every individual MCP tool definition loads into the LLM's context window whether the agent uses it or not. Cloudflare measured 1.17 million tokens to expose their full API as individual tools — exceeding most context windows entirely.
+2. **Round-trip overhead.** Each conventional tool call is a full inference round-trip. A 20-step workflow burns 20 round-trips, with intermediate data passing back through the model just to feed the next call.
 
-## `thoughtbox_search` — discover what's available
+Code Mode collapses the entire API into **two** meta-tools:
 
-Write a JavaScript arrow function that receives a `catalog` object and returns filtered results.
+- **`search`** — the LLM writes a code snippet to discover available operations. The catalog never enters the LLM's context wholesale.
+- **`execute`** — the LLM writes a script that chains operations, handles conditionals and pagination, and returns only the final result. The script runs in an isolated server-side sandbox.
+
+Reported impact in production:
+
+- **Cloudflare** — 2,500+ API endpoints, 1.17M tokens → ~1,000 tokens. ~99.9% reduction.
+- **Anthropic** — Drive-to-Salesforce workflow, 150,000 tokens → 2,000 tokens. ~98.7% reduction.
+
+The pattern works because LLMs are trained on millions of lines of real-world code and only synthetic tool-call schemas. Code is the LLM's native orchestration language.
+
+## How Thoughtbox uses Code Mode
+
+Thoughtbox exposes exactly two MCP tools, matching the pattern: `thoughtbox_search` and `thoughtbox_execute`. The agent writes JavaScript inside `execute` against the `tb` SDK. The SDK calls run server-side; only return values come back to the model.
+
+Sandbox: Node `vm` module with a 30-second timeout (10 seconds for `thoughtbox_search`). The sandbox exposes only the `tb` SDK and `setTimeout`/`clearTimeout` — no filesystem, no `require`, no network access except what the SDK calls do server-side. Authentication is resolved server-side from the API key, so credentials never appear in the LLM-visible parameters.
+
+Note: `node:vm` is a workload separation primitive, not a hard security boundary. It's adequate for trusting the LLM not to actively attack the host, but it's not the same isolation level as Cloudflare's V8 isolates or a separate process.
+
+## `thoughtbox_search` — discover operations
+
+Read-only. 10-second timeout. The agent writes an arrow function that receives the catalog and returns whatever it wants.
 
 ```javascript
-// Find all session operations
-async (catalog) => {
-  return catalog.operations.session;
-}
-```
+async (catalog) => catalog.operations.session
 
-```javascript
-// Search for anything related to "export"
 async (catalog) => {
-  const results = {};
-  for (const [module, ops] of Object.entries(catalog.operations)) {
+  const out = {};
+  for (const [mod, ops] of Object.entries(catalog.operations)) {
     for (const [name, op] of Object.entries(ops)) {
       if (name.includes("export") || op.description.includes("export")) {
-        results[`${module}.${name}`] = op;
+        out[`${mod}.${name}`] = op;
       }
     }
   }
-  return results;
+  return out;
 }
 ```
 
-The catalog is organized by module: `session`, `thought`, `knowledge`, `notebook`, `theseus`, `ulysses`, and `observability`. It also includes `prompts`, `resources`, and `resourceTemplates`.
+The catalog is organized by module: `session`, `thought`, `knowledge`, `notebook`, `theseus`, `ulysses`, `observability`. It also exposes `prompts`, `resources`, and `resourceTemplates`.
 
-Search is read-only with a 10-second timeout.
+## `thoughtbox_execute` — run operations
 
-## `thoughtbox_execute` — do things
-
-Write a JavaScript arrow function using the `tb` SDK. All methods return unwrapped results directly — no MCP envelope parsing needed.
+30-second timeout. The agent writes an arrow function using the `tb` SDK. Results come back unwrapped — no MCP envelope parsing.
 
 ```javascript
-// Record a reasoning thought
-async (tb) => {
+async () => {
   return await tb.thought({
-    thought: "The retry logic fails because the backoff multiplier resets on partial success.",
+    thought: "Retry logic fails because the backoff multiplier resets on partial success.",
     thoughtType: "reasoning",
     nextThoughtNeeded: true,
     confidence: "medium"
@@ -54,106 +66,94 @@ async (tb) => {
 }
 ```
 
-Execute has a 30-second timeout.
-
 ## The `tb` SDK
 
 ### `tb.thought(input)`
 
-Record a single thought. See [Sessions & Thoughts](/docs/sessions-and-thoughts) for the full type system.
+Record a single thought. See [Sessions & Thoughts](/docs/sessions-and-thoughts) for what each thought type means.
 
-Required fields:
-- `thought` — the content
-- `thoughtType` — one of the [seven types](/docs/sessions-and-thoughts#thought-types)
-- `nextThoughtNeeded` — whether more thinking follows
-
-Optional fields include `confidence`, `branchId`, `branchFromThought`, `isRevision`, `revisesThought`, `sessionTitle`, `sessionTags`, and type-specific payloads (`options`, `actionResult`, `beliefs`, `assumptionChange`, `contextData`, `progressData`).
+Required: `thought`, `thoughtType` (one of seven values), `nextThoughtNeeded`.
+Optional: `confidence`, `branchId`, `branchFromThought`, `isRevision`, `revisesThought` (a thought number, not a UUID), `sessionTitle`, `sessionTags`, plus type-specific payloads (`options`, `actionResult`, `beliefs`, `assumptionChange`, `contextData`, `progressData`).
 
 ### `tb.session.*`
 
-| Method | What it does |
+| Method | Description |
 |--------|-------------|
-| `tb.session.list({ limit?, offset?, tags? })` | List sessions, optionally filtered by tags |
-| `tb.session.get(sessionId)` | Get a session with all its thoughts |
+| `tb.session.list({ limit?, offset?, tags? })` | List sessions, optionally filtered by tag |
+| `tb.session.get(sessionId)` | Get a session and all its thoughts |
 | `tb.session.search(query, limit?)` | Full-text search across sessions |
-| `tb.session.resume(sessionId)` | Resume a previous session |
+| `tb.session.resume(sessionId)` | Continue an existing session — subsequent `tb.thought` calls append to it |
 | `tb.session.export(sessionId, format?)` | Export as `"markdown"`, `"cipher"`, or `"json"` |
-| `tb.session.analyze(sessionId)` | Get analysis of reasoning patterns used |
-| `tb.session.extractLearnings(sessionId)` | Extract key insights from a session |
+| `tb.session.analyze(sessionId)` | Return structural metrics (linearity, revision rate, depth, density, convergence) |
+| `tb.session.extractLearnings(sessionId, args?)` | Pull patterns from key moments. `args` is `{ keyMoments: [...], targetTypes: [...] }` |
 
 ### `tb.knowledge.*`
 
-| Method | What it does |
+| Method | Description |
 |--------|-------------|
-| `tb.knowledge.createEntity({ name, type, label })` | Create a knowledge entity |
-| `tb.knowledge.getEntity(entityId)` | Get an entity by ID |
-| `tb.knowledge.listEntities({ types?, name_pattern? })` | List entities with optional filters |
-| `tb.knowledge.addObservation(entityId, content)` | Add an observation to an entity |
-| `tb.knowledge.createRelation({ from_id, to_id, relation_type })` | Link two entities |
-| `tb.knowledge.queryGraph(startEntityId, { max_depth? })` | Traverse the knowledge graph |
-| `tb.knowledge.stats()` | Get knowledge graph statistics |
+| `tb.knowledge.createEntity({ name, type, label, properties?, visibility? })` | Create an entity |
+| `tb.knowledge.getEntity(entityId)` | Get an entity by UUID |
+| `tb.knowledge.listEntities({ types?, name_pattern?, limit?, offset? })` | List entities with optional filters |
+| `tb.knowledge.addObservation({ entity_id, content })` | Add a timestamped observation to an entity |
+| `tb.knowledge.createRelation({ from_id, to_id, relation_type })` | Create a directed edge |
+| `tb.knowledge.queryGraph({ start_entity_id, max_depth?, relation_types? })` | Traverse the graph |
+| `tb.knowledge.stats()` | Aggregate counts |
 
-Entity types: `Insight`, `Concept`, `Workflow`, `Decision`, `Agent`.
+**Entity types** (5): `Insight`, `Concept`, `Workflow`, `Decision`, `Agent`.
+**Relation types** (9): `RELATES_TO`, `BUILDS_ON`, `CONTRADICTS`, `EXTRACTED_FROM`, `APPLIED_IN`, `LEARNED_BY`, `DEPENDS_ON`, `SUPERSEDES`, `MERGED_FROM`.
 
-Relation types: `RELATES_TO`, `BUILDS_ON`, `CONTRADICTS`, `EXTRACTED_FROM`, `APPLIED_IN`, `LEARNED_BY`, `DEPENDS_ON`, `SUPERSEDES`, `MERGED_FROM`.
+`addObservation` and `queryGraph` take a single object argument. Positional forms return `"Missing required parameter"`.
 
 ## Examples
 
 ### Record a decision
 
 ```javascript
-async (tb) => {
-  return await tb.thought({
-    thought: "Choosing between Redis and in-memory caching for session state.",
-    thoughtType: "decision_frame",
-    nextThoughtNeeded: true,
-    options: [
-      { text: "Redis — survives restarts, shared across instances", pros: ["durable", "scalable"], cons: ["added infrastructure"] },
-      { text: "In-memory — zero dependencies", pros: ["simple"], cons: ["lost on restart", "per-instance"] }
-    ]
-  });
-}
+async () => tb.thought({
+  thought: "Choosing between Redis and in-memory caching for session state.",
+  thoughtType: "decision_frame",
+  nextThoughtNeeded: true,
+  options: [
+    { label: "Redis — durable, shared across instances", selected: false },
+    { label: "In-memory — zero dependencies", selected: false }
+  ]
+})
 ```
 
 ### List recent sessions
 
 ```javascript
-async (tb) => {
-  return await tb.session.list({ limit: 5 });
-}
+async () => tb.session.list({ limit: 5 })
 ```
 
 ### Export a session as markdown
 
 ```javascript
-async (tb) => {
-  return await tb.session.export("session-id-here", "markdown");
-}
+async () => tb.session.export("session-uuid", "markdown")
 ```
 
 ### Build a knowledge graph entry
 
 ```javascript
-async (tb) => {
+async () => {
   const entity = await tb.knowledge.createEntity({
-    name: "Rate Limiting Strategy",
+    name: "rate-limiting-strategy",
     type: "Decision",
     label: "Chose token bucket over sliding window"
   });
 
-  await tb.knowledge.addObservation(
-    entity.id,
-    "Token bucket chosen for its burst tolerance and simpler implementation."
-  );
+  await tb.knowledge.addObservation({
+    entity_id: entity.id,
+    content: "Token bucket chosen for burst tolerance and simpler implementation."
+  });
 
   return entity;
 }
 ```
 
-### Search across sessions
+## Further reading
 
-```javascript
-async (tb) => {
-  return await tb.session.search("authentication bug", 10);
-}
-```
+- [Code Mode: give agents an entire API in 1,000 tokens](https://blog.cloudflare.com/code-mode-mcp/) — Cloudflare's original announcement
+- [Code Mode: the better way to use MCP](https://blog.cloudflare.com/code-mode/) — Cloudflare's expanded write-up
+- [Code execution with MCP: building more efficient AI agents](https://www.anthropic.com/engineering/code-execution-with-mcp) — Anthropic's parallel work
+- [Cloudflare Codemode docs](https://developers.cloudflare.com/agents/api-reference/codemode/) — implementation reference

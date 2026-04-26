@@ -15,11 +15,13 @@ export default async function UsagePage({ params }: Props) {
 
   const { data: workspace } = await supabase
     .from('workspaces')
-    .select('id')
+    .select('id, subscription_status')
     .eq('slug', workspaceSlug)
     .single()
 
   if (!workspace) notFound()
+
+  const isActive = workspace.subscription_status === 'active'
 
   const since30d = subDays(new Date(), 30).toISOString()
 
@@ -92,20 +94,26 @@ export default async function UsagePage({ params }: Props) {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Usage</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Activity counters and entitlements for your workspace.
+          Activity counters for your workspace.
         </p>
       </div>
 
-      {/* Current plan badge */}
+      {/* Subscription badge */}
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-6 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Current plan
+            Subscription
           </p>
           <div className="flex items-center gap-2 mt-0.5">
             <p className="text-lg font-bold text-foreground">Founding Beta</p>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-foreground text-background uppercase tracking-tight">
-              Active
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${
+                isActive
+                  ? 'bg-foreground text-background'
+                  : 'bg-red-100 text-red-700'
+              }`}
+            >
+              {isActive ? 'Active' : 'Inactive'}
             </span>
           </div>
         </div>
@@ -137,35 +145,6 @@ export default async function UsagePage({ params }: Props) {
         </ul>
       </div>
 
-      {/* Plan entitlements */}
-      <div className="overflow-hidden rounded-2xl border border-foreground/10 bg-foreground/[0.03]">
-        <div className="border-b border-foreground/10 px-6 py-4">
-          <h2 className="text-sm font-semibold text-foreground">Plan Entitlements</h2>
-        </div>
-        <ul className="divide-y divide-foreground/10">
-          {[
-            'Thoughts captured',
-            'API requests',
-            'Run history',
-            'Workspaces',
-            'Active API keys',
-          ].map(label => (
-            <li key={label} className="px-6 py-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">{label}</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                  Unlimited
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <p className="mt-4 text-xs text-muted-foreground italic">
-        * &ldquo;Unlimited&rdquo; is subject to our fair-use policy. High-volume usage may be
-        throttled to ensure service stability for all users.
-      </p>
     </div>
   )
 }

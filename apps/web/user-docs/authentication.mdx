@@ -1,70 +1,40 @@
 # Authentication
 
-Every request to Thoughtbox is authenticated with an API key. Keys are scoped to a workspace — all sessions, thoughts, and knowledge created with a key belong to that workspace.
+Every connection to Thoughtbox uses an API key. Keys are scoped to a workspace — anything your agent records with a key (sessions, thoughts, knowledge) belongs to that workspace and only that workspace.
 
-## API key format
+## What a key looks like
 
-Keys follow this format:
+Thoughtbox keys start with `tbx_`. The full key is shown once, when you create it. After that, only a short prefix is visible in the dashboard so you can identify which key is which.
 
-```
-tbx_<prefix>_<secret>
-```
-
-The `tbx_` prefix identifies it as a Thoughtbox key. The middle segment is a fast-lookup index. The rest is the secret, which is bcrypt-hashed on our end — the raw key is never stored.
+If you lose a key, revoke it and create a new one. We can't recover the original — only the agent that copied it at creation time has it.
 
 ## Creating a key
 
-1. Log in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai)
-2. Go to **Settings > API Keys**
-3. Click **Create Key**
-4. Copy the key immediately
+1. Sign in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearch.ai).
+2. Open **Settings → API Keys**.
+3. Click **Create Key**, give it a name (e.g. "claude-code-laptop"), and copy the key when it appears.
 
-<Callout type="warning">
-  The full key is only shown once at creation. If you lose it, revoke it and create a new one.
-</Callout>
+Naming keys is optional but recommended — when you have several active keys, the names tell you which agent or machine each one is for.
 
-## Using your key
+## Installing a key
 
-The simplest way is in your MCP config URL:
-
-```json
-{
-  "mcpServers": {
-    "thoughtbox": {
-      "type": "http",
-      "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY"
-    }
-  }
-}
-```
-
-You can also pass it as an HTTP header:
-
-```
-Authorization: Bearer tbx_YOUR_KEY
-```
-
-If both are present, the header takes precedence.
+Install the key in your MCP client config — see the [Quickstart](/docs/quickstart) for the exact steps. The key embeds in the MCP endpoint URL (`https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY`). Your client handles the rest.
 
 ## Rotating a key
 
-1. Create a new key (you can have multiple active keys)
-2. Update your MCP config with the new key
-3. Verify the new key works
-4. Revoke the old key
+You can have several active keys at once, so rotation has no downtime:
 
-There's no downtime — both keys work simultaneously until you revoke the old one.
+1. Create a new key in **Settings → API Keys**.
+2. Update your client config to point at the new key.
+3. Confirm the new key works by talking to your agent.
+4. Revoke the old key.
 
 ## Revoking a key
 
-In **Settings > API Keys**, click **Revoke** next to the key. It stops working immediately. Revocation flips a status flag — the key record is preserved for audit purposes, but it will never authenticate again.
+In **Settings → API Keys**, click **Revoke** next to the key. It stops working immediately. The key record stays for audit purposes — it just can't authenticate any new requests.
 
-## Workspace scoping
+## Workspaces
 
-Each API key resolves to a workspace. This means:
+Each key belongs to one workspace. Different keys for the **same** workspace see the same sessions, thoughts, and knowledge. Keys for **different** workspaces are fully isolated.
 
-- All data created with a key belongs to that workspace
-- Different keys for the **same** workspace see the same sessions and thoughts
-- Keys for **different** workspaces are fully isolated
-
-This lets you give different agents or team members their own keys while sharing the same reasoning history.
+This is how you give different agents or teammates their own keys while sharing reasoning history. It's also how you keep client work separate from internal work — give each client a workspace, give each workspace its own keys.

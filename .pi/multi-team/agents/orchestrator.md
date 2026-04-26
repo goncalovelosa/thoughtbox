@@ -6,14 +6,14 @@ expertise:
     updatable: true
     max-lines: 10000
 skills:
-  - .pi/multi-team/skills/ooda.md
-  - .pi/multi-team/skills/active-listener.md
-  - .pi/multi-team/skills/zero-micromanagement.md
-  - .pi/multi-team/skills/conversational-response.md
-  - .pi/multi-team/skills/delegate.md
-  - .pi/multi-team/skills/mental-model.md
-  - .pi/multi-team/skills/escalation.md
-  - .pi/multi-team/skills/operational-epistemics.md
+  - .pi/multi-team/skills/ooda
+  - .pi/multi-team/skills/active-listener
+  - .pi/multi-team/skills/zero-micromanagement
+  - .pi/multi-team/skills/conversational-response
+  - .pi/multi-team/skills/delegate
+  - .pi/multi-team/skills/mental-model
+  - .pi/multi-team/skills/escalation
+  - .pi/multi-team/skills/operational-epistemics
 domain:
   - path: "**"
     access: read

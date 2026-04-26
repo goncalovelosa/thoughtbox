@@ -61,7 +61,7 @@ export default async function ClaimPage({ searchParams }: Props) {
   const email = session.customer_details?.email ?? null
   const customerId = typeof session.customer === 'string' ? session.customer : null
   const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null
-  const planId = session.metadata?.plan_id ?? 'founding'
+  const planId = 'founding'
 
   if (!paid || !email || !customerId || !subscriptionId) {
     return <ClaimError />

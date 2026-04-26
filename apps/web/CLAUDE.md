@@ -72,9 +72,9 @@ Copy `.env.example` to `.env.local`. Required:
 - `SUPABASE_SERVICE_ROLE_KEY` — server-side only
 - `REDIS_URL` — (optional) ISR cache handler for multi-instance deployments
 
-### What's Not Yet Implemented
+### Product Shape
 
-Auth forms are rendered but function as stubs pending Supabase project setup. API keys, real run data, Stripe billing, and live usage counters are placeholder pages. See `.specs/deployment/v1-initiative.md` for the deployment roadmap.
+Single-tier product. The only plan is **Founding Beta** (`$17.29/mo`), defined in `src/lib/stripe/server.ts` as the sole entry in `PLAN_CONFIG`. There is no Free, Pro, or Team tier — anything in the codebase suggesting otherwise is phantom scaffolding and should be removed, not preserved. The `workspaces.plan_id` column still has a CHECK constraint that allows legacy values (`free`, `pro`, `enterprise`, `team`) for now; the UI ignores `plan_id` for display purposes and renders solely off `subscription_status`.
 
 ## Specs and Decision Records
 
