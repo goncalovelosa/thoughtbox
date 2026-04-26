@@ -11,7 +11,6 @@ import {
 } from '@/lib/session/view-models'
 import { computeSessionSummary } from '@/lib/session/compute-session-summary'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 
 export const metadata: Metadata = { title: 'Session' }
 
@@ -19,7 +18,6 @@ type Props = { params: Promise<{ workspaceSlug: string, sessionId: string }> }
 
 export default async function SessionDetailPage({ params }: Props) {
   const { workspaceSlug, sessionId } = await params
-  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
   
