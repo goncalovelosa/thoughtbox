@@ -33,9 +33,9 @@ This writes `.claude/settings.local.json` for you with the MCP server configured
 
 Restart Claude Code so it picks up the new MCP server.
 
-### Manual setup (without the plugin)
+### Manual setup (if the command doesn't work)
 
-If you'd rather not install the plugin, open `.claude/settings.local.json` (create the file if it doesn't exist) and add Thoughtbox to the `mcpServers` block:
+Open `.claude/settings.local.json` (create the file if it doesn't exist) and paste this in, replacing `tbx_YOUR_KEY_HERE` with your key:
 
 ```json
 {
@@ -44,11 +44,18 @@ If you'd rather not install the plugin, open `.claude/settings.local.json` (crea
       "type": "http",
       "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY_HERE"
     }
+  },
+  "env": {
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://mcp.kastalienresearch.ai",
+    "OTEL_EXPORTER_OTLP_HEADERS": "Authorization=Bearer tbx_YOUR_KEY_HERE",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp"
   }
 }
 ```
 
-Replace `tbx_YOUR_KEY_HERE` with the key you just copied. Restart Claude Code.
+The `mcpServers` block connects your agent to Thoughtbox. The `env` block lets the plugin's hooks ship tool-call telemetry to your dashboard. Restart Claude Code.
 
 ## 3. Verify it's working
 
