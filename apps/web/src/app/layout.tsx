@@ -27,11 +27,20 @@ export const metadata: Metadata = {
     siteName: 'Thoughtbox',
     title: 'Thoughtbox — Frontier Reasoning for Claude Code',
     description: 'Frontier Reasoning for Claude Code',
+    images: [
+      {
+        url: '/thoughtbox.jpg',
+        width: 374,
+        height: 374,
+        alt: 'Thoughtbox',
+      },
+    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'Thoughtbox',
     description: 'Frontier Reasoning for Claude Code',
+    images: ['/thoughtbox.jpg'],
   },
 }
 
