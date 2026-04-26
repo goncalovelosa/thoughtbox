@@ -105,7 +105,7 @@ export default async function UsagePage({ params }: Props) {
             Subscription
           </p>
           <div className="flex items-center gap-2 mt-0.5">
-            <p className="text-lg font-bold text-foreground">Founding Beta</p>
+            <p className="text-lg font-bold text-foreground">{isActive ? 'Founding Beta' : 'No subscription'}</p>
             <span
               className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight ${
                 isActive
