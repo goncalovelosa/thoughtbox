@@ -281,10 +281,7 @@ async function startHttpServer() {
       if (token.startsWith('tbx_')) {
         // API key via Bearer header
         try {
-          workspaceId = await resolveRequestAuth(req, {
-            staticKey: process.env.THOUGHTBOX_API_KEY,
-            localDevKey: process.env.THOUGHTBOX_API_KEY_LOCAL,
-          });
+          workspaceId = await resolveRequestAuth(req);
         } catch (err) {
           const message = err instanceof Error ? err.message : 'Authentication failed';
           res.status(401).json({
@@ -311,10 +308,7 @@ async function startHttpServer() {
     } else if (queryKey) {
       // API key via query param
       try {
-        workspaceId = await resolveRequestAuth(req, {
-          staticKey: process.env.THOUGHTBOX_API_KEY,
-          localDevKey: process.env.THOUGHTBOX_API_KEY_LOCAL,
-        });
+        workspaceId = await resolveRequestAuth(req);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Authentication failed';
         res.status(401).json({
@@ -553,8 +547,6 @@ async function startHttpServer() {
     mountOtlpRoutes(app, {
       supabaseUrl: process.env.SUPABASE_URL!,
       serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      staticApiKey: process.env.THOUGHTBOX_API_KEY,
-      localDevApiKey: process.env.THOUGHTBOX_API_KEY_LOCAL,
     });
   }
 
