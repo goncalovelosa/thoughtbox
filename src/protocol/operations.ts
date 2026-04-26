@@ -169,7 +169,7 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
     name: "init",
     title: "Init Debugging Session",
     description:
-      "Start a Ulysses debugging session with a problem statement and optional constraints. Initializes the surprise register at S=0.",
+      "Start a Ulysses debugging session with a problem statement and optional constraints. Initializes the state step tracker at S=0 (at checkpoint, clean state).",
     category: "session-lifecycle",
     inputSchema: {
       type: "object",
@@ -227,7 +227,7 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
     name: "outcome",
     title: "Assess Step Outcome",
     description:
-      "Assess the result of a plan step. Unexpected outcomes increment the surprise register. At S=2, reflection is required before further action.",
+      "Assess the result of a plan step. Expected outcome → S→0, log checkpoint. Unexpected outcome → advance state step. At S=2 (both primary and backup failed), reflection is required before further action.",
     category: "investigation",
     inputSchema: {
       type: "object",
@@ -243,7 +243,7 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
         },
         severity: {
           type: "number",
-          description: "Surprise severity: 1 = minor, 2 = major",
+          description: "State step context (optional detail about the outcome)",
         },
         details: {
           type: "string",
@@ -263,7 +263,7 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
     name: "reflect",
     title: "Form Falsifiable Hypothesis",
     description:
-      "Form a falsifiable hypothesis when the surprise register hits S=2. Must include explicit disproof criteria. Required before the protocol allows further action steps.",
+      "Form a falsifiable hypothesis when the state step tracker reaches S=2 (both primary and backup moves failed). Must include explicit disproof criteria. Required before the protocol allows further action steps. Failed moves are forbidden; generate new primary + backup.",
     category: "investigation",
     inputSchema: {
       type: "object",
@@ -291,7 +291,7 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
     name: "status",
     title: "Show Session Status",
     description:
-      "Show current Ulysses session state including S register value, active step, and surprise history.",
+      "Show current Ulysses session state including S (state step) value, active move, and checkpoint history.",
     category: "session-lifecycle",
     inputSchema: {
       type: "object",

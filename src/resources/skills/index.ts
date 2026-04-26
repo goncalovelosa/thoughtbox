@@ -54,7 +54,7 @@ Seven modules, two tools:
 | **knowledge** | Entity graph with observations, relations, traversal | \`tb.knowledge.*\` |
 | **notebook** | Literate programming — create cells, execute code, export | \`tb.notebook.*\` |
 | **theseus** | Friction-gated refactoring protocol (scope locking, visa system) | \`tb.theseus()\` |
-| **ulysses** | Surprise-gated debugging protocol (S-register, forced reflection) | \`tb.ulysses()\` |
+| **ulysses** | State-step-gated debugging protocol (S tracker: 0=checkpoint, 1=executing backup, 2=both failed→reflect) | \`tb.ulysses()\` |
 | **observability** | Health checks, session monitoring, cost tracking | \`tb.observability()\` |
 
 **Two MCP tools** give you access to everything:
@@ -366,7 +366,7 @@ For architectural decisions, bridge to an ADR via the HDD workflow.`,
     name: "debug",
     title: "Thoughtbox Debug",
     description:
-      "Surprise-gated debugging using the Ulysses protocol. Prevents reactive debugging spirals by forcing structured hypotheses after repeated surprises.",
+      "State-step-gated debugging using the Ulysses protocol. Prevents debugging spirals by tracking position in the plan→execute→evaluate cycle. S=0 at checkpoint, S=1 after primary fails (executing backup), S=2 after both fail (reset to checkpoint, reflect, forbid moves).",
     args: [
       {
         name: "problem",
@@ -376,7 +376,16 @@ For architectural decisions, bridge to an ADR via the HDD workflow.`,
     ],
     content: `# Thoughtbox Debug (Ulysses Protocol)
 
-The S-register prevents debugging spirals. Each unexpected outcome increments S. At S=2, you MUST form a falsifiable hypothesis before continuing.
+The S (state step) tracker prevents debugging spirals by tracking your position in the plan→execute→evaluate cycle:
+- S=0: At a checkpoint. Clean state. Form hypothesis: primary move + backup move.
+- S=1: Primary move produced unexpected outcome. Now executing the backup move.
+- S=2: Backup also failed. Two unexpected outcomes in a row. Reset to last checkpoint, S→0. Form falsifiable hypotheses about why both moves failed. Those two moves are now forbidden. Generate new primary + backup and loop.
+
+Full cycle:
+1. At S=0, form hypothesis (primary move + backup move)
+2. Create git branch, S→1, execute primary move
+3. Git commit. Expected outcome? → S→0, log checkpoint. Unexpected? → S→2, execute backup
+4. Git commit. Expected outcome? → S→0, log checkpoint. Unexpected? → S=2 → reset to last checkpoint, S→0, reflect, forbid those moves, start over
 
 ## Phase 1: Initialize
 
@@ -392,7 +401,7 @@ async () => {
 
 ## Phase 2: Plan-Act-Assess Loop
 
-**Plan** with pre-committed recovery:
+**Plan** with pre-committed backup:
 \`\`\`javascript
 async () => tb.ulysses({ operation: "plan", primary: "Check CI env vars vs local", recovery: "If same, check node version" })
 \`\`\`
@@ -401,12 +410,12 @@ async () => tb.ulysses({ operation: "plan", primary: "Check CI env vars vs local
 
 **Assess** the outcome:
 \`\`\`javascript
-async () => tb.ulysses({ operation: "outcome", assessment: "unexpected", severity: "minor", details: "Env vars identical" })
+async () => tb.ulysses({ operation: "outcome", assessment: "unexpected-unfavorable", details: "Env vars identical" })
 \`\`\`
 
 ## Phase 3: Forced Reflection (S=2)
 
-Protocol blocks further plans until you reflect:
+When both primary and backup produce unexpected outcomes, protocol blocks further plans until you reflect:
 \`\`\`javascript
 async () => tb.ulysses({
   operation: "reflect",
@@ -415,7 +424,7 @@ async () => tb.ulysses({
 })
 \`\`\`
 
-Resets S to 0. Continue with focused hypothesis.
+Resets S to 0. Those two moves are now forbidden. Generate new primary + backup.
 
 ## Phase 4: Resolution
 
@@ -423,7 +432,7 @@ Resets S to 0. Continue with focused hypothesis.
 async () => tb.ulysses({ operation: "complete", terminalState: "resolved", summary: "Root cause: async db seeding not awaited" })
 \`\`\`
 
-Terminal states: resolved, abandoned, deferred.
+Terminal states: resolved, insufficient_information, environment_compromised.
 
 ## When to Use
 

@@ -26,14 +26,25 @@ export type UlyssesToolInput = z.infer<typeof ulyssesToolInputSchema>;
 
 export const ULYSSES_TOOL = {
   name: "thoughtbox_ulysses",
-  description: `Ulysses Protocol: surprise-gated debugging for autonomous agents. Forces pre-committed recovery, rigorous surprise assessment, and falsifiable hypotheses.
+  description: `Ulysses Protocol: state-step-gated debugging for autonomous agents. Tracks position in the plan→execute→evaluate cycle. Prevents debugging spirals by forcing reflection after two consecutive unexpected outcomes.
+
+S (state step) tracks where you are in the cycle:
+- S=0: At a checkpoint. Clean state. Form hypothesis: primary move + backup move.
+- S=1: Primary move produced unexpected outcome. Now executing the backup move.
+- S=2: Backup also produced unexpected outcome. Two unexpected outcomes in a row. Reset to last checkpoint, S→0. Form falsifiable hypotheses about why both moves failed. Those two moves are now forbidden. Generate new primary + backup and loop.
+
+Full cycle:
+1. At S=0, form hypothesis (primary move + backup move)
+2. Create git branch, S→1, execute primary move
+3. Git commit. Expected outcome? → S→0, log checkpoint. Unexpected? → S→2, execute backup
+4. Git commit. Expected outcome? → S→0, log checkpoint. Unexpected? → S=2 → reset to last checkpoint, S→0, reflect, forbid those moves, start over
 
 Operations:
 - init: Start a debugging session (args: { problem, constraints? })
-- plan: Record primary action + pre-committed recovery step (args: { primary, recovery, irreversible? })
-- outcome: Assess step result and update surprise state (args: { assessment, severity?, details? })
-- reflect: Form falsifiable hypothesis when S=2 (args: { hypothesis, falsification })
-- status: Show current session state (S register, active step, surprise register)
+- plan: Record primary move + pre-committed backup move (args: { primary, recovery, irreversible? })
+- outcome: Report whether the move produced the expected outcome (args: { assessment: "expected"|"unexpected-favorable"|"unexpected-unfavorable", details? })
+- reflect: Form falsifiable hypothesis when S=2 — both moves failed (args: { hypothesis, falsification })
+- status: Show current session state (S state step, active move, checkpoint history)
 - complete: End session with terminal status (args: { terminalState: "resolved"|"insufficient_information"|"environment_compromised", summary? })`,
   inputSchema: ulyssesToolInputSchema,
   annotations: {
