@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { listApiKeys } from './actions'
 import { CreateKeyDialog } from './CreateKeyDialog'
 import { ApiKeyTable } from './ApiKeyTable'
@@ -9,6 +10,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ApiKeysPage({ params }: Props) {
   const { workspaceSlug } = await params
+  await requireActiveSubscription(workspaceSlug)
   const keys = await listApiKeys()
 
   return (

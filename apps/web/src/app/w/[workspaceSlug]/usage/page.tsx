@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { subDays } from 'date-fns'
 
 export const metadata: Metadata = { title: 'Usage' }
@@ -10,6 +11,7 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function UsagePage({ params }: Props) {
   const { workspaceSlug } = await params
+  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
 
