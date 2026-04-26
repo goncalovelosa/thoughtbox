@@ -7,6 +7,7 @@
 
 import { BranchHandlers, type BranchHandlerDeps } from "./handlers.js";
 import { getOperation } from "./operations.js";
+import { validateBranchArgs } from "./schemas.js";
 
 export { BRANCH_TOOL } from "./operations.js";
 export { getOperationNames, getOperationsCatalog } from "./operations.js";
@@ -44,6 +45,24 @@ export class BranchHandler {
     >;
     isError: boolean;
   }> {
+    const validation = validateBranchArgs(operation, args);
+    if (!validation.ok) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { success: false, error: validation.error },
+              null,
+              2,
+            ),
+          },
+        ],
+        isError: true,
+      };
+    }
+    const validated = validation.data;
+
     try {
       let result: unknown;
       const opDef = getOperation(`branch_${operation}`);
@@ -51,22 +70,22 @@ export class BranchHandler {
       switch (operation) {
         case "spawn":
           result = await this.handlers.handleSpawn(
-            args as Parameters<BranchHandlers["handleSpawn"]>[0]
+            validated as Parameters<BranchHandlers["handleSpawn"]>[0]
           );
           break;
         case "merge":
           result = await this.handlers.handleMerge(
-            args as Parameters<BranchHandlers["handleMerge"]>[0]
+            validated as Parameters<BranchHandlers["handleMerge"]>[0]
           );
           break;
         case "list":
           result = await this.handlers.handleList(
-            args as Parameters<BranchHandlers["handleList"]>[0]
+            validated as Parameters<BranchHandlers["handleList"]>[0]
           );
           break;
         case "get":
           result = await this.handlers.handleGet(
-            args as Parameters<BranchHandlers["handleGet"]>[0]
+            validated as Parameters<BranchHandlers["handleGet"]>[0]
           );
           break;
         default:
