@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { WorkspaceSettingsClient } from './WorkspaceSettingsClient'
 
 export const metadata: Metadata = { title: 'Workspace settings' }
@@ -10,7 +9,6 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function WorkspaceSettingsPage({ params }: Props) {
   const { workspaceSlug } = await params
-  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
 

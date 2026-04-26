@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { AccountSettingsClient } from './AccountSettingsClient'
 
 export const metadata: Metadata = { title: 'Account settings' }
@@ -8,8 +7,7 @@ export const metadata: Metadata = { title: 'Account settings' }
 type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function AccountSettingsPage({ params }: Props) {
-  const { workspaceSlug } = await params
-  await requireActiveSubscription(workspaceSlug)
+  await params
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

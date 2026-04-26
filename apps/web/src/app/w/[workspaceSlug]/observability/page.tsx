@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { format, subDays, startOfDay } from 'date-fns'
 import { Activity, BrainCircuit, Zap, Lock, Terminal, TrendingUp } from 'lucide-react'
 
@@ -11,7 +10,6 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function ObservabilityPage({ params }: Props) {
   const { workspaceSlug } = await params
-  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
 

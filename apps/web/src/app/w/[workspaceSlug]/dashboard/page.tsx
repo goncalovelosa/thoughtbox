@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 import { BADGE_BASE, STATUS_BADGE, STATUS_LABEL } from '@/lib/session/badge-styles'
 import { format } from 'date-fns'
 
@@ -12,7 +11,6 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function DashboardPage({ params }: Props) {
   const { workspaceSlug } = await params
-  await requireActiveSubscription(workspaceSlug)
   const base = `/w/${workspaceSlug}`
 
   const supabase = await createClient()

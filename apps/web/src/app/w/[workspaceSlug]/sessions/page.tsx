@@ -4,7 +4,6 @@ import { SessionsIndexHeader } from '@/components/session-area/sessions-index-he
 import { SessionsIndexClient } from '@/components/session-area/sessions-index-client'
 import { createSessionSummaryVM, type RawSessionRecord, type SessionSignals } from '@/lib/session/view-models'
 import { createClient } from '@/lib/supabase/server'
-import { requireActiveSubscription } from '@/lib/stripe/gate'
 
 export const metadata: Metadata = { title: 'Runs' }
 
@@ -12,7 +11,6 @@ type Props = { params: Promise<{ workspaceSlug: string }> }
 
 export default async function RunsPage({ params }: Props) {
   const { workspaceSlug } = await params
-  await requireActiveSubscription(workspaceSlug)
 
   const supabase = await createClient()
 
