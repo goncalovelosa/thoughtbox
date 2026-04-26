@@ -18,7 +18,7 @@ export default function TermsPage() {
     <div className="px-6 py-16">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Terms of Service</h1>
-        <p className="mt-3 text-sm text-foreground">Last updated: March 2026</p>
+        <p className="mt-3 text-sm text-foreground">Last updated: April 2026</p>
 
         <div className="mt-10 space-y-8 text-foreground">
           <Section title="1. Acceptance of terms">
@@ -107,8 +107,8 @@ export default function TermsPage() {
           <Section title="12. Contact">
             <p>
               Questions about these Terms?{' '}
-              <a href="mailto:legal@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
-                legal@thoughtbox.dev
+              <a href="mailto:thoughtboxsupport@kastalienresearch.ai" className="text-foreground hover:underline-thick hover:underline">
+                thoughtboxsupport@kastalienresearch.ai
               </a>
             </p>
           </Section>

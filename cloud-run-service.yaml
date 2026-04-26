@@ -42,6 +42,8 @@ spec:
                   key: latest
             - name: THOUGHTBOX_STORAGE
               value: supabase
+            - name: DISABLE_THOUGHT_LOGGING
+              value: "true"
           resources:
             limits:
               cpu: "1"

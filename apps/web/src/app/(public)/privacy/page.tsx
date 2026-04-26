@@ -18,7 +18,7 @@ export default function PrivacyPage() {
     <div className="px-6 py-16">
       <div className="mx-auto max-w-3xl">
         <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Privacy Policy</h1>
-        <p className="mt-3 text-sm text-foreground">Last updated: March 2026</p>
+        <p className="mt-3 text-sm text-foreground">Last updated: April 2026</p>
 
         <div className="mt-10 space-y-8">
           <Section title="1. What we collect">
@@ -44,17 +44,20 @@ export default function PrivacyPage() {
 
           <Section title="3. Data storage and retention">
             <p>
-              Workspace data is stored in Supabase (Postgres) hosted on Google Cloud. Thought and
-              run data is retained according to your plan tier. Free plan: 30 days. Pro: 1 year.
-              Enterprise: configurable.
+              Workspace data — sessions, thoughts, knowledge graph entries, and run telemetry —
+              is stored in Supabase (Postgres). The MCP server that processes your requests
+              runs on Google Cloud Run. Data is retained for the life of your active
+              subscription. If you cancel or delete your account, personal data and workspace
+              contents are purged within 30 days. See Supabase&apos;s privacy notice for details
+              on their underlying infrastructure.
             </p>
           </Section>
 
           <Section title="4. Data security">
             <p>
-              We use TLS for data in transit and encryption at rest via GCP default storage
-              encryption. API keys are stored as bcrypt hashes — only you can see the plaintext
-              key at creation time.
+              We use TLS for data in transit and encryption at rest via the default storage
+              encryption provided by Supabase and Google Cloud. API keys are stored as bcrypt
+              hashes — only you can see the plaintext key at creation time.
             </p>
           </Section>
 
@@ -65,7 +68,10 @@ export default function PrivacyPage() {
                 <strong>Supabase</strong> — database and authentication
               </li>
               <li>
-                <strong>Google Cloud Platform</strong> — compute and storage
+                <strong>Google Cloud Platform</strong> — compute (Cloud Run) and observability
+              </li>
+              <li>
+                <strong>Vercel</strong> — web app hosting
               </li>
               <li>
                 <strong>Stripe</strong> — payment processing
@@ -84,8 +90,8 @@ export default function PrivacyPage() {
             <p>
               You may request access to, correction of, or deletion of your personal data at any
               time by emailing{' '}
-              <a href="mailto:privacy@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
-                privacy@thoughtbox.dev
+              <a href="mailto:thoughtboxsupport@kastalienresearch.ai" className="text-foreground hover:underline-thick hover:underline">
+                thoughtboxsupport@kastalienresearch.ai
               </a>
               . Account deletion removes all personally identifiable information within 30 days.
             </p>
@@ -108,8 +114,8 @@ export default function PrivacyPage() {
           <Section title="10. Contact">
             <p>
               Privacy questions:{' '}
-              <a href="mailto:privacy@thoughtbox.dev" className="text-foreground hover:underline-thick hover:underline">
-                privacy@thoughtbox.dev
+              <a href="mailto:thoughtboxsupport@kastalienresearch.ai" className="text-foreground hover:underline-thick hover:underline">
+                thoughtboxsupport@kastalienresearch.ai
               </a>
             </p>
           </Section>
