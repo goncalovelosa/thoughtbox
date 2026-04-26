@@ -6,7 +6,7 @@ Get your AI agent connected to Thoughtbox in about three minutes. You won't writ
 
 Thoughtbox gives your AI agent persistent memory across sessions. Once it's connected, your agent can record reasoning, recall prior conclusions, and build a knowledge graph that survives context resets. You don't have to manage any of that during conversations. You configure the connection once, and the agent uses it on its own from then on.
 
-Three steps: get an API key, install the connection, verify it works.
+Three steps: get an API key, install the Thoughtbox plugin, verify it works.
 
 ## 1. Get an API key
 
@@ -14,9 +14,28 @@ Sign in at [thoughtbox.kastalienresearch.ai](https://thoughtbox.kastalienresearc
 
 Copy the key when it appears — it starts with `tbx_`. The full key is shown once. If you lose it, revoke it and create a new one.
 
-## 2. Install the connection
+## 2. Install the Thoughtbox plugin
 
-In the project where you want your agent to use Thoughtbox, open `.claude/settings.local.json` (create the file if it doesn't exist) and add Thoughtbox to the `mcpServers` block:
+The Thoughtbox plugin for Claude Code ships a `thoughtbox` CLI that wires up the MCP server for you. Install it from the Thoughtbox marketplace:
+
+```
+/plugin marketplace add Kastalien-Research/thoughtbox
+/plugin install thoughtbox-claude-code@thoughtbox
+```
+
+Then, from the project where you want your agent to use Thoughtbox, run:
+
+```bash
+thoughtbox init --key tbx_YOUR_KEY_HERE
+```
+
+This writes `.claude/settings.local.json` for you with the MCP server configured. Make sure `.claude/` is in your `.gitignore` — your key belongs in a local-only file, never in committed config.
+
+Restart Claude Code so it picks up the new MCP server.
+
+### Manual setup (if the command doesn't work)
+
+Open `.claude/settings.local.json` (create the file if it doesn't exist) and paste this in, replacing `tbx_YOUR_KEY_HERE` with your key:
 
 ```json
 {
@@ -25,13 +44,18 @@ In the project where you want your agent to use Thoughtbox, open `.claude/settin
       "type": "http",
       "url": "https://mcp.kastalienresearch.ai/mcp?key=tbx_YOUR_KEY_HERE"
     }
+  },
+  "env": {
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/json",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "https://mcp.kastalienresearch.ai",
+    "OTEL_EXPORTER_OTLP_HEADERS": "Authorization=Bearer tbx_YOUR_KEY_HERE",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp"
   }
 }
 ```
 
-Replace `tbx_YOUR_KEY_HERE` with the key you just copied. Make sure `.claude/` is in your `.gitignore` — your key belongs in a local-only file, never in committed config.
-
-Restart Claude Code (or your MCP client). Thoughtbox is now available to the agent.
+The `mcpServers` block connects your agent to Thoughtbox. The `env` block lets the plugin's hooks ship tool-call telemetry to your dashboard. Restart Claude Code.
 
 ## 3. Verify it's working
 

@@ -15,17 +15,6 @@ const navSections = [
       { label: 'Authentication', href: '/docs/authentication' },
     ],
   },
-  {
-    label: 'Guides',
-    items: [
-      { label: 'Session Lifecycle', href: '/docs/session-lifecycle' },
-      { label: 'Knowledge Graph', href: '/docs/knowledge-graph' },
-      { label: 'Interleaved Thinking', href: '/docs/interleaved-thinking' },
-      { label: 'Ulysses Protocol', href: '/docs/ulysses-protocol' },
-      { label: 'Subagent Patterns', href: '/docs/subagent-patterns' },
-      { label: 'Observability', href: '/docs/observability' },
-    ],
-  },
 ]
 
 export function DocLayout({
