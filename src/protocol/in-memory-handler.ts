@@ -331,12 +331,11 @@ export class InMemoryProtocolHandler {
       status: 'active',
       state_json: {
         S: 0,
-        consecutive_surprises: 0,
         problem,
         constraints: constraints ?? [],
-        surprise_register: [],
         checkpoints: ['initial'],
         hypotheses: [],
+        forbidden_moves: [],
         active_step: null,
       },
       created_at: new Date().toISOString(),
@@ -407,10 +406,9 @@ export class InMemoryProtocolHandler {
     }
     const state = session.state_json as {
       S: number;
-      consecutive_surprises: number;
       active_step: unknown;
-      surprise_register: unknown[];
       checkpoints: string[];
+      forbidden_moves: string[];
     };
 
     if (!state.active_step) {
@@ -430,49 +428,48 @@ export class InMemoryProtocolHandler {
       created_at: new Date().toISOString(),
     });
 
-    const newState = { ...state, active_step: null } as typeof state;
+    const activeStep = state.active_step as { primary?: string; recovery?: string };
     let resultMsg: string;
 
     if (outcome.assessment === 'expected') {
-      newState.S = 0;
-      newState.consecutive_surprises = 0;
-      newState.checkpoints = [...state.checkpoints, `checkpoint_${state.checkpoints.length}`];
-      resultMsg = 'Expected outcome. S reset to 0. Checkpoint created.';
-    } else {
-      const severity = outcome.severity ?? 1;
-      const surprise = {
-        details: outcome.details ?? '',
-        severity,
-        timestamp: new Date().toISOString(),
+      // Expected outcome at any S level → back to checkpoint, clear active step
+      session.state_json = {
+        ...state,
+        S: 0,
+        active_step: null,
+        checkpoints: [...state.checkpoints, `checkpoint_${state.checkpoints.length}`],
       };
-      newState.surprise_register = [...state.surprise_register, surprise].slice(-3);
-
-      if (severity === 2) {
-        newState.S = 2;
-        newState.consecutive_surprises = 0;
-        resultMsg = 'Flagrant-2 surprise. S=2. REFLECT required.';
-      } else {
-        const count = (state.consecutive_surprises ?? 0) + 1;
-        newState.consecutive_surprises = count;
-        if (count >= 2) {
-          newState.S = 2;
-          newState.consecutive_surprises = 0;
-          resultMsg = `Surprise #${count} (severity ${severity}). S=2. REFLECT required.`;
-        } else {
-          newState.S = Math.max(state.S ?? 0, 1);
-          resultMsg = `Surprise #${count} (severity ${severity}). S=${newState.S}.`;
-        }
-      }
+      resultMsg = 'Expected outcome. S→0. Checkpoint created.';
+    } else if (state.S === 1) {
+      // Primary move failed → S=2, execute backup (keep active_step for backup outcome)
+      session.state_json = {
+        ...state,
+        S: 2,
+      };
+      resultMsg = 'Primary move produced unexpected outcome. S→2. Execute backup move.';
+    } else {
+      // S=2 and backup also failed → both moves failed, reflect required, clear active step
+      const forbidden = [...(state.forbidden_moves ?? [])];
+      if (activeStep?.primary) forbidden.push(activeStep.primary);
+      if (activeStep?.recovery) forbidden.push(activeStep.recovery);
+      session.state_json = {
+        ...state,
+        S: 2,
+        active_step: null,
+        forbidden_moves: forbidden,
+      };
+      resultMsg = 'Both primary and backup moves produced unexpected outcomes. S=2. REFLECT required. Failed moves are now forbidden.';
     }
 
-    session.state_json = newState;
+    const updatedState = session.state_json as typeof state;
 
-    this.emit('ulysses_outcome', session.id, { assessment: outcome.assessment, S: newState.S });
+    this.emit('ulysses_outcome', session.id, { assessment: outcome.assessment, S: updatedState.S });
 
     return {
       session_id: session.id,
       assessment: outcome.assessment,
-      S: newState.S,
+      S: updatedState.S,
+      forbidden_moves: updatedState.forbidden_moves,
       message: resultMsg,
     };
   }
@@ -489,7 +486,7 @@ export class InMemoryProtocolHandler {
 
     if ((state.S ?? 0) !== 2) {
       throw new Error(
-        `REFLECT requires S=2 (current S=${state.S ?? 0}). Only callable after two consecutive surprises.`,
+        `REFLECT requires S=2 (current S=${state.S ?? 0}). Only callable after both primary and backup moves produced unexpected outcomes.`,
       );
     }
 
@@ -502,7 +499,6 @@ export class InMemoryProtocolHandler {
     session.state_json = {
       ...state,
       S: 0,
-      consecutive_surprises: 0,
       hypotheses: [...(state.hypotheses ?? []), hypothesis],
     };
 
@@ -539,12 +535,11 @@ export class InMemoryProtocolHandler {
     }
     const state = session.state_json as {
       S: number;
-      consecutive_surprises: number;
       problem: string;
       active_step: Record<string, unknown> | null;
-      surprise_register: unknown[];
       hypotheses: unknown[];
       checkpoints: string[];
+      forbidden_moves: string[];
     };
     const historyCount = this.history.filter(h => h.session_id === session.id).length;
 
@@ -553,10 +548,9 @@ export class InMemoryProtocolHandler {
       protocol: 'ulysses',
       session_id: session.id,
       S: state.S ?? 0,
-      consecutive_surprises: state.consecutive_surprises ?? 0,
       problem: state.problem,
       active_step: state.active_step,
-      surprise_register_count: state.surprise_register?.length ?? 0,
+      forbidden_moves: state.forbidden_moves ?? [],
       hypothesis_count: state.hypotheses?.length ?? 0,
       checkpoint_count: state.checkpoints?.length ?? 0,
       history_event_count: historyCount,

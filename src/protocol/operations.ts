@@ -241,10 +241,6 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
           ],
           description: "How the outcome compared to expectations",
         },
-        severity: {
-          type: "number",
-          description: "State step context (optional detail about the outcome)",
-        },
         details: {
           type: "string",
           description: "Details about the outcome",
@@ -254,7 +250,6 @@ export const ULYSSES_OPERATIONS: OperationDefinition[] = [
     },
     example: {
       assessment: "unexpected-unfavorable",
-      severity: 2,
       details:
         "Logs show the handler is never reached — request rejected at auth middleware",
     },

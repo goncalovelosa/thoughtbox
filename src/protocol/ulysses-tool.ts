@@ -13,7 +13,6 @@ export const ulyssesToolInputSchema = z.object({
   irreversible: z.boolean().optional().describe("Whether primary step is irreversible for plan"),
   assessment: z.enum(["expected", "unexpected-favorable", "unexpected-unfavorable"]).optional()
     .describe("Outcome assessment"),
-  severity: z.number().min(1).max(2).optional().describe("Surprise severity (1=minor, 2=major)"),
   details: z.string().optional().describe("Details for outcome"),
   hypothesis: z.string().optional().describe("Falsifiable hypothesis for reflect"),
   falsification: z.string().optional().describe("Disproof criteria for reflect"),
@@ -96,11 +95,10 @@ export class UlyssesTool {
         const sid = this.requireSession();
         result = await this.handler.ulyssesOutcome(sid, {
           assessment: input.assessment!,
-          severity: input.severity,
           details: input.details,
         });
         await this.bridgeThought(
-          `[Ulysses:outcome] Assessment: ${input.assessment}${input.severity ? ` (severity ${input.severity})` : ''}${input.details ? `. ${input.details}` : ''}`,
+          `[Ulysses:outcome] Assessment: ${input.assessment}${input.details ? `. ${input.details}` : ''}`,
           input.assessment === 'expected' ? 'action_report' : 'reasoning',
         );
         break;

@@ -31,12 +31,13 @@ describe("protocol event emission", () => {
     await handler.ulyssesPlan(sessionId, {
       primary: "check logs",
       recovery: "check metrics",
+      irreversible: false,
     });
 
     onEvent.mockClear();
 
     await handler.ulyssesOutcome(sessionId, {
-      assessment: "unexpected",
+      assessment: "unexpected-unfavorable",
       details: "logs were empty",
     });
 
@@ -44,7 +45,7 @@ describe("protocol event emission", () => {
       expect.objectContaining({
         type: "ulysses_outcome",
         data: expect.objectContaining({
-          assessment: "unexpected",
+          assessment: "unexpected-unfavorable",
           S: expect.any(Number),
         }),
       }),
@@ -59,11 +60,10 @@ describe("protocol event emission", () => {
     const initResult = await handler.ulyssesInit("bug", []);
     const sessionId = initResult.session_id as string;
 
-    // Drive S to 2 with two surprises
-    await handler.ulyssesPlan(sessionId, { primary: "a", recovery: "b" });
-    await handler.ulyssesOutcome(sessionId, { assessment: "unexpected", details: "x" });
-    await handler.ulyssesPlan(sessionId, { primary: "c", recovery: "d" });
-    await handler.ulyssesOutcome(sessionId, { assessment: "unexpected", details: "y" });
+    // Drive S to 2: plan → S=1, primary fails → S=2, backup fails → S=2 reflect required
+    await handler.ulyssesPlan(sessionId, { primary: "a", recovery: "b", irreversible: false });
+    await handler.ulyssesOutcome(sessionId, { assessment: "unexpected-unfavorable", details: "x" });
+    await handler.ulyssesOutcome(sessionId, { assessment: "unexpected-unfavorable", details: "y" });
 
     onEvent.mockClear();
 

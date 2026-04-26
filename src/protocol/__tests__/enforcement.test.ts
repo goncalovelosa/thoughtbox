@@ -7,26 +7,22 @@ describe("InMemoryProtocolHandler enforcement", () => {
     const init = await handler.ulyssesInit("Investigate failing health check");
     const sessionId = init.session_id as string;
 
+    // plan sets S=1 (executing primary)
     await handler.ulyssesPlan(sessionId, {
       primary: "Run the first diagnostic",
       recovery: "Revert the change",
       irreversible: false,
     });
+    // Primary failed → S=2 (now executing backup)
     await handler.ulyssesOutcome(sessionId, {
       assessment: "unexpected-unfavorable",
-      severity: 1,
-      details: "First surprise",
+      details: "Primary move failed",
     });
 
-    await handler.ulyssesPlan(sessionId, {
-      primary: "Run the second diagnostic",
-      recovery: "Undo the second change",
-      irreversible: false,
-    });
+    // Backup also failed → S=2 (reflect required)
     await handler.ulyssesOutcome(sessionId, {
       assessment: "unexpected-unfavorable",
-      severity: 1,
-      details: "Second surprise",
+      details: "Backup move also failed",
     });
 
     await expect(

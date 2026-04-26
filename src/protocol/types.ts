@@ -99,7 +99,6 @@ export interface PlanInput {
 
 export interface UlyssesOutcomeInput {
   assessment: 'expected' | 'unexpected-favorable' | 'unexpected-unfavorable';
-  severity?: number;
   details?: string;
 }
 
