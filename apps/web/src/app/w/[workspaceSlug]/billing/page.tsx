@@ -38,11 +38,13 @@ export default async function BillingPage({ params }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
               Subscription
             </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{founding.name}</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">
+              {isActive ? founding.name : 'No subscription'}
+            </p>
             <p className="mt-1 text-sm text-foreground">
               {isActive
                 ? `$${founding.price}/month`
-                : `No active subscription — upgrade to access the dashboard.`}
+                : `Upgrade to ${founding.name} to access the dashboard.`}
             </p>
           </div>
           <StatusBadge status={subscriptionStatus} />
@@ -86,7 +88,9 @@ function StatusBadge({ status }: { status: string }) {
       ? 'bg-green-100 text-green-700'
       : status === 'past_due'
         ? 'bg-amber-100 text-amber-700'
-        : 'bg-red-100 text-red-700'
+        : status === 'canceled'
+          ? 'bg-red-100 text-red-700'
+          : 'bg-gray-100 text-gray-600'
 
   const label =
     status === 'active'
@@ -95,7 +99,9 @@ function StatusBadge({ status }: { status: string }) {
         ? 'Past Due'
         : status === 'canceled'
           ? 'Canceled'
-          : 'Inactive'
+          : status === 'inactive'
+            ? 'Inactive'
+            : status
 
   return (
     <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${styles}`}>

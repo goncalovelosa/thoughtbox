@@ -61,7 +61,10 @@ export default async function ClaimPage({ searchParams }: Props) {
   const email = session.customer_details?.email ?? null
   const customerId = typeof session.customer === 'string' ? session.customer : null
   const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null
-  const planId = 'founding'
+  // Read metadata to stay consistent with the webhook handler (which also
+  // reads session.metadata?.plan_id). Fall back to 'founding' for sessions
+  // that predate single-tier or were created without metadata.
+  const planId = session.metadata?.plan_id ?? 'founding'
 
   if (!paid || !email || !customerId || !subscriptionId) {
     return <ClaimError />
