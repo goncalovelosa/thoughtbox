@@ -74,6 +74,7 @@ import {
   ObservabilityGatewayHandler,
 } from "./observability/index.js";
 import { BranchHandler, NullBranchHandler } from "./branch/null-handler.js";
+import { FilesystemBranchHandler } from "./branch/filesystem-branch-handler.js";
 import { SUBAGENT_SUMMARIZE_CONTENT } from "./resources/subagent-summarize-content.js";
 import { EVOLUTION_CHECK_CONTENT } from "./resources/evolution-check-content.js";
 import { BEHAVIORAL_TESTS } from "./resources/behavioral-tests-content.js";
@@ -556,7 +557,7 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
   const branchSupabaseUrl = process.env.SUPABASE_URL;
   const branchServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  let branchHandler: BranchHandler | NullBranchHandler;
+  let branchHandler: BranchHandler | NullBranchHandler | FilesystemBranchHandler;
   if (branchSupabaseUrl && branchServiceKey) {
     branchHandler = new BranchHandler({
       supabaseUrl: branchSupabaseUrl,
@@ -564,9 +565,16 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
       workspaceId: args.workspaceId ?? "default",
     });
     logger.info('Branch handler using Supabase backend');
+  } else if (args.dataDir) {
+    branchHandler = new FilesystemBranchHandler({
+      storage,
+      dataDir: args.dataDir,
+      workspaceId: args.workspaceId ?? "default",
+    });
+    logger.info('Branch handler using filesystem backend');
   } else {
     branchHandler = new NullBranchHandler();
-    logger.info('Branch handler disabled — Supabase not configured');
+    logger.info('Branch handler disabled — Supabase not configured, no dataDir');
   }
 
   // =============================================================================
