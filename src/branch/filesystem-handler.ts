@@ -117,6 +117,30 @@ export class FilesystemBranchHandlers {
     await atomicWriteJson(filePath, arr);
   }
 
+  /**
+   * Register a branch in the session manifest's branchFiles map
+   * so that branchCount stays accurate on reads.
+   */
+  private async registerBranchInManifest(sessionDir: string, branchId: string): Promise<void> {
+    const manifestPath = path.join(sessionDir, "manifest.json");
+    try {
+      const raw = await fs.readFile(manifestPath, "utf-8");
+      const manifest = JSON.parse(raw) as {
+        branchFiles: Record<string, string[]>;
+        [key: string]: unknown;
+      };
+      if (!manifest.branchFiles) {
+        manifest.branchFiles = {};
+      }
+      if (!manifest.branchFiles[branchId]) {
+        manifest.branchFiles[branchId] = [];
+      }
+      await atomicWriteJson(manifestPath, manifest);
+    } catch {
+      // Manifest may not exist for some edge cases — non-critical
+    }
+  }
+
   // =========================================================================
   // Spawn
   // =========================================================================
@@ -171,6 +195,9 @@ export class FilesystemBranchHandlers {
     const branchDir = path.join(sessionDir, "branches", branchId);
     await fs.mkdir(branchDir, { recursive: true });
 
+    // Update manifest.branchFiles so branchCount stays accurate
+    await this.registerBranchInManifest(sessionDir, branchId);
+
     return { branchId, workerUrl: "", status: "active", sessionId };
   }
 
@@ -221,6 +248,15 @@ export class FilesystemBranchHandlers {
       timestamp: new Date().toISOString(),
     };
     await this.storage.saveThought(sessionId, synthesisThought);
+
+    // Touch session updatedAt to hint at in-memory refresh
+    try {
+      await this.storage.updateSession(sessionId, {
+        updatedAt: new Date(),
+      });
+    } catch {
+      // Non-critical: disk state is already correct
+    }
 
     // Update branch statuses
     const updatedBranches: Array<{ branchId: string; status: string }> = [];
