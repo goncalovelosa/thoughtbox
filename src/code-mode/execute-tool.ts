@@ -20,6 +20,7 @@ import type { TheseusTool, TheseusToolInput } from "../protocol/theseus-tool.js"
 import type { UlyssesTool, UlyssesToolInput } from "../protocol/ulysses-tool.js";
 import type { ObservabilityGatewayHandler, ObservabilityInput } from "../observability/gateway-handler.js";
 import type { BranchHandler } from "../branch/index.js";
+import type { NullBranchHandler } from "../branch/null-handler.js";
 
 const MAX_LOGS = 100;
 const TIMEOUT_MS = 30_000;
@@ -42,7 +43,7 @@ export interface ExecuteToolDeps {
   theseusTool: TheseusTool;
   ulyssesTool: UlyssesTool;
   observabilityHandler: ObservabilityGatewayHandler;
-  branchHandler: BranchHandler;
+  branchHandler: BranchHandler | NullBranchHandler;
 }
 
 export const EXECUTE_TOOL = {
