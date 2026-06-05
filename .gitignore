@@ -1,6 +1,7 @@
 # MCP config with API keys
 cc_mcp_config.json
 .mcp.json
+.codex/config.toml
 
 # Dependencies
 node_modules/
@@ -24,6 +25,9 @@ logs/
 # Refactoring game temporary state
 .refactoring-game/
 .interleaved-thinking/
+
+# Probe harness run output
+scripts/probes/runs/
 
 # ULC / Ralph loop runtime state
 .claude/ulc-state.local.json
