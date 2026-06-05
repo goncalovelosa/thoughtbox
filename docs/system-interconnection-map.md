@@ -411,14 +411,14 @@ SQLite database serving two functions: (1) MAP-Elites quality-diversity library 
 
 ### Schema (10 tables)
 
-**Canonical schema (`research-workflows/schema.sql`):**
+**Base schema (from `agentic-dev-team/research-workflows-REINIT-PLEASE/`):**
 - `workflows` — 11 seed rows, 5 behavioral coordinate axes, 6 fitness dimensions
 - `workflow_steps` — 52 ordered steps across 11 workflows
 - `workflow_lineage` — parent/child relationships (0 rows)
 - `executions` — task execution records (0 rows)
 - `taste_evaluations` — research taste verdicts (0 rows)
 
-**Runtime history / playbook tables (included in the canonical schema):**
+**Runtime-added tables (via `CREATE TABLE IF NOT EXISTS` in agent scripts):**
 - `adversarial_findings` — 6 rows (all unfixed, all real bugs)
 - `attack_patterns` — 6 patterns (all 50% hit rate after 2 uses each)
 - `verification_audits` — 0 rows
@@ -463,14 +463,11 @@ SQLite database serving two functions: (1) MAP-Elites quality-diversity library 
 ULC QD exploration query uses wrong column names:
 - Query says: `coord_domain`, `coord_evidence`, `coord_horizon`
 - Actual columns: `coord_domain_structure`, `coord_evidence_type`, `coord_time_horizon`
-- Present in `.claude/skills/ulc-loop/ulc-prompt.md`
+- Present in both `.claude/skills/ulc-loop/ulc-prompt.md` and `.gemini/skills/ulc-loop/ulc-prompt.md`
 
-### Historical REINIT-PLEASE Gap
+### REINIT-PLEASE Gap
 
-The older `agentic-dev-team/research-workflows-REINIT-PLEASE/` copy omitted the
-4 runtime tables (`adversarial_findings`, `attack_patterns`,
-`verification_audits`, `verification_failures`). The canonical
-`research-workflows/schema.sql` now includes them.
+The reinit schema is missing the 4 runtime tables (`adversarial_findings`, `attack_patterns`, `verification_audits`, `verification_failures`). Reinitializing drops those tables until an agent first runs.
 
 ---
 
@@ -508,8 +505,7 @@ Hypothesis doc for Hub + Agent Teams coordination proof on `fix/sub-agent-stage-
 ### References
 
 - `AGENTS.md` → `agentic-dev-team-spec.md` (escalation thresholds, team structure)
-- Contains a historical `research-workflows-REINIT-PLEASE/` copy; canonical DB
-  schema and seed data now live under `research-workflows/`
+- Contains `research-workflows-REINIT-PLEASE/` with canonical DB schema + seed data
 
 ---
 
@@ -541,6 +537,7 @@ Hypothesis doc for Hub + Agent Teams coordination proof on `fix/sub-agent-stage-
 
 | Script | Why orphaned |
 |--------|-------------|
+| `staged-hooks/` (entire dir, 11 files) | Hook staging area; all superseded by live `.claude/hooks/` |
 | `db-migrate.sh` | References SQLite/Drizzle; superseded by Supabase |
 | `utils/spec-index.mjs` | Targets `specs/` (old path), not `.specs/` |
 | `utils/capture-handoff.mjs` | Intended for PreCompact/Stop hooks but never wired |
@@ -602,7 +599,7 @@ schedule: daily 2pm UTC
 └── lock-closed-issues.yml
 
 schedule: Mon 9am UTC
-└── verify-assumptions.yml (REMOVED 2026-06-03; previously disabled with `if: false`)
+└── verify-assumptions.yml (DISABLED: if: false)
 ```
 
 ### Silent Failure Risks
@@ -614,8 +611,12 @@ schedule: Mon 9am UTC
 | `agentops_on_approval_label.yml` | No environment gate; label → immediate code commit |
 | `workflow-guard.yml` | Exits 0 on push events; governance bypass on direct-to-main |
 | `issue-opened-dispatch.yml` | Silences own failure via `\|\| { exit 0; }` |
-| `verify-assumptions.yml` | Removed 2026-06-03 after remaining hard-disabled (`if: false`) |
+| `verify-assumptions.yml` | `if: false` — schedule trigger exists but job never runs |
 | `log-issue-events.yml` | Errors if `STATSIG_API_KEY` missing |
+
+### Broken npm Script
+
+`start:stateful` → `node dist/http-stateful.js` — source file `src/http-stateful.ts` does not exist. Always fails.
 
 ---
 

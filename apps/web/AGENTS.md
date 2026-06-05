@@ -1,16 +1,16 @@
 
 ## Development Workflow (Source of Truth)
 
-**Use `/workflow` to execute the full development lifecycle.** It sequences 8 stages: ideation → spec + claims → plan → implement → review → revision → compound → reflection.
+**Use `/workflow` to execute the full development lifecycle.** It sequences 8 stages: ideation → spec + ADR → plan → implement → review → revision → compound → reflection.
 
 The conductor skill dispatches to stage-specific skills at each step. Run `/workflow <idea>` to start a new workflow, or `/workflow` to resume an in-progress one.
 
 ### Key Rules (always apply)
 
-1. **Specs go in `.specs/`** (not `specs/`). Active authority is `.specs/` markdown with YAML frontmatter claims. Archived ADRs: `docs/decisions/archive/`.
+1. **Specs go in `.specs/`** (not `specs/`). ADRs use the HDD lifecycle: `.adr/staging/` → `.adr/accepted/` or `.adr/rejected/`.
 2. **Code and spec updates in the same commit.** If you change code that a spec describes, update the spec in the same commit.
 3. **Atomic commits.** One sub-agent = one unit of work = one commit, made after review validates the work.
-4. **Sub-agent summaries use the structured format** defined in the `/workflow` conductor skill (Claims, Spec/Evidence Alignment, Tests, Known Gaps, Risks).
+4. **Sub-agent summaries use the structured format** defined in the `/workflow` conductor skill (Claims, Hypothesis Alignment, Tests, Known Gaps, Risks).
 5. **Default: human is NOT in the loop.** Operate autonomously up to the escalation thresholds defined in `agentic-dev-team/agentic-dev-team-spec.md`. Escalate only when those thresholds are met.
 6. **Orchestrators don't do manual work.** Deploy sub-agents or agent teams. Protect your context window.
 
@@ -19,19 +19,19 @@ The conductor skill dispatches to stage-specific skills at each step. Run `/work
 | Stage | Skill | Description |
 |-------|-------|-------------|
 | 1. Ideation | `/workflow-ideation` | Evaluate whether idea is worth implementing |
-| 2. Dev-Time Docs | `workflow` Stage 2 | Create/update spec with frontmatter claims |
+| 2. Dev-Time Docs | `/hdd` | Create spec and ADR via HDD process |
 | 3. Planning | `/workflows-plan` | Plan implementation approach |
 | 4. Implementation | `/workflows-work` | Execute the plan with sub-agents |
-| 5. Review | `/workflows-review` | Verify claims against spec frontmatter |
+| 5. Review | `/workflows-review` | Verify claims and test hypotheses |
 | 6. Revision | `/workflow-revision` | Fix review findings, loop until pass |
 | 7. Compound | `/workflows-compound` | Capture learnings |
-| 8. Reflection | `/workflow-reflection` | Finalize specs/PR claims, close issues, merge |
+| 8. Reflection | `/workflow-reflection` | Finalize ADRs, close issues, merge |
 
 ### References
 
 - Workflow conductor: `.claude/skills/workflow/SKILL.md`
 - Workflow rationale and failure modes: `docs/WORKFLOW-MASTER-DESCRIPTION.md`
-- Spec schema: `../../.schemas/spec-v1.json` (repo root)
+- HDD process: `.claude/commands/hdd/hdd.md`
 - Agent team structure: `agentic-dev-team/agentic-dev-team-spec.md`
 - Escalation thresholds: `agentic-dev-team/agentic-dev-team-spec.md` § Escalation Threshold Definition
 
@@ -85,9 +85,9 @@ spec artifact. Do not create a shadow tracker or fallback task system without
 explicit user approval.
 
 
-## Local Agent Asset Bridge (`.claude/`)
+## Local Agent Asset Bridge (`.claude/` and `.gemini/`)
 
-This directory contains project-local agent instructions. Codex cannot natively install Claude hooks or slash commands from it, so treat them as **manual operating instructions** for this repo.
+These directories contain project-local agent instructions. Codex cannot natively install Claude/Gemini hooks or slash commands from them, so treat them as **manual operating instructions** for this repo.
 
 ### Resolution Order
 
@@ -95,10 +95,12 @@ When these sources disagree, use this order:
 
 1. `AGENTS.md`
 2. `.claude/skills/` and `.claude/commands/`
-3. `.claude/rules/`, `.claude/agents/`, `.claude/team-prompts/`, and hook docs as supporting context
+3. `.gemini/skills/` and `.gemini/commands/`
+4. `.claude/rules/`, `.claude/agents/`, `.claude/team-prompts/`, and hook docs as supporting context
 
 Notes:
-- Treat older references to `specs/` or legacy ADR paths inside local skill docs as historical if they conflict with the rules above. The current canonical locations are `.specs/` (with frontmatter claims) and `docs/decisions/archive/` for retired ADRs.
+- Prefer `.claude/` over `.gemini/`. The inventories are nearly mirrored, but `.claude/` is the primary source in this repo.
+- Treat older references to `specs/` or legacy ADR paths inside local skill docs as historical if they conflict with the rules above. The current canonical locations remain `.specs/` and `.adr/`.
 
 ### Local Skills to Honor Manually
 
@@ -109,17 +111,21 @@ If the user invokes one of these names, or the task clearly matches one, open th
 - Research and knowledge: `research-task`, `knowledge`, `synthesize`, `distill`, `capture-learning`, `session-review`, `assumptions`, `eval`, `taste`, `diagram`
 - Coordination and autonomy: `team`, `hub-collab`, `deploy-team-hub`, `experiment`, `ulc-loop`, `loop-status`, `status`, `escalate`, `claude-prompt`
 
-Path pattern:
+Primary path pattern:
 - `.claude/skills/<skill-name>/SKILL.md`
+
+Fallback path pattern:
+- `.gemini/skills/<skill-name>/SKILL.md`
 
 ### Local Commands to Treat as Project Procedures
 
 The following command docs are not executable slash commands in Codex, but they define repo-specific procedures and should be read before doing matching work:
 
-- Archived HDD commands: `docs/decisions/archive/hdd-commands/`
+- HDD command set: `.claude/commands/hdd/*.md`
 - Development TDD profiles: `.claude/commands/development/*.md`
+- Gemini mirrors of the same procedures: `.gemini/commands/**/*.toml`
 
-If a user references HDD or `/hdd`, treat it as historical; use repo-root `workflow` Stage 2 (spec + claims). For development TDD profiles, read `.claude/commands/development/*.md`.
+If a user references `/hdd`, HDD phases, or the development TDD profiles, read the corresponding local command or skill doc first and then execute the procedure manually.
 
 ### Local Agent and Team Prompt Reuse
 
@@ -132,7 +138,7 @@ These files define the repo's preferred agent roles for architecture, debugging,
 
 ### Hook-Derived Guardrails to Follow Manually
 
-Codex cannot auto-register `.claude/settings.json` or its shell hooks here. Still, emulate the intent of the configured hook stack during normal work.
+Codex cannot auto-register `.claude/settings.json`, `.gemini/settings.json`, or their shell hooks here. Still, emulate the intent of the configured hook stack during normal work.
 
 Hook intent by event:
 

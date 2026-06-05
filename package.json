@@ -41,6 +41,7 @@
     "build": "pnpm check:cycles && pnpm build:local",
     "build:local": "pnpm embed && tsc && shx cp -r src/resources dist/ && shx cp -r templates dist/ && shx cp src/observatory/ui/*.html dist/observatory/ui/ && shx chmod +x dist/*.js",
     "start": "node dist/index.js",
+    "start:stateful": "node dist/http-stateful.js",
     "prepublishOnly": "pnpm build:local",
     "watch": "tsc --watch",
     "check:cycles": "./scripts/check-cycles.sh",
@@ -58,7 +59,6 @@
     "check:control-plane": "tsx scripts/check-control-plane.ts",
     "agentops:daily": "tsx automation-self-improvement/agentops/runner/cli.ts daily-dev-brief",
     "agentops:daily:fixtures": "tsx automation-self-improvement/agentops/runner/cli.ts daily-dev-brief --fixtures --dry-run",
-    "check:event-types": "tsx scripts/check-event-type-parity.ts",
     "validate:pr": "tsx scripts/validate-pr-description.ts",
     "test:behavioral": "tsx scripts/agents/test-behavioral-contracts.ts",
     "test:behavioral:variance": "tsx scripts/agents/test-behavioral-contracts.ts --variance-only",
@@ -91,7 +91,7 @@
     "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.159",
+    "@anthropic-ai/claude-agent-sdk": "^0.1.76",
     "@anthropic-ai/sdk": "^0.39.0",
     "@octokit/rest": "^20.1.2",
     "@types/bcryptjs": "^3.0.0",

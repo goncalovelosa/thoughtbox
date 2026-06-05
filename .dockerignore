@@ -94,6 +94,7 @@ llms-install.md
 .claude/
 .claude-plugin/
 .claude-flow/
+.gemini/
 .swarm/
 .roo/
 .roomodes
