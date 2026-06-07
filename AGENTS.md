@@ -115,7 +115,7 @@ If the user invokes one of these names, or the task clearly matches one, open th
 - **Implementation**: `implement`
 - **Peer notebook delivery**: `peer-notebook-delivery-guard` (ADR-022 large-unit boundaries, mock accountability, acceptance gates)
 - **Research and knowledge**: `research-task`, `knowledge`, `synthesize`, `distill`, `capture-learning`, `session-review`, `assumptions`, `eval`, `taste`, `diagram`
-- **Coordination and autonomy**: `team`, `hub-collab`, `deploy-team-hub`, `experiment`, `ulc-loop`, `loop-status`, `status`, `escalate`, `claude-prompt`
+- **Coordination and autonomy**: `team`, `hub-collab`, `deploy-team-hub`, `experiment`, `ulc-loop`, `status`, `escalate`, `claude-prompt`
 
 Primary path pattern:
 - `.codex/skills/<skill-name>/SKILL.md`

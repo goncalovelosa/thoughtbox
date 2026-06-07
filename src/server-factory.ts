@@ -73,8 +73,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import {
   ObservabilityGatewayHandler,
 } from "./observability/index.js";
-import { BranchHandler, NullBranchHandler } from "./branch/null-handler.js";
-import { FilesystemBranchHandler } from "./branch/filesystem-branch-handler.js";
+import { BranchHandler } from "./branch/index.js";
 import { SUBAGENT_SUMMARIZE_CONTENT } from "./resources/subagent-summarize-content.js";
 import { EVOLUTION_CHECK_CONTENT } from "./resources/evolution-check-content.js";
 import { BEHAVIORAL_TESTS } from "./resources/behavioral-tests-content.js";
@@ -553,29 +552,21 @@ Use \`console.log()\` for debugging — output captured in response logs.`;
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 
-  // Branch handler — requires Supabase credentials, graceful fallback otherwise
+  // Branch handler — hosted mode only. The branch toolhost spawns Supabase
+  // Edge Function workers and constructs a Supabase client at init, so it is
+  // only wired when Supabase credentials are present. In local/self-hosted
+  // mode it is left undefined; `tb.branch.*` then returns a clear "hosted
+  // mode" error instead of crashing session setup on a missing SUPABASE_URL.
   const branchSupabaseUrl = process.env.SUPABASE_URL;
   const branchServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  let branchHandler: BranchHandler | NullBranchHandler | FilesystemBranchHandler;
-  if (branchSupabaseUrl && branchServiceKey) {
-    branchHandler = new BranchHandler({
-      supabaseUrl: branchSupabaseUrl,
-      serviceRoleKey: branchServiceKey,
-      workspaceId: args.workspaceId ?? "default",
-    });
-    logger.info('Branch handler using Supabase backend');
-  } else if (args.dataDir) {
-    branchHandler = new FilesystemBranchHandler({
-      storage,
-      dataDir: args.dataDir,
-      workspaceId: args.workspaceId ?? "default",
-    });
-    logger.info('Branch handler using filesystem backend');
-  } else {
-    branchHandler = new NullBranchHandler();
-    logger.info('Branch handler disabled — Supabase not configured, no dataDir');
-  }
+  const branchHandler =
+    branchSupabaseUrl && branchServiceKey
+      ? new BranchHandler({
+          supabaseUrl: branchSupabaseUrl,
+          serviceRoleKey: branchServiceKey,
+          workspaceId: args.workspaceId ?? "default",
+        })
+      : undefined;
 
   // =============================================================================
   // Code Mode Tools (replaces individual tool registrations)
