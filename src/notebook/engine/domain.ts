@@ -206,6 +206,13 @@ export const NotebookOutputSchema = S.Union(
     mode: S.Literal("runbook"),
     pass: S.Boolean,
     reason: S.String,
+    /**
+     * Fraction of non-validator code cells covered by a declared outcome
+     * contract (tier 1) or a tier-2 validator. 0 means the verdict is
+     * procedural only — downstream fitness must exclude such runs from
+     * pass-rates (SPEC-AGX-SUBSTRATE §5.1).
+     */
+    contractCoverage: S.Number,
     evidence: S.optional(S.Unknown),
   }),
   S.Struct({
@@ -265,21 +272,9 @@ const RunBaseSchema = {
 export const NotebookRunSchema = S.Union(
   S.Struct({
     ...RunBaseSchema,
-    _tag: S.Literal("QueuedRun"),
-    status: S.Literal("queued"),
-  }),
-  S.Struct({
-    ...RunBaseSchema,
     _tag: S.Literal("RunningRun"),
     status: S.Literal("running"),
     startedAt: S.String,
-  }),
-  S.Struct({
-    ...RunBaseSchema,
-    _tag: S.Literal("InputRequiredRun"),
-    status: S.Literal("input_required"),
-    startedAt: S.String,
-    prompt: S.String,
   }),
   S.Struct({
     ...RunBaseSchema,
@@ -349,6 +344,16 @@ export class StoreUnavailable extends Data.TaggedError("StoreUnavailable")<{
   readonly store: string;
   readonly reason: string;
 }> {}
+export class NotebookModeNotImplemented extends Data.TaggedError(
+  "NotebookModeNotImplemented",
+)<{
+  readonly mode: string;
+  readonly reason: string;
+}> {
+  override get message(): string {
+    return this.reason;
+  }
+}
 
 export type NotebookEngineError =
   | InvalidNotebookShape
@@ -357,7 +362,8 @@ export type NotebookEngineError =
   | RunnerTimeout
   | SandboxDenied
   | ArtifactTooLarge
-  | StoreUnavailable;
+  | StoreUnavailable
+  | NotebookModeNotImplemented;
 
 export interface NotebookStore {
   readonly save: (notebook: NotebookPersistence) => Promise<void>;
@@ -403,9 +409,7 @@ export class SandboxExecutorService extends Context.Tag("SandboxExecutor")<
 export function describeRunStatus(run: NotebookRun): string {
   return Match.value(run).pipe(
     Match.tagsExhaustive({
-      QueuedRun: () => "queued",
       RunningRun: () => "running",
-      InputRequiredRun: () => "input_required",
       CompletedRun: (r) => `completed:${r.outputs.length}`,
       FailedRun: (r) => `failed:${r.error}`,
       CancelledRun: (r) => `cancelled:${r.reason}`,

@@ -1,11 +1,47 @@
+---
+spec_id: SPEC-CONTROL-PLANE
+title: MCP Peer Notebooks Control Plane
+status: active
+date: 2026-04-30
+branch: feat/mcp-peer-notebook-control-plane
+claims:
+  - id: c1
+    statement: The peer broker is the sole externally visible authority for peer invocation and validates workspace, active manifest, tool schema, budgets, and outbound allowlists before runtime dispatch
+    type: governance
+    behavioral: false
+    required_evidence: SPEC-CONTROL-PLANE.md defines peer.invoke and the invocation flow with all listed checks before runtime provider invocation. Outbound governance is exercised against real targets by the v1-initiative Phase 5.2 slice. createBrokerProxyTargets (src/peer-notebook/proxy-targets.ts) registers thoughtbox.knowledge.queryGraph and thoughtbox.session.get against the real knowledge and session handlers, threaded from src/server-factory.ts through PeerNotebookHandler.proxyTargetDeps; the mayCall allowlist remains the only gate and absent handlers raise target_unavailable through the broker error path. Evidence is src/peer-notebook/__tests__/proxy-targets.test.ts (allowed calls return real handler data with an outbound_call_allowed trace, unlisted targets are denied with a denied_outbound_call trace, absent handlers fail the invocation with target_unavailable)
+  - id: c2
+    statement: Peer notebook manifests are externalized control-plane records compiled from peer.manifest.json, parsed as data without executing notebook code, and activated only by explicit approval
+    type: governance
+    behavioral: false
+    required_evidence: Implemented by the thoughtbox-g5t lifecycle slice. peer_manifest_create persists drafts; peer_manifest_approve activates and retires the previous active manifest; peer_manifest_reject finalizes drafts; the broker rejects non-active manifests naming their status. Evidence is src/peer-notebook/__tests__/manifest-lifecycle.test.ts plus the durable lifecycle test in src/peer-notebook/__tests__/supabase-repository.test.ts. The built-in claim-extractor bootstrap is the documented platform-owned exception (PLATFORM_BUILTIN_BOOTSTRAP_MANIFEST_STATUS in src/peer-notebook/handler.ts). Notebook graduation (v1-initiative Phase 5.4) compiles the manifest from a real notebook's peer.manifest.json code cell as pure data - graduateNotebook in src/peer-notebook/handler.ts parses cell text with the same zod compile path, never executing notebook code, always persisting status draft, and rejecting unregistered runtime providers/entries at graduation. Evidence is src/peer-notebook/__tests__/notebook-graduation.test.ts plus the durable graduation test in src/peer-notebook/__tests__/supabase-repository.test.ts
+  - id: c3
+    statement: Cloud Run remains the MCP API/control plane; peer execution runs in a separate execution plane behind a runtime provider contract
+    type: governance
+    behavioral: false
+    required_evidence: Non-goals and invariants exclude KVM/smolvm execution from Cloud Run and place smolvm behind the runtime provider boundary. The v1-initiative Phase 5.3 slice (thoughtbox-s7f) delivers the first real provider behind that boundary - LocalProcessRuntimeProvider (src/peer-notebook/local-process-runtime-provider.ts) executes peer invocations in a spawned child process, declares developmentOnly true with isolation "none" in describe(), and production wiring registers only local-process (PeerNotebookHandler.getRuntimeProviderNames). Local-process is process separation for development, never a production isolation claim; production isolation remains the deferred smolvm unit (thoughtbox-vdw)
+  - id: c4
+    statement: The v0 runtime contract is a simple provider RPC, not a requirement that every runtime expose public MCP directly
+    type: implementation
+    behavioral: false
+    required_evidence: Runtime Provider Contract section defines describe, invoke, cancel, snapshot/export, and heartbeat as v0 RPC. Two providers implement the contract - the test-only MockPeerRuntimeProvider fixture (excluded from the package barrel, imported only by tests) and the development-only LocalProcessRuntimeProvider. The shared contract suite src/peer-notebook/__tests__/runtime-provider-contract.test.ts runs the same end-to-end claim-extractor invocation, lifecycle, and allow/deny trace assertions against both, plus local-process budget-timeout and cancel kill tests (SPEC-V1-INITIATIVE c14 evidence)
+  - id: c5
+    statement: The peer data model is Supabase-backed with peer notebooks, manifests, invocations, trace events, and artifact metadata in Postgres, while full artifact payloads live in Supabase Storage
+    type: implementation
+    behavioral: false
+    required_evidence: Supabase Table Contract and Artifact Payload Strategy sections define tables and hybrid storage
+  - id: c6
+    statement: The deployed product inspection surface is the Next.js web app reading Supabase peer rows, not the legacy src/observatory server
+    type: governance
+    behavioral: false
+    required_evidence: DIAGRAMS.md and spec define the web app read model without depending on src/observatory
+links:
+  - docs/decisions/archive/adr/staging/ADR-022.json
+  - .specs/mcp-peer-notebooks/DIAGRAMS.md
+---
+
 # MCP Peer Notebooks Control Plane
 
-**Status**: Decision-complete staging spec for ADR-022
-**Date**: 2026-04-30
-**Branch**: `feat/mcp-peer-notebook-control-plane`
-**Tracking**: `thoughtbox-pnf`
-
-## Summary
 
 MCP Peer Notebooks are brokered, manifest-governed notebook runtimes. The
 control plane lives in the Cloud Run MCP API, owns peer authority, persists
@@ -31,6 +67,91 @@ repository when an effective non-default workspace id is available from
 `SUPABASE_SERVICE_ROLE_KEY` are present; local tests keep the in-memory
 repository. The runtime provider remains the mock contract fixture for this
 slice.
+
+Implementation note: the `thoughtbox-g5t` manifest lifecycle slice implements
+the draft-to-active transitions on the `thoughtbox_peer_notebook` surface:
+`peer_manifest_create` compiles `peer.manifest.json` content into a
+`status='draft'` record (registering the peer if new), `peer_manifest_approve`
+transitions draft to active, sets `approved_at`, updates
+`peer_notebooks.active_manifest_id`, and retires the previously active
+manifest, `peer_manifest_reject` transitions draft to rejected, and
+`peer_manifest_list` reads versions and statuses. Both repositories persist
+transitions through the shared contract (`listManifests` added; no schema
+change — the existing `peer_manifests.status` and `approved_at` columns carry
+the lifecycle). The broker names the offending status when rejecting
+non-active manifests. The built-in `claim-extractor` bootstrap is the single
+documented exception that ships active out of the box
+(`PLATFORM_BUILTIN_BOOTSTRAP_MANIFEST_STATUS` in `src/peer-notebook/handler.ts`);
+approval is a plain operation in v1 (single-operator trust model, no roles).
+Notebook-source graduation (compiling drafts from real notebook cells) is
+delivered by the v1-initiative Phase 5.4 slice (see implementation note below).
+
+Implementation note: the v1-initiative Phase 5.2 slice populates the broker
+proxy target map with real outbound handlers. `createBrokerProxyTargets`
+(`src/peer-notebook/proxy-targets.ts`) registers
+`thoughtbox.knowledge.queryGraph` (knowledge handler `query_graph`) and
+`thoughtbox.session.get` (session handler `get`), threaded from the server
+factory through `PeerNotebookHandler.proxyTargetDeps`. Targets are optional
+dependencies: when a backing handler is absent (for example, knowledge storage
+failed to initialize), the target raises a `target_unavailable` error through
+the broker's existing invocation error path instead of crashing. The `mayCall`
+allowlist and allow/deny trace machinery are unchanged and remain the only
+gate; the built-in claim-extractor manifest still allows only `artifact.get`.
+
+Implementation note: the v1-initiative Phase 5.3 slice (`thoughtbox-s7f`)
+delivers the development-only `local-process` runtime provider
+(`src/peer-notebook/local-process-runtime-provider.ts`). The provider executes
+the peer tool invocation in a spawned child process: the claim-extractor entry
+is a standalone script (`src/peer-notebook/peers/claim-extractor.ts`) that
+reads `{ invocationId, tool, args, artifactContent }` JSON on stdin and writes
+`{ result, artifacts }` JSON to stdout, porting the mock's deterministic
+claim-extraction logic so both providers produce identical output. Manifests
+gain an optional `runtime.entry` field naming an executable entry; the
+provider resolves entries from a fixed script registry, so manifests can never
+point at arbitrary filesystem paths. Broker-proxied outbound calls (the
+`artifact.get` input fetch and the pilot denied probe) happen in the provider
+before spawning, preserving allow/deny trace semantics; in-child broker calls
+are out of scope for v1. The manifest budget (`budgets.maxDurationMs`) is
+enforced on the child via SIGTERM escalating to SIGKILL, and `cancel()` kills
+the child the same way. Production wiring registers only `local-process`;
+`MockPeerRuntimeProvider` is now a test-only fixture removed from the package
+barrel. Existing workspaces whose platform-owned claim-extractor manifest was
+bootstrapped with `provider: "mock"` are reconciled in place at bootstrap
+(platform builtin record only). `local-process` is process separation for
+development, never production isolation - that remains the smolvm unit
+(`thoughtbox-vdw`).
+
+Implementation note: the v1-initiative Phase 5.4 slice completes the
+`thoughtbox-g5t` unit with notebook graduation. `peer_graduate_notebook`
+(`graduateNotebook` in `src/peer-notebook/handler.ts`) takes a `notebookId`,
+reads the notebook through a read-only `PeerGraduationNotebookSource` lookup
+(the `NotebookHandler` in production wiring), and compiles the manifest from
+the notebook's draft cell. The cell convention is the least-new-concept
+mapping of this spec's "JSON cell or file named `peer.manifest.json`" rule
+onto the existing notebook model: the manifest lives in a **code cell whose
+`filename` is exactly `peer.manifest.json`**, and the cell's source TEXT is
+parsed as JSON through the same `compilePeerManifestDraft` zod path used by
+`peer_manifest_create` (`compiledFrom.sourceType = "cell"`). Graduation never
+executes notebook code - no eval, no module import, no cell run. Graduated
+manifests are ALWAYS `status='draft'` (the platform-builtin direct-to-active
+exception does not apply); 5.1 approval governs activation. Graduation
+validates the runtime binding up front: the declared `runtime.provider` must
+be the registered provider, and providers with a fixed entry registry
+(`RuntimeProvider.resolvesEntry`, implemented by `local-process`) must resolve
+`runtime.entry` at graduation - an unregistered entry is rejected with a clear
+error instead of failing at first invoke. The manifest's `notebookId` must
+match the graduating notebook. `mayCall` allowlists are accepted as declared,
+bounded by schema validation. Re-graduating a notebook creates a new draft
+version and supersedes the prior pending cell-sourced draft for that peer
+(retired, no longer approvable), mirroring 5.1's retire-on-approve
+supersession; operator-created file drafts are untouched, and the
+duplicate-hash rejection still applies. Evidence:
+`src/peer-notebook/__tests__/notebook-graduation.test.ts` (graduate -> draft
+blocked at invoke -> approve -> end-to-end local-process invoke of the
+registered claim-extractor entry, supersession, malformed JSON, missing
+manifest cell, schema violation, unregistered entry, missing entry, wrong
+provider, notebookId mismatch, unknown notebook) and the durable graduation
+test in `src/peer-notebook/__tests__/supabase-repository.test.ts`.
 
 ## Non-Goals
 
@@ -114,6 +235,11 @@ peer.manifest.json
 The compiler treats `peer.manifest.json` as data. It parses JSON and never
 executes notebook code while extracting, validating, or hashing the manifest.
 
+In the implemented notebook model (`src/notebook/types.ts`), the draft source
+is a code cell whose `filename` is exactly `peer.manifest.json`; graduation
+(`peer_graduate_notebook`) parses the cell's source text as JSON without
+running any cell.
+
 Rules:
 
 - A notebook may have zero or one `peer.manifest.json` draft source.
@@ -146,6 +272,9 @@ Minimum v0 manifest fields:
 - `peerId`
 - `notebookId` or source notebook reference
 - `runtime.provider`
+- `runtime.entry` (optional executable entry name; required by providers that
+  resolve scripts from a fixed registry, such as `local-process`. Manifests
+  name an entry, never a filesystem path.)
 - `runtime` budgets such as CPU, memory, and timeout
 - `exposes.tools[]` with `name`, `description`, `inputSchema`, and
   `outputSchema`
@@ -222,8 +351,9 @@ Runtime obligations:
 
 Runtime providers:
 
-- `mock`: deterministic contract tests and web-app fixtures.
-- `local-process`: integration development only; not a security boundary.
+- `mock`: test-only contract fixture; never registered in production wiring.
+- `local-process` (delivered, default): child-process execution for
+  integration development only; process separation, not a security boundary.
 - `smolvm`: deferred provider in a separate execution plane.
 
 ## Broker Proxy Contract

@@ -1010,7 +1010,9 @@ export class ThoughtHandler {
         });
         await this.storage.endRunsForSession(this.currentSessionId);
 
-        // AUDIT-003: Generate audit manifest at session close
+        // AUDIT-003: Generate and durably persist audit manifest at session close.
+        // Persisted before export so toLinkedExport includes it in the export file
+        // (filesystem) and the session row carries it (Supabase).
         let auditManifest: import('./persistence/types.js').AuditManifest | undefined;
         try {
           const { generateAuditData, toAuditManifest } = await import('./audit/index.js');
@@ -1019,6 +1021,19 @@ export class ThoughtHandler {
           auditManifest = toAuditManifest(auditData);
         } catch (err) {
           console.warn('[AUDIT-003] Manifest generation failed:', (err as Error).message);
+        }
+        if (auditManifest) {
+          try {
+            await this.storage.saveAuditManifest(this.currentSessionId, auditManifest);
+          } catch (err) {
+            // Persistence failed: drop the manifest so emitted events and the
+            // closing response never advertise a manifest that storage doesn't hold.
+            console.error(
+              '[AUDIT-003] Manifest persistence failed, omitting manifest from session close:',
+              (err as Error).message
+            );
+            auditManifest = undefined;
+          }
         }
 
         // Emit session ended event (fire-and-forget)
@@ -1092,7 +1107,7 @@ export class ThoughtHandler {
                     branches: Object.keys(this.branches),
                     thoughtHistoryLength: this.thoughtHistory.length,
                     sessionId: this.currentSessionId,
-                    warning: `Auto-export failed: ${exportError}. Session remains open to prevent data loss. You can manually export using the export_reasoning_chain tool.`,
+                    warning: `Auto-export failed: ${exportError}. Session remains open to prevent data loss. You can manually export via tb.session.export(sessionId) in thoughtbox_execute.`,
                     ...(critiqueResult && { critique: critiqueResult }),
                   },
                   null,

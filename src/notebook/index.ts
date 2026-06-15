@@ -1,9 +1,20 @@
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { NotebookStateManager } from "./state.js";
-import type { Cell, CodeLanguage } from "./types.js";
+import type { Cell, CodeCell, CodeLanguage } from "./types.js";
 import { randomid } from "./types.js";
 import { ValidatorService } from "./validator.js";
-import { InMemoryNotebookEngineRuntime } from "./engine/runtime.js";
+import {
+  compileOutcomeContract,
+  expectationRecordFromValidation,
+  erroredValidatorRecord,
+  skippedValidatorRecord,
+  verifyAttachedContract,
+} from "./contracts.js";
+import {
+  InMemoryNotebookEngineRuntime,
+  type CellExecutionEvidence,
+} from "./engine/runtime.js";
+import { templateCellsFromNotebook, type RunbookStorage } from "./runbook/types.js";
 import { getNotebookCapabilitiesJson } from "./engine/registry.js";
 import {
   NOTEBOOK_OPERATIONS,
@@ -17,6 +28,17 @@ export { getOperationNames };
 
 import { AVAILABLE_TEMPLATES } from "./templates.generated.js";
 
+export interface NotebookHandlerOptions {
+  /**
+   * Durable runbook substrate (SPEC-AGX-SUBSTRATE B4b). Defaults to
+   * InMemoryRunbookStorage inside the engine runtime; deployments inject
+   * SupabaseRunbookStorage here.
+   */
+  runbookStorage?: RunbookStorage;
+  /** Executing agent identity recorded on instances/executions/ledger rows. */
+  agentId?: string;
+}
+
 /**
  * Notebook Handler - MCP tool handlers for headless Srcbook notebooks
  */
@@ -25,10 +47,207 @@ export class NotebookHandler {
   private validatorService: ValidatorService;
   private engineRuntime: InMemoryNotebookEngineRuntime;
 
-  constructor(tempDir?: string) {
+  constructor(tempDir?: string, options: NotebookHandlerOptions = {}) {
     this.stateManager = new NotebookStateManager(tempDir);
     this.validatorService = new ValidatorService(this.stateManager);
-    this.engineRuntime = new InMemoryNotebookEngineRuntime();
+    this.engineRuntime = new InMemoryNotebookEngineRuntime(
+      (notebookId) => this.executeAllCells(notebookId),
+      undefined,
+      {
+        ...(options.runbookStorage !== undefined
+          ? { storage: options.runbookStorage }
+          : {}),
+        ...(options.agentId !== undefined ? { agentId: options.agentId } : {}),
+        templateCellSource: (notebookId) => {
+          const notebook = this.stateManager.getNotebook(notebookId);
+          return notebook ? templateCellsFromNotebook(notebook) : undefined;
+        },
+      },
+    );
+  }
+
+  /** Durable runbook substrate behind the engine runtime (templates/instances/ledger). */
+  getRunbookStorage(): RunbookStorage {
+    return this.engineRuntime.storage;
+  }
+
+  /**
+   * Execute every executable cell (package.json installs and code cells) in
+   * document order through the real subprocess execution path, stopping at
+   * the first failure; remaining executable cells are reported as skipped.
+   *
+   * Outcome-contract integration (SPEC-AGX-SUBSTRATE B4a):
+   * - Before anything executes, every attached tier-1 contract hash is
+   *   re-verified (Ulysses pattern); a mismatch throws and rejects the run.
+   * - Cells with `validatorFor` are tier-2 assertion cells: they run through
+   *   the existing ValidatorService (snapshot+hash, sidecar verdict) against
+   *   the target cell's structured output instead of executing as steps.
+   *   Assertion cells record verdicts but never halt later cells.
+   */
+  private async executeAllCells(
+    notebookId: string,
+  ): Promise<CellExecutionEvidence[]> {
+    const notebook = this.stateManager.getNotebook(notebookId);
+    if (!notebook) {
+      throw new Error(`Notebook ${notebookId} not found`);
+    }
+    const executable = notebook.cells.filter(
+      (cell: Cell): cell is Extract<Cell, { type: "code" | "package.json" }> =>
+        cell.type === "code" || cell.type === "package.json",
+    );
+
+    // Ulysses gate: re-verify every contract hash before executing anything.
+    for (const cell of executable) {
+      if (cell.type === "code" && cell.contract !== undefined) {
+        verifyAttachedContract(cell.id, cell.contract);
+      }
+    }
+
+    const evidence: CellExecutionEvidence[] = [];
+    const structuredOutputByCell = new Map<string, string>();
+    let failed = false;
+    for (const cell of executable) {
+      const validatorFor = cell.type === "code" ? cell.validatorFor : undefined;
+      if (failed) {
+        evidence.push({
+          cellId: cell.id,
+          cellType: cell.type,
+          filename: cell.filename,
+          status: "skipped",
+          exitCode: null,
+          output: "",
+          error: "",
+          ...(cell.type === "code" && cell.contract !== undefined
+            ? { contract: cell.contract }
+            : {}),
+          ...(validatorFor !== undefined
+            ? {
+                validatorFor,
+                expectations: [skippedValidatorRecord(cell.id, validatorFor)],
+              }
+            : {}),
+        });
+        continue;
+      }
+      if (cell.type === "code" && validatorFor !== undefined) {
+        evidence.push(
+          await this.runValidatorCell(notebookId, cell, structuredOutputByCell),
+        );
+        continue;
+      }
+      const result = await this.stateManager.executeCell(notebookId, cell.id);
+      if (cell.type === "code" && result.structuredOutput !== undefined) {
+        structuredOutputByCell.set(cell.id, result.structuredOutput);
+      }
+      evidence.push({
+        cellId: cell.id,
+        cellType: cell.type,
+        filename: cell.filename,
+        status: result.success ? "completed" : "failed",
+        exitCode: result.exitCode,
+        output: result.stdout,
+        error: result.stderr,
+        ...(result.structuredOutput !== undefined
+          ? { structuredOutput: result.structuredOutput }
+          : {}),
+        ...(cell.type === "code" && cell.contract !== undefined
+          ? { contract: cell.contract }
+          : {}),
+      });
+      if (!result.success) failed = true;
+    }
+    return evidence;
+  }
+
+  /**
+   * Run a tier-2 validator cell through the existing ValidatorService against
+   * the target cell's structured output (TB_OUTPUT_PATH sidecar). The stored
+   * authoring-time snapshot hash is passed as the expected hash, so a
+   * post-attach edit of the validator source surfaces as a
+   * snapshot_hash_mismatch — an `error` expectation, never a pass.
+   */
+  private async runValidatorCell(
+    notebookId: string,
+    cell: Extract<Cell, { type: "code" }>,
+    structuredOutputByCell: Map<string, string>,
+  ): Promise<CellExecutionEvidence> {
+    const targetCellId = cell.validatorFor!;
+    const base = {
+      cellId: cell.id,
+      cellType: "code" as const,
+      filename: cell.filename,
+      validatorFor: targetCellId,
+    };
+
+    const observedRaw = structuredOutputByCell.get(targetCellId);
+    if (observedRaw === undefined) {
+      return {
+        ...base,
+        status: "completed",
+        exitCode: null,
+        output: "",
+        error: "",
+        expectations: [
+          erroredValidatorRecord(
+            cell.id,
+            targetCellId,
+            `target cell ${targetCellId} wrote no structured output (TB_OUTPUT_PATH)`,
+          ),
+        ],
+      };
+    }
+
+    let observed: unknown;
+    try {
+      observed = JSON.parse(observedRaw);
+    } catch (error) {
+      return {
+        ...base,
+        status: "completed",
+        exitCode: null,
+        output: "",
+        error: "",
+        expectations: [
+          erroredValidatorRecord(
+            cell.id,
+            targetCellId,
+            `target cell ${targetCellId} structured output is not valid JSON: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        ],
+      };
+    }
+
+    const binding = await this.validatorService.bind(notebookId, cell.id);
+    const runOptions =
+      cell.validatorSnapshotHash !== undefined
+        ? { expectedSnapshotHash: cell.validatorSnapshotHash }
+        : {};
+    const result = await this.validatorService.run(binding, observed, runOptions);
+    const record = expectationRecordFromValidation({
+      validatorCellId: cell.id,
+      targetCellId,
+      result,
+    });
+    // Machinery errors (snapshot_hash_mismatch, validator_crash, ...) can
+    // produce no stderr — no subprocess ever launched. Fall back to the
+    // expectation record's reason so the run verdict carries the real
+    // diagnostic instead of an empty trailer.
+    const error =
+      result.stderr !== ""
+        ? result.stderr
+        : record.result === "error"
+          ? (record.error ?? "")
+          : "";
+    return {
+      ...base,
+      status: record.result === "error" ? "failed" : "completed",
+      exitCode: result.exitCode,
+      output: result.stdout,
+      error,
+      expectations: [record],
+    };
   }
 
   /**
@@ -37,6 +256,14 @@ export class NotebookHandler {
    */
   getValidatorService(): ValidatorService {
     return this.validatorService;
+  }
+
+  /**
+   * Read-only notebook lookup for in-process callers; peer notebook
+   * graduation reads manifest cell text through this without executing code.
+   */
+  getNotebook(notebookId: string) {
+    return this.stateManager.getNotebook(notebookId);
   }
 
   async init(): Promise<void> {
@@ -158,7 +385,8 @@ export class NotebookHandler {
    * Handle notebook_add_cell tool call
    */
   async handleAddCell(args: any): Promise<any> {
-    const { notebookId, cellType, content, filename, position } = args;
+    const { notebookId, cellType, content, filename, position, contract, validatorFor } =
+      args;
 
     if (!notebookId || typeof notebookId !== "string") {
       throw new Error("notebookId is required and must be a string");
@@ -171,6 +399,10 @@ export class NotebookHandler {
     const notebook = this.stateManager.getNotebook(notebookId);
     if (!notebook) {
       throw new Error(`Notebook ${notebookId} not found`);
+    }
+
+    if ((contract !== undefined || validatorFor !== undefined) && cellType !== "code") {
+      throw new Error("contract and validatorFor are only valid on code cells");
     }
 
     let cell: Cell;
@@ -194,9 +426,54 @@ export class NotebookHandler {
         };
         break;
 
-      case "code":
+      case "code": {
         if (!content) throw new Error("content is required for code cells");
         if (!filename) throw new Error("filename is required for code cells");
+        if (contract !== undefined && validatorFor !== undefined) {
+          throw new Error(
+            "a cell declares either a tier-1 contract or validatorFor, not both",
+          );
+        }
+        if (validatorFor !== undefined) {
+          if (typeof validatorFor !== "string" || validatorFor.length === 0) {
+            throw new Error("validatorFor must be a non-empty cell id");
+          }
+          const target = notebook.cells.find((c: Cell) => c.id === validatorFor);
+          if (!target || target.type !== "code") {
+            throw new Error(
+              `validatorFor target ${validatorFor} not found or not a code cell`,
+            );
+          }
+          if (target.validatorFor !== undefined) {
+            throw new Error(
+              `validatorFor target ${validatorFor} is itself a validator cell; ` +
+                "validators never write structured output, so chained validators " +
+                "always error at run time — target a subject cell instead",
+            );
+          }
+          // Cells execute in document order, so a validator inserted before
+          // its target would always run before any output exists.
+          const targetIndex = notebook.cells.findIndex(
+            (c: Cell) => c.id === validatorFor,
+          );
+          const insertionIndex =
+            typeof position === "number" &&
+            position >= 0 &&
+            position <= notebook.cells.length
+              ? position
+              : notebook.cells.length;
+          if (insertionIndex <= targetIndex) {
+            throw new Error(
+              `validator cell would be inserted at position ${insertionIndex}, at or ` +
+                `before its target ${validatorFor} (position ${targetIndex}); cells run ` +
+                "in document order, so the validator must come after its target",
+            );
+          }
+        }
+        // Parse-only compile path: extract → zod → canonicalize → sha256.
+        // Throws ContractCompileError with the offending issues on bad input.
+        const attached =
+          contract !== undefined ? compileOutcomeContract(contract) : undefined;
         cell = {
           id: randomid(),
           type: "code",
@@ -204,8 +481,11 @@ export class NotebookHandler {
           filename,
           source: content,
           status: "idle",
+          ...(attached !== undefined ? { contract: attached } : {}),
+          ...(validatorFor !== undefined ? { validatorFor } : {}),
         };
         break;
+      }
 
       default:
         throw new Error(`Unsupported cell type: ${cellType}`);
@@ -213,11 +493,27 @@ export class NotebookHandler {
 
     await this.stateManager.addCell(notebookId, cell, position);
 
+    // Tier-2 binding at authoring (Ulysses pattern): snapshot the validator
+    // cell now; the hash is re-checked by ValidatorService at run time.
+    if (cell.type === "code" && cell.validatorFor !== undefined) {
+      const binding = await this.validatorService.bind(notebookId, cell.id);
+      await this.stateManager.updateCell(notebookId, cell.id, {
+        validatorSnapshotHash: binding.snapshotHash,
+      });
+    }
+
+    const codeCell = cell.type === "code" ? (cell as CodeCell) : undefined;
     return {
       success: true,
       cell: {
         id: cell.id,
         type: cell.type,
+        ...(codeCell?.contract !== undefined
+          ? { contractHash: codeCell.contract.contractHash }
+          : {}),
+        ...(codeCell?.validatorFor !== undefined
+          ? { validatorFor: codeCell.validatorFor }
+          : {}),
       },
     };
   }
@@ -467,19 +763,12 @@ export class NotebookHandler {
    * Handle notebook_start_run tool call.
    */
   async handleStartRun(args: any): Promise<any> {
-    const { notebookId, mode, executionMode, inputs } = args;
+    const { notebookId, mode, inputs } = args;
     if (!notebookId || typeof notebookId !== "string") {
       throw new Error("notebookId is required and must be a string");
     }
     if (!mode || typeof mode !== "string") {
       throw new Error("mode is required and must be a string");
-    }
-    if (
-      executionMode !== undefined &&
-      executionMode !== "sync" &&
-      executionMode !== "async"
-    ) {
-      throw new Error('executionMode must be "sync" or "async" if provided');
     }
     if (inputs !== undefined && (typeof inputs !== "object" || inputs === null || Array.isArray(inputs))) {
       throw new Error("inputs must be an object if provided");
@@ -493,7 +782,6 @@ export class NotebookHandler {
         this.engineRuntime.startRun({
           notebookId,
           mode: mode as any,
-          executionMode,
           inputs,
         }),
       ),

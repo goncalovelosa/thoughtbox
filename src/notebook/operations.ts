@@ -127,6 +127,21 @@ Both approaches create an identical in-memory notebook.`,
           type: "integer",
           description: "Optional position to insert cell (0-indexed), appends if not specified",
         },
+        contract: {
+          type: "object",
+          description:
+            "Optional tier-1 outcome contract for code cells: { schemaVersion: 'outcome-contract.v0', " +
+            "expectations: [{ source, op, value }] }. Sources: exitCode, output (RFC 6901 pointer into " +
+            "the JSON the cell writes to TB_OUTPUT_PATH), artifact, claimStatus. Ops: eq, ne, lt, lte, " +
+            "gt, gte, matches, schema. Compiled (zod → canonicalize → sha256) at attach; hash re-verified at run.",
+        },
+        validatorFor: {
+          type: "string",
+          description:
+            "Optional tier-2 marker for code cells: id of the code cell this validator asserts over. " +
+            "The validator runs via notebook_validate machinery against the target's structured output. " +
+            "Mutually exclusive with contract.",
+        },
       },
       required: ["notebookId", "cellType", "content"],
     },
@@ -306,7 +321,7 @@ When 'expectedSnapshotHash' is provided, the operation refuses to run if the cel
   {
     name: "notebook_start_run",
     title: "Start Notebook Evidence Run",
-    description: "Start a Notebook Evidence Engine run for one of the supported modes. Short sync runs complete in-process; async runs create a queued run record for the Cloud Run runner boundary.",
+    description: "Execute a notebook's cells in-process and derive a verdict from the real results. Only runbook mode is implemented; other modes return an explicit not-implemented error. See thoughtbox://notebook/capabilities.",
     category: "evidence-engine",
     inputSchema: {
       type: "object",
@@ -315,25 +330,18 @@ When 'expectedSnapshotHash' is provided, the operation refuses to run if the cel
         mode: {
           type: "string",
           enum: listNotebookModes().map((mode) => mode.mode),
-          description: "Evidence engine mode. See thoughtbox://notebook/capabilities.",
-        },
-        executionMode: {
-          type: "string",
-          enum: ["sync", "async"],
-          description: "sync for short local/server checks; async for long Cloud Run runner work",
+          description: "Evidence engine mode. Only runbook executes today; see thoughtbox://notebook/capabilities for per-mode status.",
         },
         inputs: {
           type: "object",
-          description: "Mode-specific JSON inputs",
+          description: "Mode-specific JSON inputs (recorded as a run artifact)",
         },
       },
       required: ["notebookId", "mode"],
     },
     example: {
       notebookId: "abc123",
-      mode: "eval",
-      executionMode: "sync",
-      inputs: { datasetName: "thoughtbox_notebook_verification" },
+      mode: "runbook",
     },
   },
   {
@@ -366,7 +374,7 @@ When 'expectedSnapshotHash' is provided, the operation refuses to run if the cel
   {
     name: "notebook_cancel_run",
     title: "Cancel Notebook Evidence Run",
-    description: "Cancel a queued/running notebook evidence run.",
+    description: "Cancel a running notebook evidence run.",
     category: "evidence-engine",
     inputSchema: {
       type: "object",

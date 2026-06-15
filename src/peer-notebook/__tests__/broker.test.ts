@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   BrokerProxy,
   InMemoryPeerNotebookRepository,
-  MockPeerRuntimeProvider,
   canonicalizeJson,
   compilePeerManifestDraft,
   createPeerBroker,
@@ -11,6 +10,7 @@ import {
   type PeerNotebookRecord,
   type RuntimeProvider,
 } from "../index.js";
+import { MockPeerRuntimeProvider } from "../mock-runtime-provider.js";
 
 const workspaceId = "workspace_test";
 
@@ -36,7 +36,10 @@ describe("claim-extractor peer pilot", () => {
         tool: "extract_claims",
         args: { textArtifactId: "input_text" },
       }),
-    ).rejects.toMatchObject({ code: "manifest_not_active" });
+    ).rejects.toMatchObject({
+      code: "manifest_not_active",
+      message: expect.stringContaining("is draft"),
+    });
     expect(draftHarness.provider.invocations).toHaveLength(0);
 
     const inactiveHarness = await setupHarness({ peerStatus: "disabled" });
@@ -247,6 +250,7 @@ async function setupHarness(options: {
     manifestHash: compiled.manifestHash,
     status: options.manifestStatus ?? "active",
     compiledFrom: compiled.compiledFrom,
+    approvedAt: (options.manifestStatus ?? "active") === "active" ? now : null,
     createdAt: now,
   };
 

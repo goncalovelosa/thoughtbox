@@ -8,24 +8,34 @@ const operationSchema = z.enum([
   "peer_get_invocation",
   "peer_list_trace_events",
   "peer_get_artifact",
+  "peer_manifest_create",
+  "peer_manifest_approve",
+  "peer_manifest_reject",
+  "peer_manifest_list",
+  "peer_graduate_notebook",
 ]);
 
 export const peerNotebookToolInputSchema = z.object({
   operation: operationSchema,
   text: z.string().optional().describe("Text content for peer_artifact_seed"),
   name: z.string().optional().describe("Optional artifact name for peer_artifact_seed"),
-  peerId: z.string().optional().describe("Peer id for peer_invoke"),
+  peerId: z.string().optional().describe("Peer id for peer_invoke and peer_manifest_list"),
   tool: z.string().optional().describe("Exposed peer tool name for peer_invoke"),
   args: z.record(z.unknown()).optional().describe("JSON arguments for peer_invoke"),
   invocationId: z.string().optional().describe("Invocation id for invocation and trace reads"),
   artifactId: z.string().optional().describe("Artifact id for peer_get_artifact"),
+  manifestJson: z.string().optional().describe("peer.manifest.json content for peer_manifest_create; stored as a draft"),
+  displayName: z.string().optional().describe("Optional display name when peer_manifest_create or peer_graduate_notebook registers a new peer"),
+  description: z.string().optional().describe("Optional description when peer_manifest_create or peer_graduate_notebook registers a new peer"),
+  manifestId: z.string().optional().describe("Manifest id for peer_manifest_approve and peer_manifest_reject"),
+  notebookId: z.string().optional().describe("Notebook id for peer_graduate_notebook; the notebook must contain one code cell named peer.manifest.json whose text is the manifest JSON"),
 });
 
 export type PeerNotebookToolInput = z.infer<typeof peerNotebookToolInputSchema>;
 
 export const PEER_NOTEBOOK_TOOL = {
   name: "thoughtbox_peer_notebook",
-  description: "Brokered MCP peer notebook pilot surface. Seeds in-memory text artifacts, invokes the mock claim-extractor peer, and reads invocations, traces, and artifacts.",
+  description: "Brokered MCP peer notebook pilot surface. Seeds text artifacts, invokes the claim-extractor peer on the development-only local-process runtime, manages the draft-to-active manifest lifecycle, graduates notebooks into draft peer manifests, and reads invocations, traces, and artifacts.",
   inputSchema: peerNotebookToolInputSchema,
   annotations: {
     readOnlyHint: false,
@@ -66,6 +76,35 @@ export class PeerNotebookTool {
         return this.handler.getArtifact(
           requiredString(input.artifactId, "artifactId", input.operation),
         );
+
+      case "peer_manifest_create":
+        return this.handler.createManifestDraft({
+          manifestJson: requiredString(input.manifestJson, "manifestJson", input.operation),
+          displayName: input.displayName,
+          description: input.description,
+        });
+
+      case "peer_manifest_approve":
+        return this.handler.approveManifest(
+          requiredString(input.manifestId, "manifestId", input.operation),
+        );
+
+      case "peer_manifest_reject":
+        return this.handler.rejectManifest(
+          requiredString(input.manifestId, "manifestId", input.operation),
+        );
+
+      case "peer_manifest_list":
+        return this.handler.listManifests(
+          requiredString(input.peerId, "peerId", input.operation),
+        );
+
+      case "peer_graduate_notebook":
+        return this.handler.graduateNotebook({
+          notebookId: requiredString(input.notebookId, "notebookId", input.operation),
+          displayName: input.displayName,
+          description: input.description,
+        });
     }
   }
 }

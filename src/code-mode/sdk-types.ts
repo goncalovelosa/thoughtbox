@@ -11,9 +11,15 @@
  * - theseus:       src/protocol/theseus-tool.ts (theseusToolInputSchema)
  * - ulysses:       src/protocol/ulysses-tool.ts (ulyssesToolInputSchema)
  * - observability: src/observability/gateway-handler.ts (ObservabilityInputSchema)
+ * - hub:           src/hub/operations.ts (HUB_OPERATIONS catalog)
+ * - claims:        src/claims/operations.ts (CLAIMS_OPERATIONS catalog)
  */
 
 export const TB_SDK_TYPES = `\`\`\`ts
+type HubProfile = "MANAGER" | "ARCHITECT" | "DEBUGGER" | "SECURITY" | "RESEARCHER" | "REVIEWER";
+type ClaimType = "assumption" | "decision" | "observation" | "requirement" | "outcome";
+type ClaimStatus = "asserted" | "supported" | "invalidated" | "superseded";
+
 interface TB {
   /** Submit a structured thought. Source: src/thought/tool.ts */
   thought(input: {
@@ -85,8 +91,8 @@ interface TB {
     validate(args: { notebookId: string; cellId: string; observed: unknown; expectedSnapshotHash?: string }): Promise<unknown>;
     /** Persist the current notebook as a replayable artifact. */
     persist(args: { notebookId: string }): Promise<unknown>;
-    /** Start an evidence run; use sync for short checks and async for Cloud Run runner work. */
-    startRun(args: { notebookId: string; mode: "runbook" | "simulation" | "eval" | "failure_capsule" | "adr_evidence" | "skill_certification" | "scenario_factory" | "system_audit"; executionMode?: "sync" | "async"; inputs?: Record<string, unknown> }): Promise<unknown>;
+    /** Execute the notebook's cells and derive a verdict from real results. Only runbook mode is implemented; other modes return an explicit error. */
+    startRun(args: { notebookId: string; mode: "runbook" | "simulation" | "eval" | "failure_capsule" | "adr_evidence" | "skill_certification" | "scenario_factory" | "system_audit"; inputs?: Record<string, unknown> }): Promise<unknown>;
     getRun(args: { runId: string }): Promise<unknown>;
     listRuns(args?: { notebookId?: string }): Promise<unknown>;
     cancelRun(args: { runId: string; reason?: string }): Promise<unknown>;
@@ -149,6 +155,72 @@ interface TB {
     merge(args: { sessionId: string; synthesis: string; selectedBranchId?: string; resolution: "selected" | "synthesized" | "abandoned" }): Promise<unknown>;
     list(args: { sessionId: string }): Promise<unknown>;
     get(args: { sessionId: string; branchId: string }): Promise<unknown>;
+  };
+
+  /**
+   * Multi-agent hub coordination: workspaces, problems, proposals, consensus,
+   * channels. Call register or quickJoin once per session — the returned
+   * agentId is then implicit for every other call. Pass agentId explicitly
+   * only to act as another agent registered in this session.
+   * Source: src/hub/operations.ts
+   */
+  hub: {
+    register(args: { name: string; profile?: HubProfile; clientInfo?: string }): Promise<unknown>;
+    quickJoin(args: { name: string; workspaceId: string; profile?: HubProfile; clientInfo?: string }): Promise<unknown>;
+    listWorkspaces(): Promise<unknown>;
+    whoami(args?: { agentId?: string }): Promise<unknown>;
+    createWorkspace(args: { name: string; description: string; agentId?: string }): Promise<unknown>;
+    joinWorkspace(args: { workspaceId: string; agentId?: string }): Promise<unknown>;
+    getProfilePrompt(args: { profile: HubProfile }): Promise<unknown>;
+    createProblem(args: { workspaceId: string; title: string; description: string; agentId?: string }): Promise<unknown>;
+    claimProblem(args: { workspaceId: string; problemId: string; branchId?: string; agentId?: string }): Promise<unknown>;
+    updateProblem(args: { workspaceId: string; problemId: string; status: "open" | "in-progress" | "resolved" | "closed"; resolution?: string; agentId?: string }): Promise<unknown>;
+    listProblems(args: { workspaceId: string; status?: "open" | "in-progress" | "resolved" | "closed"; assignedTo?: string }): Promise<unknown>;
+    addDependency(args: { workspaceId: string; problemId: string; dependsOnProblemId: string; agentId?: string }): Promise<unknown>;
+    removeDependency(args: { workspaceId: string; problemId: string; dependsOnProblemId: string; agentId?: string }): Promise<unknown>;
+    readyProblems(args: { workspaceId: string }): Promise<unknown>;
+    blockedProblems(args: { workspaceId: string }): Promise<unknown>;
+    createSubProblem(args: { workspaceId: string; parentId: string; title: string; description: string; agentId?: string }): Promise<unknown>;
+    createProposal(args: { workspaceId: string; title: string; description: string; sourceBranch: string; problemId?: string; agentId?: string }): Promise<unknown>;
+    reviewProposal(args: { workspaceId: string; proposalId: string; verdict: "approve" | "request-changes" | "reject"; reasoning: string; thoughtRefs?: number[]; agentId?: string }): Promise<unknown>;
+    /** Coordinator-only; requires at least one approve review. The synthesis thought persists to the workspace main session. */
+    mergeProposal(args: { workspaceId: string; proposalId: string; mergeMessage: string; agentId?: string }): Promise<unknown>;
+    listProposals(args: { workspaceId: string; status?: "open" | "reviewing" | "merged" | "rejected" }): Promise<unknown>;
+    markConsensus(args: { workspaceId: string; name: string; description: string; thoughtRef: number; branchId?: string; agentId?: string }): Promise<unknown>;
+    endorseConsensus(args: { workspaceId: string; consensusId: string; agentId?: string }): Promise<unknown>;
+    listConsensus(args: { workspaceId: string }): Promise<unknown>;
+    postMessage(args: { workspaceId: string; problemId: string; content: string; ref?: { sessionId?: string; thoughtNumber?: number; branchId?: string }; agentId?: string }): Promise<unknown>;
+    readChannel(args: { workspaceId: string; problemId: string; since?: string }): Promise<unknown>;
+    postSystemMessage(args: { workspaceId: string; problemId: string; content: string; ref?: { sessionId?: string; thoughtNumber?: number; branchId?: string } }): Promise<unknown>;
+    workspaceStatus(args: { workspaceId: string }): Promise<unknown>;
+    workspaceDigest(args: { workspaceId: string }): Promise<unknown>;
+  };
+
+  /**
+   * Claim graph: typed, tenant-isolated assertions with dependency edges
+   * and explicit subscriptions (SPEC-AGX-SUBSTRATE). Identity is shared
+   * with tb.hub — register or quickJoin once, then mutations use that
+   * agentId implicitly (override per call via agentId). Invalidate and
+   * supersede preserve the claim (append-history; supersede sets a
+   * superseded_by pointer to the replacement). affected = transitive
+   * dependents via reverse depends_on edges (cycle-safe, depth-capped).
+   * Staleness primitives (pull, not push): verify = cheap revalidation of
+   * specific claim ids before acting on them; changedSince = digest of
+   * status transitions after a timestamp for session-start recall.
+   * Source: src/claims/operations.ts
+   */
+  claims: {
+    assert(args: { workspaceId: string; type: ClaimType; statement: string; evidenceRefs?: string[]; agentId?: string }): Promise<unknown>;
+    support(args: { claimId: string; evidenceRefs: string[]; agentId?: string }): Promise<unknown>;
+    invalidate(args: { claimId: string; agentId?: string }): Promise<unknown>;
+    supersede(args: { claimId: string; statement: string; type?: ClaimType; evidenceRefs?: string[]; agentId?: string }): Promise<unknown>;
+    link(args: { fromClaimId: string; toClaimId: string; kind: "depends_on" | "derives_from" | "contradicts"; agentId?: string }): Promise<unknown>;
+    subscribe(args: { claimId: string; subscriber?: string; agentId?: string }): Promise<unknown>;
+    unsubscribe(args: { claimId: string; subscriber?: string; agentId?: string }): Promise<unknown>;
+    query(args: { workspaceId: string; type?: ClaimType; status?: ClaimStatus; createdBy?: string; text?: string }): Promise<unknown>;
+    verify(args: { ids: string[] }): Promise<unknown>;
+    changedSince(args: { since: string; workspaceId?: string }): Promise<unknown>;
+    affected(args: { claimId: string; maxDepth?: number }): Promise<unknown>;
   };
 }
 \`\`\``;

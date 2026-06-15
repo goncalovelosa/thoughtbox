@@ -69,6 +69,24 @@ export class ProtocolHandler {
     this.workspaceId = project;
   }
 
+  /**
+   * Protocol rows are workspace-scoped NOT NULL in Postgres; fail fast with
+   * a clear error instead of letting the insert hit the constraint.
+   */
+  private requireWorkspaceId(): string {
+    if (!this.workspaceId) {
+      throw new Error(
+        'Protocol operations require a workspace scope (call setProject before init)',
+      );
+    }
+    return this.workspaceId;
+  }
+
+  /** Workspace for child rows: prefer the parent session's scope. */
+  private sessionWorkspaceId(session: { workspace_id: string | null }): string {
+    return session.workspace_id ?? this.requireWorkspaceId();
+  }
+
   // ---------------------------------------------------------------------------
   // Shared helpers
   // ---------------------------------------------------------------------------
@@ -77,17 +95,18 @@ export class ProtocolHandler {
     protocol: Protocol,
     workspaceId: string | null = this.workspaceId,
   ): Promise<ProtocolSession | null> {
-    let query = this.client
+    // Fail closed: without a workspace scope, never run an unscoped query that
+    // could return another tenant's session.
+    if (!workspaceId) return null;
+
+    const query = this.client
       .from('protocol_sessions')
       .select('*')
       .eq('protocol', protocol)
       .eq('status', 'active')
+      .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false })
       .limit(1);
-
-    if (workspaceId) {
-      query = query.eq('workspace_id', workspaceId);
-    }
 
     const { data, error } = await query.single();
 
@@ -151,7 +170,7 @@ export class ProtocolHandler {
     const insertPayload = {
       protocol: 'theseus' as const,
       state_json: { B: 0, test_fail_count: 0, description: description ?? '' } as Json,
-      ...(this.workspaceId ? { workspace_id: this.workspaceId } : {}),
+      workspace_id: this.requireWorkspaceId(),
     };
 
     const { data: session, error: sessionErr } = await this.client
@@ -168,6 +187,7 @@ export class ProtocolHandler {
 
     const scopeRows = scope.map((f) => ({
       session_id: session.id,
+      workspace_id: session.workspace_id,
       file_path: f,
       source: 'init' as const,
     }));
@@ -215,6 +235,7 @@ export class ProtocolHandler {
       .from('protocol_visas')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         file_path: visa.filePath,
         justification: visa.justification,
         anti_pattern_acknowledged: visa.antiPatternAcknowledged,
@@ -229,6 +250,7 @@ export class ProtocolHandler {
       .upsert(
         {
           session_id: session.id,
+          workspace_id: this.sessionWorkspaceId(session),
           file_path: visa.filePath,
           source: 'visa' as const,
         },
@@ -265,6 +287,7 @@ export class ProtocolHandler {
       .from('protocol_audits')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         diff_hash: audit.diffHash,
         commit_message: audit.commitMessage,
         approved: audit.approved,
@@ -280,6 +303,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         event_type: 'checkpoint',
         event_json: {
           diffHash: audit.diffHash,
@@ -347,6 +371,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         event_type: 'outcome',
         event_json: {
           testsPassed: result.testsPassed,
@@ -528,7 +553,7 @@ export class ProtocolHandler {
     const insertPayload = {
       protocol: 'ulysses' as const,
       state_json: initialState,
-      ...(this.workspaceId ? { workspace_id: this.workspaceId } : {}),
+      workspace_id: this.requireWorkspaceId(),
     };
 
     const { data: session, error } = await this.client
@@ -620,6 +645,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         event_type: 'plan',
         event_json: step as unknown as Json,
       });
@@ -732,6 +758,7 @@ export class ProtocolHandler {
         .from('protocol_history')
         .insert({
           session_id: session.id,
+          workspace_id: this.sessionWorkspaceId(session),
           event_type: 'validator_tampering',
           event_json: {
             phase: state.S === 1 ? 'primary' : 'recovery',
@@ -836,6 +863,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         event_type: 'outcome',
         event_json: outcomeEvent,
       });
@@ -912,6 +940,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
       session_id: session.id,
+      workspace_id: this.sessionWorkspaceId(session),
       event_type: 'final_validator_bound',
       event_json: {
         notebookId: binding.notebookId,
@@ -988,6 +1017,7 @@ export class ProtocolHandler {
       .from('protocol_history')
       .insert({
         session_id: session.id,
+        workspace_id: this.sessionWorkspaceId(session),
         event_type: 'reflect',
         event_json: hypothesis,
       });
@@ -1012,15 +1042,20 @@ export class ProtocolHandler {
   async ulyssesStatus(): Promise<Record<string, unknown>> {
     const session = await this.getActiveSession('ulysses');
     if (!session) {
-      // Fetch most recent completed session for context
-      const { data: last } = await this.client
-        .from('protocol_sessions')
-        .select('id, status, completed_at')
-        .eq('protocol', 'ulysses')
-        .neq('status', 'active')
-        .order('completed_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Fetch most recent completed session for context, strictly scoped to
+      // this workspace. With no workspace set we skip the lookup entirely
+      // rather than fall back to a cross-tenant read.
+      const { data: last } = this.workspaceId
+        ? await this.client
+            .from('protocol_sessions')
+            .select('id, status, completed_at')
+            .eq('protocol', 'ulysses')
+            .neq('status', 'active')
+            .eq('workspace_id', this.workspaceId)
+            .order('completed_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        : { data: null };
 
       return {
         active: false,
@@ -1123,6 +1158,7 @@ export class ProtocolHandler {
           .from('protocol_history')
           .insert({
             session_id: session.id,
+            workspace_id: this.sessionWorkspaceId(session),
             event_type: 'validator_tampering',
             event_json: {
               phase: 'final',

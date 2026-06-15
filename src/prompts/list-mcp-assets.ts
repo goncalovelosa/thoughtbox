@@ -47,9 +47,9 @@ Discover Thoughtbox operation modules, prompts, resources, and public tool surfa
 
 Run JavaScript against the \`tb\` SDK to use Thoughtbox operation modules such as session, thought, knowledge, notebook, protocol, observability, and branch operations.
 
-### 3. \`thoughtbox_peer_notebook\` — Mock Peer Notebook Pilot
+### 3. \`thoughtbox_peer_notebook\` — Peer Notebook Pilot
 
-Brokered MCP peer notebook pilot surface for the deterministic in-memory \`claim-extractor\` peer.
+Brokered MCP peer notebook pilot surface for the deterministic \`claim-extractor\` peer on the development-only local-process runtime.
 
 Supported operations:
 
@@ -60,6 +60,11 @@ Supported operations:
 | \`peer_get_invocation\` | Read invocation metadata |
 | \`peer_list_trace_events\` | Read broker/runtime trace events, including denied outbound calls |
 | \`peer_get_artifact\` | Read seeded or produced artifacts |
+| \`peer_manifest_create\` | Compile \`peer.manifest.json\` content into a draft manifest |
+| \`peer_manifest_approve\` | Approve a draft manifest (activates it; retires the previously active one) |
+| \`peer_manifest_reject\` | Reject a draft manifest |
+| \`peer_manifest_list\` | List manifest versions and statuses for a peer |
+| \`peer_graduate_notebook\` | Graduate a notebook's \`peer.manifest.json\` code cell into a draft manifest (cell text parsed as data; no notebook code runs) |
 
 ### Notebook Evidence Engine
 
@@ -99,7 +104,7 @@ ${NOTEBOOK_OPERATIONS.map(op => `| \`${op.name}\` | ${op.category} | ${op.descri
 | \`system://status\` | Notebook server health snapshot |
 | \`thoughtbox://notebook/operations\` | Notebook operations catalog (JSON) |
 | \`thoughtbox://notebook/capabilities\` | Notebook Evidence Engine modes, templates, outputs, and recommended use cases |
-| \`thoughtbox://peer-notebook/pilot\` | Mock peer notebook pilot surface and operation quick reference |
+| \`thoughtbox://peer-notebook/pilot\` | Peer notebook pilot surface and operation quick reference |
 | \`thoughtbox://patterns-cookbook\` | Thoughtbox reasoning patterns guide |
 | \`thoughtbox://architecture\` | Server architecture and implementation guide |
 

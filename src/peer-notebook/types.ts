@@ -37,6 +37,8 @@ export interface PeerManifest {
   notebookId: string;
   runtime: {
     provider: RuntimeProviderName;
+    /** Executable entry name resolved by the runtime provider's script registry. */
+    entry?: string;
     image?: string;
     cpus?: number;
     memoryMiB?: number;
@@ -116,6 +118,7 @@ export interface PeerManifestRecord {
   manifestHash: string;
   status: PeerManifestStatus;
   compiledFrom: CompiledPeerManifest["compiledFrom"];
+  approvedAt: string | null;
   createdAt: string;
 }
 
@@ -176,13 +179,19 @@ export class PeerNotebookError extends Error {
       | "invocation_not_found"
       | "peer_not_found"
       | "peer_not_active"
+      | "manifest_not_found"
       | "manifest_not_active"
+      | "notebook_not_found"
+      | "manifest_duplicate"
+      | "invalid_manifest_transition"
       | "tool_not_found"
       | "invalid_args"
       | "invalid_result"
       | "runtime_provider_not_found"
       | "artifact_not_found"
       | "outbound_denied"
+      | "target_unavailable"
+      | "target_failed"
       | "timeout",
     message: string,
     public readonly details?: JsonValue,
