@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import {
-  INIT_OPERATIONS,
-  getOperation as getInitOperation,
+  INIT_NAVIGATION_STEPS,
+  getNavigationStep as getInitNavStep,
 } from '../init/operations.js';
 import {
   SESSION_OPERATIONS,
@@ -71,8 +71,8 @@ interface ModuleCatalog {
 const MODULE_CATALOGS: ModuleCatalog[] = [
   {
     module: 'init',
-    operations: INIT_OPERATIONS,
-    getOperation: getInitOperation,
+    operations: INIT_NAVIGATION_STEPS,
+    getOperation: (name: string) => getInitNavStep(name) as any,
   },
   {
     module: 'session',
