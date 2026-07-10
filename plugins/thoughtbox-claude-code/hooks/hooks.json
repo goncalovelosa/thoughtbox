@@ -22,11 +22,41 @@
         ]
       },
       {
-        "matcher": "mcp__thoughtbox-cloud-run__thoughtbox_execute",
+        "matcher": "^mcp__.*__thoughtbox_execute$",
         "hooks": [
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session_tracker.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughtbox hook capture-user-turn"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughtbox hook surface-decisions",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughtbox hook promote-to-decision"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/thoughtbox hook audit-response",
+            "timeout": 10
           }
         ]
       }

@@ -56,6 +56,23 @@ describe('generateAuditData', () => {
     expect(result.thoughtCounts.action_report).toBe(1);
   });
 
+  it('counts inquiry-session thought types (finding/synthesis/question/conclusion)', () => {
+    const thoughts = [
+      thought({ thoughtNumber: 1, thoughtType: 'question' }),
+      thought({ thoughtNumber: 2, thoughtType: 'finding' }),
+      thought({ thoughtNumber: 3, thoughtType: 'finding' }),
+      thought({ thoughtNumber: 4, thoughtType: 'synthesis' }),
+      thought({ thoughtNumber: 5, thoughtType: 'conclusion' }),
+    ];
+    const result = generateAuditData('sess-2', thoughts);
+    expect(result.thoughtCounts.total).toBe(5);
+    expect(result.thoughtCounts.question).toBe(1);
+    expect(result.thoughtCounts.finding).toBe(2);
+    expect(result.thoughtCounts.synthesis).toBe(1);
+    expect(result.thoughtCounts.conclusion).toBe(1);
+    expect(result.thoughtCounts.reasoning).toBe(0);
+  });
+
   it('aggregates decision confidence levels', () => {
     const thoughts = [
       thought({
@@ -177,29 +194,6 @@ describe('generateAuditData', () => {
         (g) => g.type === 'decision_without_action'
       )
     ).toHaveLength(0);
-  });
-
-  it('detects critique overrides', () => {
-    const thoughts = [
-      thought({
-        thoughtNumber: 1,
-        thoughtType: 'reasoning',
-        critique: {
-          text: 'Consider edge cases for authentication flow',
-          model: 'test',
-          timestamp: new Date().toISOString(),
-        },
-      }),
-      thought({ thoughtNumber: 2, thoughtType: 'reasoning' }),
-    ];
-    thoughts[1].thought =
-      'Moving on to the database schema design';
-    const result = generateAuditData('sess-1', thoughts);
-    expect(result.critiques.generated).toBe(1);
-    expect(result.critiques.overridden).toBe(1);
-    expect(
-      result.gaps.some((g) => g.type === 'critique_override')
-    ).toBe(true);
   });
 
   it('counts assumption flips', () => {

@@ -24,7 +24,7 @@ claims:
     statement: The channel client selects its transport by configuration — in-process SSE against a local server, HTTP polling of the pull endpoint against a hosted server with session-scoped query parameters when configured — and delivers identical channel notifications either way
     type: implementation
     behavioral: false
-    required_evidence: the channel client chooses SSE vs polling from config (URL host inference with an env override, warning on invalid overrides), forwarding session_id when configured and priming before emitting; unit tests cover both transports producing the same pushEvent calls; local SSE path is unchanged from current behavior
+    required_evidence: the channel client chooses SSE vs polling from config (URL host inference with an env override, warning on invalid overrides), forwarding session_id when configured and priming before emitting; both transports normalize the workspace-scoped wire shape (top-level workspaceId, session id in data.session_id) into the ThoughtboxEvent sessionId the EventFilter keys on, so a THOUGHTBOX_SESSION filter matches protocol events instead of silently dropping everything, and the filter warns (once) when it drops an event with no session attribution; unit tests cover both transports producing the same pushEvent calls
   - id: c5
     statement: The local-mode reasoning channel keeps working unchanged — the hosted path is additive and does not alter local /events SSE delivery or protocol enforcement
     type: governance
@@ -66,7 +66,14 @@ philosophy ("agents pull: `verify` is the cheap staleness check, `changed_since`
 the digest", `SPEC-AGX-SUBSTRATE` §11.1). Push/Realtime delivery is deferred to
 B6/B8 (the reactive substrate) so the realtime transport is defined once, there.
 
-- **Local mode**: unchanged. In-process `/events` SSE; channel subscribes via SSE.
+- **Local mode**: in-process `/events` SSE; channel subscribes via SSE.
+  **Amended 2026-07-09 (additive):** default local mode (fs) ALSO appends the
+  same stream to a durable SQLite log (`SqliteProtocolEventStorage`,
+  `<dataDir>/protocol-events.db`) and serves the identical pull contract at
+  `GET /protocol/events` (no auth, matching the unauthenticated local SSE
+  surface), so event history survives restarts and the polling transport works
+  locally. SSE delivery is unchanged; `THOUGHTBOX_STORAGE=memory` keeps the
+  SSE-only volatile posture.
 - **Hosted mode**: protocol events persist to a tenant-scoped `protocol_events`
   table; the channel polls a tenant-scoped pull endpoint; tenant isolation is by
   construction (API key → workspace → filtered query), not by realtime RLS.
@@ -94,7 +101,10 @@ B6/B8 (the reactive substrate) so the realtime transport is defined once, there.
    prefix. `protocol_events` mirrors the full nine-type `ThoughtboxEvent`
    taxonomy the channel emits, so hosted pull equals local SSE byte-for-byte.
 3. **Pull endpoint** (c3) — `GET /protocol/events?changed_since=<cursor>`,
-   authorized by API key, filtered by `tenant_workspace_id`.
+   authorized by API key, filtered by `tenant_workspace_id`. An optional
+   `session_id` query param (the one the plugin polling client already
+   forwards) narrows the pull to one reasoning session server-side;
+   absent, behavior is unchanged.
 4. **Channel client transport selection** (c4) — SSE (local) vs polling (hosted),
    chosen by config; identical `pushEvent` behavior.
 5. **Tests** (c2/c3/c4/c5) — persistence, cross-tenant negative control, both

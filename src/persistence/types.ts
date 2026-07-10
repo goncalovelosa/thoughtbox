@@ -126,7 +126,7 @@ export interface ThoughtData {
   timestamp: string; // ISO 8601 - always present after persistence
 
   /** Operations mode: structured thought type for programmatic filtering */
-  thoughtType: 'reasoning' | 'decision_frame' | 'action_report' | 'belief_snapshot' | 'assumption_update' | 'context_snapshot' | 'progress' | 'action_receipt';
+  thoughtType: 'reasoning' | 'decision_frame' | 'action_report' | 'belief_snapshot' | 'assumption_update' | 'context_snapshot' | 'progress' | 'action_receipt' | 'finding' | 'synthesis' | 'question' | 'conclusion';
 
   /** Confidence level for decision_frame thoughts */
   confidence?: 'high' | 'medium' | 'low';
@@ -170,18 +170,6 @@ export interface ThoughtData {
   contentHash?: string;
   parentHash?: string;
 
-  /**
-   * Autonomous critique metadata (Phase 3: Sampling Loops)
-   * Generated when critique parameter is enabled in thoughtbox tool
-   */
-  critique?: {
-    /** The critique text from the sampled model */
-    text: string;
-    /** Model that generated the critique */
-    model: string;
-    /** ISO 8601 timestamp when critique was generated */
-    timestamp: string;
-  };
 }
 
 /**
@@ -383,6 +371,10 @@ export interface AuditManifest {
     context_snapshot: number;
     progress: number;
     action_receipt: number;
+    finding: number;
+    synthesis: number;
+    question: number;
+    conclusion: number;
   };
   decisions: {
     total: number;
@@ -397,16 +389,11 @@ export interface AuditManifest {
     partiallyReversible: number;
   };
   gaps: Array<{
-    type: 'decision_without_action' | 'critique_override';
+    type: 'decision_without_action';
     thoughtNumber: number;
     description: string;
   }>;
   assumptionFlips: number;
-  critiques: {
-    generated: number;
-    addressed: number;
-    overridden: number;
-  };
 }
 
 // =============================================================================
@@ -484,60 +471,6 @@ export interface ScratchpadNote {
   content: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-// =============================================================================
-// Session Analysis Types (for session toolhost)
-// =============================================================================
-
-/**
- * Session analysis result with objective metrics
- * Used by the session toolhost `analyze` operation
- */
-export interface SessionAnalysis {
-  sessionId: string;
-  metadata: {
-    title: string;
-    tags: string[] | undefined;
-    thoughtCount: number;
-    branchCount: number;
-    revisionCount: number;
-    duration: number;           // Milliseconds from first to last thought
-    createdAt: string;          // ISO 8601
-    lastUpdatedAt: string;      // ISO 8601
-  };
-  structure: {
-    linearityScore: number;     // 0-1, higher = more linear reasoning
-    revisionRate: number;       // Revisions / total thoughts
-    maxDepth: number;           // Count of distinct branch IDs
-    thoughtDensity: number;     // Thoughts per minute
-  };
-  quality: {
-    critiqueRequests: number;   // Thoughts with critique: true
-    hasConvergence: boolean;    // Main chain continues after branches
-    isComplete: boolean;        // Final thought has nextThoughtNeeded: false
-  };
-}
-
-/**
- * Extracted learning from a session for DGM evolution
- * Used by the session toolhost `extract_learnings` operation
- */
-export interface ExtractedLearning {
-  type: 'pattern' | 'anti-pattern' | 'signal';
-  content: string;              // Markdown or JSON content
-  targetPath: string;           // Suggested file path for DGM evolution
-  metadata: {
-    sourceSession: string;      // Session ID
-    sourceThoughts: number[];   // Thought numbers involved
-    extractedAt: string;        // ISO 8601
-    behaviorCharacteristics?: {
-      specificity: number;      // 1-10: How specific vs general
-      applicability: number;    // 1-10: How broadly applicable
-      complexity: number;       // 1-10: How complex to implement
-      maturity: number;         // 1-10: How proven/tested
-    };
-  };
 }
 
 // =============================================================================
@@ -693,16 +626,6 @@ export interface ThoughtboxStorage {
    * Get all thoughts for a branch
    */
   getBranch(sessionId: string, branchId: string): Promise<ThoughtData[]>;
-
-  /**
-   * Update a thought with critique metadata (Phase 3: Sampling Loops)
-   * Called after sampling API returns critique results
-   */
-  updateThoughtCritique(
-    sessionId: string,
-    thoughtNumber: number,
-    critique: { text: string; model: string; timestamp: string }
-  ): Promise<void>;
 
   // ---------------------------------------------------------------------------
   // Export Operations

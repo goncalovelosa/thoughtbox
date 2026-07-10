@@ -5,7 +5,7 @@
  * No mocking of @supabase/supabase-js -- all tests hit real Postgres.
  *
  * ADR Hypotheses validated:
- *   H1 -- Full ThoughtboxStorage interface (session CRUD, thought CRUD, branch ops, critique, export)
+ *   H1 -- Full ThoughtboxStorage interface (session CRUD, thought CRUD, branch ops, export)
  *   H2 -- ThoughtNode linked-list reconstruction via toLinkedExport()
  *   H5 -- UNIQUE NULLS NOT DISTINCT constraint
  *   H7 -- Trigger-based count consistency (parallel saveThought)
@@ -213,25 +213,6 @@ describe('SupabaseStorage (ThoughtboxStorage)', () => {
     });
   });
 
-  describe('H1: Critique update', () => {
-    it('updates thought with critique metadata', async ({ skip }) => {
-      if (!available) skip();
-      const session = await storage.createSession({ title: 'Critique Test' });
-      await storage.saveThought(session.id, makeThought({ thoughtNumber: 1 }));
-
-      const critique = {
-        text: 'This reasoning has a gap.',
-        model: 'claude-3-opus',
-        timestamp: new Date().toISOString(),
-      };
-
-      await storage.updateThoughtCritique(session.id, 1, critique);
-
-      const thought = await storage.getThought(session.id, 1);
-      expect(thought!.critique).toEqual(critique);
-    });
-  });
-
   describe('H1: Export operations', () => {
     it('exports session as JSON', async ({ skip }) => {
       if (!available) skip();
@@ -409,6 +390,10 @@ describe('SupabaseStorage (ThoughtboxStorage)', () => {
           context_snapshot: 0,
           progress: 0,
           action_receipt: 0,
+          finding: 0,
+          synthesis: 0,
+          question: 0,
+          conclusion: 0,
         },
         decisions: { total: 1, byConfidence: { high: 0, medium: 1, low: 0 } },
         actions: {
@@ -421,7 +406,6 @@ describe('SupabaseStorage (ThoughtboxStorage)', () => {
         },
         gaps: [],
         assumptionFlips: 0,
-        critiques: { generated: 0, addressed: 0, overridden: 0 },
       };
     }
 

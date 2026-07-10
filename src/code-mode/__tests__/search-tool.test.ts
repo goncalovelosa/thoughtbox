@@ -17,14 +17,33 @@ describe("thoughtbox_search", () => {
       "claims",
       "hub",
       "knowledge",
+      // --- tb.merge (SPEC-MERGE-CORE) — owned by merge-core ---
+      "merge",
+      // --- end tb.merge ---
       "notebook",
       "observability",
+      "runbook",
       "session",
       "theseus",
       "thought",
       "ulysses",
+      // tb.vars.* — durable named session variables (RLM-lite)
+      "vars",
     ]);
   });
+
+  // --- tb.merge (SPEC-MERGE-CORE) — owned by merge-core ---
+  it("merge operations are discoverable in the catalog (no approve)", async () => {
+    const result = await tool.handle({
+      code: "async () => Object.keys(catalog.operations.merge).sort()",
+    });
+    const output = JSON.parse(result.content[0].text);
+    expect(output.error).toBeUndefined();
+    // Approval is human-only via apps/web (SPEC-MERGE-CORE c4):
+    // exactly request/status/list/claim_diff, never an approve operation.
+    expect(output.result).toEqual(["claim_diff", "list", "request", "status"]);
+  });
+  // --- end tb.merge ---
 
   it("claims operations are discoverable in the catalog", async () => {
     const result = await tool.handle({
@@ -64,16 +83,16 @@ describe("thoughtbox_search", () => {
 
   it("searches prompts by name", async () => {
     const result = await tool.handle({
-      code: `async () => catalog.prompts.filter(p => p.name.includes('spec'))`,
+      code: `async () => catalog.prompts.filter(p => p.name.includes('interleaved'))`,
     });
     const output = JSON.parse(result.content[0].text);
-    expect(output.result.length).toBeGreaterThanOrEqual(3);
-    expect(output.result.some((p: { name: string }) => p.name === "spec-designer")).toBe(true);
+    expect(output.result.length).toBeGreaterThanOrEqual(1);
+    expect(output.result.some((p: { name: string }) => p.name === "interleaved-thinking")).toBe(true);
   });
 
   it("searches resources by URI pattern", async () => {
     const result = await tool.handle({
-      code: `async () => catalog.resources.filter(r => r.uri.includes('tests'))`,
+      code: `async () => catalog.resources.filter(r => r.uri.includes('operations'))`,
     });
     const output = JSON.parse(result.content[0].text);
     expect(output.result.length).toBeGreaterThanOrEqual(2);
@@ -85,7 +104,7 @@ describe("thoughtbox_search", () => {
     });
     const output = JSON.parse(result.content[0].text);
     expect(output.result.length).toBeGreaterThan(0);
-    expect(output.result.some((t: string) => t.includes("{sessionId}"))).toBe(true);
+    expect(output.result.some((t: string) => t.includes("{op}"))).toBe(true);
   });
 
   it("returns durationMs in response envelope", async () => {

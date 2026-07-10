@@ -13,9 +13,10 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { createMcpServer } from "./server-factory.js";
 import {
   FileSystemStorage,
+  FileSystemNotebookDocumentStorage,
   InMemoryStorage,
   SupabaseStorage,
-  migrateExports,
+  createSupabaseNotebookDocumentStorageProvider,
   type ThoughtboxStorage,
 } from "./persistence/index.js";
 import { SupabaseKnowledgeStorage } from "./knowledge/index.js";
@@ -24,14 +25,20 @@ import { createFileSystemHubStorage } from "./hub/hub-storage-fs.js";
 import { createSupabaseHubStorageProvider } from "./hub/supabase-hub-storage.js";
 import type { HubStorage } from "./hub/hub-types.js";
 import { InMemoryClaimStorage } from "./claims/in-memory-claim-storage.js";
+import { SqliteClaimStorage } from "./claims/sqlite-claim-storage.js";
 import { createSupabaseClaimStorageProvider } from "./claims/supabase-claim-storage.js";
 import { InMemoryRunbookStorage } from "./notebook/runbook/in-memory-runbook-storage.js";
+import { SqliteRunbookStorage } from "./notebook/runbook/sqlite-runbook-storage.js";
 import { createSupabaseRunbookStorageProvider } from "./notebook/runbook/supabase-runbook-storage.js";
+import { InMemoryMergeCommitStorage } from "./merge/in-memory-merge-storage.js";
+import { SqliteMergeCommitStorage } from "./merge/sqlite-merge-storage.js";
+import { createSupabaseMergeStorageProvider } from "./merge/supabase-merge-storage.js";
 import {
   createSupabaseProtocolEventStorageProvider,
   type ProtocolEventStorage,
 } from "./protocol/protocol-event-storage.js";
-import { initEvaluation, initMonitoring } from "./evaluation/index.js";
+import { SqliteProtocolEventStorage } from "./protocol/sqlite-protocol-event-storage.js";
+import { initEvaluation } from "./evaluation/index.js";
 import { createHubHandler, type HubEvent } from "./hub/hub-handler.js";
 import {
   createThoughtStoreAdapter,
@@ -44,6 +51,7 @@ import {
   createProtocolHttpSurface,
   type ProtocolEnforcementHandler,
 } from "./http/protocol-http.js";
+import { createDriftHttpSurface } from "./http/drift-http.js";
 import { createSupabaseProtocolHandler } from "./protocol/index.js";
 import { resolveRequestAuth } from "./auth/resolve-request-auth.js";
 import { ensureStaticWorkspace } from "./auth/static-workspace.js";
@@ -139,22 +147,6 @@ async function createStorage(): Promise<StorageBundle> {
   });
   await fsStorage.initialize();
 
-  // Auto-migrate existing exports if any
-  try {
-    const migrationResult = await migrateExports({
-      destDir: baseDir,
-      skipExisting: true,
-      dryRun: false,
-    });
-    if (migrationResult.migrated > 0) {
-      console.error(
-        `[Storage] Migrated ${migrationResult.migrated} sessions from exports`
-      );
-    }
-  } catch (err) {
-    console.error("[Storage] Migration check failed (non-fatal):", err);
-  }
-
   const factory: StorageFactory = {
     getStorage: () => new FileSystemStorage({
       basePath: baseDir,
@@ -180,6 +172,12 @@ interface SessionEntry {
 async function startHttpServer() {
   const { factory, hubStorage, dataDir } = await createStorage();
   const isMultiTenant = process.env.THOUGHTBOX_STORAGE === "supabase";
+  // THOUGHTBOX_STORAGE=memory keeps every local store volatile (tests,
+  // throwaway runs). The default local mode (fs) is DURABLE: claims,
+  // runbooks, and merge commits live in SQLite files under dataDir and
+  // survive restarts (dual-backend architecture; SPEC-AGX-SUBSTRATE §11.5).
+  const isVolatileMemory =
+    (process.env.THOUGHTBOX_STORAGE || "fs").toLowerCase() === "memory";
 
   // Multi-tenant hub isolation (Phase 4.3): each tenant workspace gets a
   // SupabaseHubStorage scoped by tenant_workspace_id, so tb.hub can never
@@ -194,41 +192,90 @@ async function startHttpServer() {
     : null;
 
   // Claim graph storage (SPEC-AGX-SUBSTRATE B1/B2): tenant-scoped
-  // SupabaseClaimStorage when hosted; a single process-shared
-  // InMemoryClaimStorage locally (volatile — the FileSystem backend is
-  // deferred per spec §11.5 until the H1/H2 experiments pass).
+  // SupabaseClaimStorage when hosted; locally a single process-shared
+  // SqliteClaimStorage at <dataDir>/claims.db so the claim graph survives
+  // restarts (InMemory only under THOUGHTBOX_STORAGE=memory).
   const tenantClaimStorage = isMultiTenant
     ? createSupabaseClaimStorageProvider({
         supabaseUrl: process.env.SUPABASE_URL!,
         serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
       })
     : null;
-  const localClaimStorage = isMultiTenant ? null : new InMemoryClaimStorage();
+  const localClaimStorage = isMultiTenant
+    ? null
+    : isVolatileMemory
+      ? new InMemoryClaimStorage()
+      : new SqliteClaimStorage(path.join(dataDir, "claims.db"));
 
   // Durable runbook storage (SPEC-AGX-SUBSTRATE B4b): tenant-scoped
-  // SupabaseRunbookStorage when hosted; a single process-shared
-  // InMemoryRunbookStorage locally. Without it the notebook engine falls
-  // back to a per-handler InMemoryRunbookStorage and runbook
-  // templates/instances/executions/ledger rows are lost with the process.
+  // SupabaseRunbookStorage when hosted; locally a single process-shared
+  // SqliteRunbookStorage at <dataDir>/runbooks.db (templates/instances/
+  // executions/ledger/advance-reservations survive restarts; InMemory only
+  // under THOUGHTBOX_STORAGE=memory). Without it the notebook engine falls
+  // back to a per-handler InMemoryRunbookStorage.
   const tenantRunbookStorage = isMultiTenant
     ? createSupabaseRunbookStorageProvider({
         supabaseUrl: process.env.SUPABASE_URL!,
         serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
       })
     : null;
-  const localRunbookStorage = isMultiTenant ? null : new InMemoryRunbookStorage();
+  const localRunbookStorage = isMultiTenant
+    ? null
+    : isVolatileMemory
+      ? new InMemoryRunbookStorage()
+      : new SqliteRunbookStorage(path.join(dataDir, "runbooks.db"));
+
+  // Merge-commit storage (SPEC-MERGE-CORE c8): tenant-scoped
+  // SupabaseMergeCommitStorage when hosted; locally a single process-shared
+  // SqliteMergeCommitStorage at <dataDir>/merges.db, mirroring the claims
+  // wiring (InMemory only under THOUGHTBOX_STORAGE=memory). tb.merge.* is
+  // unavailable without it.
+  const tenantMergeStorage = isMultiTenant
+    ? createSupabaseMergeStorageProvider({
+        supabaseUrl: process.env.SUPABASE_URL!,
+        serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      })
+    : null;
+  const localMergeStorage = isMultiTenant
+    ? null
+    : isVolatileMemory
+      ? new InMemoryMergeCommitStorage()
+      : new SqliteMergeCommitStorage(path.join(dataDir, "merges.db"));
+
+  // Durable notebook documents (persist/restore seam): tenant-scoped
+  // SupabaseNotebookDocumentStorage when hosted; FileSystemNotebookDocumentStorage
+  // under <dataDir>/notebooks locally.
+  const tenantNotebookDocumentStorage = isMultiTenant
+    ? createSupabaseNotebookDocumentStorageProvider({
+        supabaseUrl: process.env.SUPABASE_URL!,
+        serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      })
+    : null;
+  const localNotebookDocumentStorage = isMultiTenant
+    ? null
+    : new FileSystemNotebookDocumentStorage(path.join(dataDir, "notebooks"));
 
   // Hosted protocol-event log (SPEC-REASONING-CHANNEL-HOSTED c2): in
   // multi-tenant mode the protocol lifecycle stream is appended to a
   // tenant-scoped Supabase table so the reasoning channel can pull it
-  // (changed_since) across Cloud Run replicas. Local mode keeps the
-  // in-process /events SSE broadcast and needs no durable log.
+  // (changed_since) across Cloud Run replicas.
   const tenantProtocolEventStorage = isMultiTenant
     ? createSupabaseProtocolEventStorageProvider({
         supabaseUrl: process.env.SUPABASE_URL!,
         serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
       })
     : null;
+
+  // Local durable protocol-event log: default local mode ALSO persists the
+  // stream to <dataDir>/protocol-events.db so the hosted pull contract
+  // (GET /protocol/events, changed_since cursor) works locally and event
+  // history survives restarts. Additive — /events SSE delivery is
+  // unchanged. THOUGHTBOX_STORAGE=memory keeps the SSE-only volatile
+  // posture.
+  const localProtocolEventStorage: ProtocolEventStorage | null =
+    isMultiTenant || isVolatileMemory
+      ? null
+      : new SqliteProtocolEventStorage(path.join(dataDir, "protocol-events.db"));
 
   // Local-mode hub thought store: ONE storage instance shared by /hub/api
   // and every local MCP session's tb.hub dispatcher. Per-session
@@ -246,8 +293,7 @@ async function startHttpServer() {
   }
 
   // Initialize LangSmith evaluation tracing (no-op if LANGSMITH_API_KEY not set)
-  const traceListener = initEvaluation();
-  initMonitoring(traceListener ?? undefined);
+  initEvaluation();
 
   const host = process.env.HOST || "0.0.0.0";
   const app = createMcpExpressApp({
@@ -433,6 +479,8 @@ async function startHttpServer() {
           hubStorage: tenantHubStorage!(workspaceId),
           claimStorage: tenantClaimStorage!(workspaceId),
           runbookStorage: tenantRunbookStorage!(workspaceId),
+          mergeStorage: tenantMergeStorage!(workspaceId),
+          notebookDocumentStorage: tenantNotebookDocumentStorage!(workspaceId),
           dataDir,
           knowledgeStorage,
           workspaceId,
@@ -504,12 +552,25 @@ async function startHttpServer() {
         hubStorage,
         claimStorage: localClaimStorage!,
         runbookStorage: localRunbookStorage!,
+        mergeStorage: localMergeStorage!,
+        notebookDocumentStorage: localNotebookDocumentStorage!,
         hubThoughtStore: localHubThoughtStore,
         dataDir,
         knowledgeStorage,
         workspaceId: localWorkspaceId,
         onProtocolHandlerReady: (handler) => { localProtocolHandler = handler; },
-        onProtocolEvent: (event) => eventStream.broadcast(event),
+        // SSE broadcast (unchanged) + durable local log (fs mode): a log
+        // write must never block a protocol transition, so it is
+        // fire-and-forget like the hosted path.
+        onProtocolEvent: (event) => {
+          eventStream.broadcast(event);
+          if (localProtocolEventStorage) {
+            void localProtocolEventStorage.append(event).catch((err: unknown) => {
+              const message = err instanceof Error ? err.message : String(err);
+              console.error(`[ProtocolEvents] local append failed: ${message}`);
+            });
+          }
+        },
         onHubEvent: broadcastHubEvent,
         config: {
           disableThoughtLogging:
@@ -622,6 +683,19 @@ async function startHttpServer() {
   );
   protocolHttpSurface.mount(app);
 
+  // Drift-prevention decision store (SPEC-DRIFT-PREVENTION-HOOKS §8) —
+  // /drift/session-thought + /drift/session-decisions, both modes. Hosted
+  // auth reuses the enforcement workspace resolver above.
+  const driftHttpSurface = createDriftHttpSurface(
+    isMultiTenant
+      ? {
+          getStorage: (workspaceId) => factory.getStorage(workspaceId),
+          resolveWorkspaceId: resolveEnforcementWorkspace,
+        }
+      : { getStorage: () => factory.getStorage() },
+  );
+  driftHttpSurface.mount(app);
+
   // ---------------------------------------------------------------------------
   // Hub Event SSE Endpoint — pushes HubEvents to Channel subscribers
   // ---------------------------------------------------------------------------
@@ -643,6 +717,54 @@ async function startHttpServer() {
   }
 
   // ---------------------------------------------------------------------------
+  // Reasoning-channel pull endpoint (SPEC-REASONING-CHANNEL-HOSTED c3) —
+  // returns protocol events with id > changed_since, oldest first. Mounted
+  // in BOTH modes with the same wire contract:
+  // - Hosted: the API key resolves the workspace, so a key can never read
+  //   another tenant's events.
+  // - Local (fs mode): serves the single-operator SQLite log without auth,
+  //   matching the unauthenticated local /events SSE surface. Absent under
+  //   THOUGHTBOX_STORAGE=memory (SSE-only volatile posture).
+  // ---------------------------------------------------------------------------
+
+  const serveProtocolEventsPull = async (
+    req: Request,
+    res: Response,
+    storage: ProtocolEventStorage,
+  ): Promise<void> => {
+    const parsePositiveInt = (value: unknown): number | undefined => {
+      if (typeof value !== "string") return undefined;
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+    };
+
+    const cursor = parsePositiveInt(req.query.changed_since) ?? 0;
+    const limit = parsePositiveInt(req.query.limit);
+    // Optional session narrowing — the plugin polling client scopes its
+    // pull to one reasoning session. Absent, behavior is unchanged.
+    const sessionId =
+      typeof req.query.session_id === "string" && req.query.session_id.length > 0
+        ? req.query.session_id
+        : undefined;
+
+    try {
+      const events = await storage.changedSince(cursor, limit, sessionId);
+      const nextCursor =
+        events.length > 0 ? events[events.length - 1]!.cursor : cursor;
+      res.json({ events, cursor: nextCursor });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      res.status(500).json({ error: message });
+    }
+  };
+
+  if (!isMultiTenant && localProtocolEventStorage) {
+    app.get("/protocol/events", (req: Request, res: Response) =>
+      serveProtocolEventsPull(req, res, localProtocolEventStorage),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // OTLP Ingestion Routes (multi-tenant / deployed mode only)
   // ---------------------------------------------------------------------------
 
@@ -652,11 +774,6 @@ async function startHttpServer() {
       serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
     });
 
-    // Reasoning-channel pull endpoint (SPEC-REASONING-CHANNEL-HOSTED c3):
-    // returns protocol events with id > changed_since for the caller's
-    // workspace, oldest first. The API key resolves the workspace, so a key
-    // can never read another tenant's events. Hosted only — local mode uses
-    // the in-process /events SSE stream.
     app.get("/protocol/events", async (req: Request, res: Response) => {
       let workspaceId: string;
       try {
@@ -666,28 +783,7 @@ async function startHttpServer() {
         res.status(401).json({ error: message });
         return;
       }
-
-      const parsePositiveInt = (value: unknown): number | undefined => {
-        if (typeof value !== "string") return undefined;
-        const parsed = Number.parseInt(value, 10);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
-      };
-
-      const cursor = parsePositiveInt(req.query.changed_since) ?? 0;
-      const limit = parsePositiveInt(req.query.limit);
-
-      try {
-        const events = await tenantProtocolEventStorage!(workspaceId).changedSince(
-          cursor,
-          limit,
-        );
-        const nextCursor =
-          events.length > 0 ? events[events.length - 1]!.cursor : cursor;
-        res.json({ events, cursor: nextCursor });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        res.status(500).json({ error: message });
-      }
+      await serveProtocolEventsPull(req, res, tenantProtocolEventStorage!(workspaceId));
     });
   }
 

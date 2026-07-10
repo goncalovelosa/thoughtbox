@@ -1,7 +1,7 @@
 ---
 name: workflows-plan
-description: Transform spec and ADR into an implementation plan with task decomposition and sub-agent assignment. Stage 3 of the development workflow.
-argument-hint: [spec path or feature description]
+description: Transform spec (with frontmatter claims) into an implementation plan with task decomposition and sub-agent assignment. Stage 3 of the development workflow.
+argument-hint: "[spec path or feature description]"
 user-invocable: true
 ---
 
@@ -9,14 +9,14 @@ Create an implementation plan for: $ARGUMENTS
 
 ## Purpose
 
-You are executing Stage 3 (Planning) of the development workflow. The spec and ADR exist from Stage 2. Your job is to decompose the work into sub-agent-sized tasks, identify dependencies, and produce a plan file that Stage 4 can execute.
+You are executing Stage 3 (Planning) of the development workflow. The spec with frontmatter claims exists from Stage 2. Your job is to decompose the work into sub-agent-sized tasks, identify dependencies, and produce a plan file that Stage 4 can execute.
 
 ## Pre-Conditions
 
 Before starting, verify:
 1. `.workflow/state.json` exists and `currentStage` is `"planning"`
 2. A spec exists (check `stages.dev-docs.artifacts.spec` in state)
-3. An ADR exists in `.adr/staging/` (check `stages.dev-docs.artifacts.adr` in state)
+3. Spec frontmatter includes at least one claim (check `stages.dev-docs.artifacts.spec` in state)
 
 If pre-conditions are not met, report what's missing and halt.
 
@@ -24,10 +24,10 @@ If pre-conditions are not met, report what's missing and halt.
 
 ### Step 1: Gather Context
 
-Read the spec and ADR from Stage 2, then investigate the codebase:
+Read the spec (frontmatter + body) from Stage 2, then investigate the codebase:
 
 1. **Read the spec**: Understand what needs to be built
-2. **Read the ADR**: Understand the hypotheses and constraints
+2. **Read spec claims**: Understand falsifiable claims and required evidence
 3. **Map the affected code**: Use Glob/Grep to find files that will need changes
 4. **Check for prior learnings**: Search agent memory and compound learnings for relevant patterns
 5. **Check existing tests**: Identify test files that will need updates
@@ -121,16 +121,14 @@ Wait for user approval before proceeding.
 
 After user approves:
 
-1. **Record task tracking references only if a user-selected tracker is explicitly in scope.** Do not invent a tracker command or fallback task system.
-
-2. **Update workflow state** (`.workflow/state.json`):
+1. **Update workflow state** (`.workflow/state.json`):
    - Set `stages.planning.status` to `"completed"`
    - Set `stages.planning.completedAt` to current ISO timestamp
    - Set `stages.planning.artifacts.plan` to `.workflow/plan.md`
    - Set `currentStage` to `"implementation"`
    - Update `updatedAt`
 
-3. **Present the handoff**:
+2. **Present the handoff**:
    ```
    PLANNING COMPLETE
    ==================

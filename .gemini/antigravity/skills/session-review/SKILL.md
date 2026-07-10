@@ -1,7 +1,7 @@
 ---
 name: session-review
-description: Generate a structured session summary for cross-session continuity. Captures key decisions, hypotheses, partial work, and knowledge references. Output is written to .claude/session-handoff.json for the next session to load automatically.
-argument-hint: [optional: focus area or notes]
+description: Generate a structured session summary for cross-session continuity. Captures key decisions, hypotheses, partial work, and knowledge references. Output is written to .Codex/session-handoff.json for the next session to load automatically.
+argument-hint: "[optional: focus area or notes]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
@@ -28,10 +28,8 @@ See @loops/README.md for the full loop library.
 1. Run `git log --oneline -20` to see recent commits this session
 2. Run `git status` to see uncommitted work
 3. Run `git diff --stat` to see scope of changes
-4. Run the selected issue list to see active work items
-5. Run the selected issue list to see remaining work
-6. Check `.claude/state/memory-calibration.json` for pattern detection state
-7. Read MEMORY.md for any updates made this session
+4. Check `.Codex/state/memory-calibration.json` for pattern detection state
+5. Read MEMORY.md for any updates made this session
 
 ### Phase 2: Synthesize Session Context (Orient)
 
@@ -46,12 +44,12 @@ From the gathered data, identify:
 
 ### Phase 3: Write Session Handoff (Act)
 
-Write the session summary to `.claude/session-handoff.json` (single file, overwritten each time) using this schema:
+Write the session summary to `.Codex/session-handoff.json` (single file, overwritten each time) using this schema:
 
 ```json
 {
   "version": "1.0.0",
-  "session_id": "<from git or the selected tracker>",
+  "session_id": "<from git>",
   "timestamp": "<ISO 8601>",
   "branch": "<current git branch>",
   "duration_estimate": "<approximate session duration>",
@@ -76,13 +74,12 @@ Write the session summary to `.claude/session-handoff.json` (single file, overwr
     {
       "description": "<what was started>",
       "status": "<how far along>",
-      "resume_from": "<specific file:line or commit to resume from>",
-      "the selected tracker_id": "<if tracked in the selected tracker>"
+      "resume_from": "<specific file:line or commit to resume from>"
     }
   ],
   "knowledge_references": [
     {
-      "store": "<MEMORY.md | Thoughtbox | the selected tracker | git>",
+      "store": "<MEMORY.md | Thoughtbox | git>",
       "reference": "<specific entity/issue/commit>",
       "relevance": "<why the next session needs this>"
     }
@@ -111,7 +108,6 @@ Write the session summary to `.claude/session-handoff.json` (single file, overwr
 1. Verify the handoff file was written successfully
 2. Print a human-readable summary to the console
 3. If there are uncommitted changes, warn about them
-4. Suggest the selected issue sync operation if on an ephemeral branch
 
 ## Output
 
@@ -120,10 +116,9 @@ Present a concise summary:
 ```
 ## Session Handoff Written
 
-File: .claude/session-handoff.json
+File: .Codex/session-handoff.json
 Branch: {branch}
 Commits this session: {N}
-Active the selected tracker: {N}
 Open hypotheses: {N}
 Partial work items: {N}
 

@@ -198,6 +198,36 @@ claims with ids and evidence), and handoff `standing_facts` are existing obligat
 that become claim-graph readers/writers. The thought journal remains for operator-class agents
 and is otherwise demoted to legacy; it is not extended.
 
+**B11 delivery notes (2026-07-09 — as built):** the standing-facts shim
+(`src/claims/standing-facts.ts`) is the migration surface for the first two consumers. A
+standing fact is a keyed, workspace-scoped claim: `write` → `tb.claims.assert` with the key
+encoded as a queryable statement prefix (`[fact:<key>] <statement>`); `read`/`list` →
+`tb.claims.query` returning only LIVE facts (asserted/supported); revision is an explicit
+`supersede` → `tb.claims.supersede` (old claim flips to `superseded` pointing at its
+replacement, atomically — never a silent overwrite). Consumer mapping: assumption-registry
+entries write as type `assumption` (the default); session-handoff `standing_facts` write as
+`observation`/`decision`. The shim routes through the ClaimsHandler, so facts inherit
+tb.claims validation, the supersede CAS, and Realtime status emission verbatim. Round-trip
+and supersede semantics are vitest-evidenced (`src/claims/__tests__/standing-facts.test.ts`).
+Skill/handoff integrations are deliberately NOT built here — the shim is the reader/writer
+those artifacts adopt.
+
+Keyed uniqueness is RECONCILE-BASED, not constraint-based (fix, 2026-07-09): the claim store
+has no uniqueness constraint on the fact key, so two concurrent `write`s of one
+(workspace, key) can both pass the pre-check and both assert (the original TOCTOU). `write`
+is therefore assert-then-reconcile: after asserting, it re-queries live facts for the key and
+keeps the deterministic winner — oldest by (`createdAt`, claim id ascending) — retiring every
+other live claim via `tb.claims.invalidate` (the one handler transition that removes liveness
+without minting a new claim; handler `supersede` always creates a fresh replacement, which
+would itself be a new live duplicate). A writer whose own claim lost gets the same
+"already exists" error as a sequential duplicate write (first-writer-wins; `write` stays
+create-only), and the winner is never touched, so a key with a live fact can never reconcile
+to zero. `read`/`list` (and `supersede`, before flipping) run the same reconcile lazily when
+they observe >1 live fact for a key, so `list` never returns a duplicate key and pre-fix
+duplicates self-heal. Race and heal behavior is vitest-evidenced in the same test file.
+Follow-up if standing facts become load-bearing: a partial unique index on the fact key
+(live statuses only) upgrades uniqueness from reconcile-based to constraint-based.
+
 ## 5. Layer 2: Reactive Runbooks (EVOLVES the notebook subsystem)
 
 The prior Notebook Evidence Engine spec (`.specs/agentic-runbooks.md`, draft, largely
@@ -230,6 +260,37 @@ satisfied simply leaves the instance parked — visible, resumable, costing noth
 
 **Ordering.** Cells execute in document order; an `exec` cell cannot run before all prior
 cells are satisfied. Out-of-order execution is rejected, not warned.
+
+**B6+B8 delivery notes (2026-07-06 — as built):**
+
+1. **Await semantics are pull-only.** An `await` cell carries `{ claimId, until: ClaimStatus[] }`
+   and is satisfied when the claim's CURRENT status ∈ `until`. Satisfaction appends a normal
+   append-only execution record (status `completed`, one pass expectation documenting the
+   observed status), so the B5 ordering/derivation rules apply unchanged; an unsatisfied await
+   appends NOTHING — the instance derives `in_progress` (parked), never `failed`. A batch run
+   (`notebook_start_run`) reaching an unsatisfied await halts there with the trailing cells
+   skipped and the verdict not passing (reason names the awaited claim).
+2. **Subscription registration (the B6 binding).** When an instance parks at an await, the
+   cell's claim subscription is written durably (`claim_subscriptions.subscriber =
+   "runbook:<instanceId>/<cellId>"`, idempotent) — the hook Realtime/notification delivery
+   attaches to. A claim that does not exist yet parks without a subscription; the next
+   advance retries the read. Await evaluations are excluded from the fitness ledger
+   (coordination state, not a hypothesis — §7 scopes fitness to exec/assert cells).
+3. **Double-execute guard (GH #403, resolved with B8).** Advance runs an exec cell's side
+   effects behind a compare-and-swap: it must first INSERT a reservation keyed
+   `(instance_id, seq)` into the append-only `runbook_advance_reservations` table (InMemory:
+   synchronous check-and-set; Supabase: primary-key conditional insert). Exactly one
+   concurrent advancer wins; losers return `in_flight` having executed nothing. A reservation
+   with no matching execution record (crashed advancer) also reports `in_flight`; only an
+   explicit `force` skips past it (documented double-execute acceptance). Satisfied-await
+   records need no reservation — they are side-effect-free, and the `(instance_id, seq)`
+   unique key dedupes concurrent appends benignly.
+4. **Advancer v0 scope.** Manual pull only: `tb.runbook.advance` / `tb.runbook.status` (plus
+   `tb.runbook.addAwaitCell` authoring). The cron tick for unattended instances is NOT built
+   yet — deliberately deferred; nothing suspends, times out, or retries server-side (claim c4).
+   Exec cells require the notebook (template id = notebook id) loaded in the advancing
+   session; awaits advance without it, so a fresh session can un-park an instance before
+   reloading the notebook.
 
 **Canonical first use (Principle 3):** the post-merge checklist. The 2026-06-11 session
 executed "after each migration merge confirm prod-migration-health green → clean worktrees →
@@ -296,6 +357,7 @@ merged 2026-06-11).
    message-human), not toward mediating the agent body (claim c10). New verbs arrive
    primarily via graduation (§7), not specification.
 3. **Evidence-gated graduation** (claim c8): graduation reads the fitness ledger.
+   (Delivered 2026-07-09 — B10, §7 delivery notes; shadow-mode default, enforce opt-in.)
 
 ## 7. Selection Pipeline: Fitness Ledger and Graduation
 
@@ -315,6 +377,31 @@ This is the answer to "where do remote-control verbs come from": behaviors are p
 runbooks under full observability, evaluated against pre-registered outcomes, and the proven
 ones are promoted into governed, manifest-described capabilities.
 
+**B10 delivery notes (2026-07-09 — as built):**
+
+1. **The gate reads the real ledger.** `graduateNotebook` evaluates the graduating notebook's
+   fitness via the notebook source's runbook storage (`templateId` = notebook id, latest
+   template version's `getFitnessAggregate`). No storage wired, or no template version ever
+   persisted, counts as ABSENT evidence, never as a pass. Policy lives in
+   `src/notebook/runbook/graduation-gate.ts`; the graduation wiring in
+   `src/peer-notebook/handler.ts`.
+2. **Threshold policy is the ELG tier ladder** (SPEC-ENVIRONMENTAL-LEARNING-GATES, folded in
+   here): `advisory` (evaluate + log only) → `shadow` (warn + record `wouldHaveBlocked`,
+   never block — the validator tier and the gate's probation state) → `enforce` (reject with
+   an error naming each missing piece of evidence, code `graduation_below_threshold`).
+   **Default is `shadow`**, per the ELG keystone: gates are information-destroying, so
+   promotion to a live block is a deliberate act backed by shadow-window data — switch via
+   the `graduationGate` handler option or `THOUGHTBOX_GRADUATION_GATE=enforce`. Every
+   graduation result carries the full `gateDecision` record (mode, aggregate, thresholds,
+   deficits), so shadow mode leaves an auditable would-have-blocked trail with zero behavior
+   change.
+3. **Thresholds (v0 defaults):** ≥3 evidenced instances, machine-checked pass rate ≥0.9,
+   ≥1 distinct agent (`DEFAULT_GRADUATION_THRESHOLDS`; per-deployment override via handler
+   option). A never-run notebook under `enforce` is rejected with the explanation naming the
+   empty ledger. Accept/reject/shadow paths are vitest-evidenced
+   (`src/peer-notebook/__tests__/graduation-gate.test.ts`,
+   `src/notebook/__tests__/graduation-gate.test.ts`).
+
 ## 8. Build Inventory and Relative Complexity
 
 Scale: **S** ≤ 1 agent-day · **M** = one PR-sized unit (2–5 agent-days, a Phase-4/5-slice
@@ -333,8 +420,8 @@ Phases 4+5 (≈9 M-units) shipped in about a week of agent-team time.
 | B7 | Brokered `exec`-cell execution (generalize broker beyond peers) | SPEC-CONTROL-PLANE broker | **M/L** | Med | Authority model resolved to manifest reuse (§11.2): approved templates carry declared authority; drafts run under declared ∩ executor |
 | B8 | Advancer v0 (advance-on-open + cron tick) | B4–B6 | **S** | Low | Explicitly not a workflow engine |
 | B9 | Fitness ledger + aggregates | B4 | **S/M** | Low | Schema + queries |
-| B10 | Evidence-gated graduation | #389 graduation, B9 | **M** | Med | Threshold policy design |
-| B11 | Migration shims: assumption registry & handoff standing-facts → claims | B1–B2 | **S** | Low | Principle 3 delivery |
+| B10 | Evidence-gated graduation | #389 graduation, B9 | **M** | Med | Delivered 2026-07-09 — ELG tier ladder, shadow default (§7 delivery notes) |
+| B11 | Migration shims: assumption registry & handoff standing-facts → claims | B1–B2 | **S** | Low | Delivered 2026-07-09 — standing-facts shim (§4 delivery notes); consumer rewiring tracked in §12 |
 | — | Semantic relevance routing / watch predicates | B3 | **XL** | — | Deferred; v0 is explicit subscription |
 | — | MAP-Elites descriptor archive | B9 | **XL** | — | Deferred; needs fitness history first |
 | — | Durable suspended execution | — | **XL** | — | Explicitly rejected (Principle 5) |
@@ -431,6 +518,14 @@ design decisions for v0; the residual open questions are marked.
    the in-process emitter). The FS implementation is a product requirement, delivered after
    H1/H2 pass, not before. This honors the standing dual-backend architecture decision as a
    product gate rather than an experiment tax.
+   **DELIVERED 2026-07-09 — this deferral is VOID.** The local durable backends shipped as
+   SQLite (better-sqlite3), not flat files, because the contracts demand transactional
+   semantics (atomic supersede, status CAS, PK-arbitrated advance reservations) a JSON file
+   cannot honor: `SqliteClaimStorage` (`<dataDir>/claims.db`), `SqliteRunbookStorage`
+   (`<dataDir>/runbooks.db`), and `SqliteMergeCommitStorage` (`<dataDir>/merges.db`), each
+   passing the same contract suite as its Supabase and InMemory siblings plus
+   restart-survival and cross-instance race tests. Default local mode (fs) wires them in
+   `src/index.ts`; `THOUGHTBOX_STORAGE=memory` keeps the volatile InMemory stores.
 6. **Adoption is the meta-risk.** Principles 1–3 exist because the thought journal failed
    them; better architecture alone does not change agent behavior.
    **Position: adoption is centralized, not per-agent — engineer it at three chokepoints.**
@@ -444,9 +539,11 @@ design decisions for v0; the residual open questions are marked.
 
 ## 12. Capability Status (point-in-time)
 
-What an agent can and cannot yet do through `thoughtbox_execute`, as of **2026-06-15**
-(units B1–B5 merged via PRs #398–#402). This is derived status, not authority — the claims
-block and §9 are the pre-registration. Update the table as units land.
+What an agent can and cannot yet do through `thoughtbox_execute`, as of **2026-07-09**
+(units B1–B5 merged via PRs #398–#402; B6+B8 via #418; B10+B11 built on
+feat/agx-b10-graduation-b11-shims). This is
+derived status, not authority — the claims block and §9 are the pre-registration. Update the
+table as units land.
 
 **Available now:**
 
@@ -454,22 +551,29 @@ block and §9 are the pre-registration. Update the table as units land.
 |---|---|---|
 | Maintain a shared, typed premise-set across agents and sessions — assert/support/invalidate/supersede claims, link `depends_on` edges, query, and walk transitive dependents | `tb.claims.assert/support/invalidate/supersede/link/subscribe/unsubscribe/query/affected` | c1 / #398 |
 | Detect stale premises without any agent-to-agent message — batch revalidation and a status-change digest | `tb.claims.verify`, `tb.claims.changed_since` | c2 §11.1 / #400 |
-| Claim status transitions propagate over Supabase Realtime to subscribers (web clients today; awaiting runbook cells once B6 lands) | `supabase_realtime` publication on `claims` | c2 / #400 (full two-client agentic test deploy-gated) |
+| Claim status transitions propagate over Supabase Realtime to subscribers (web clients and awaiting runbook cells' subscription rows) | `supabase_realtime` publication on `claims` | c2 / #400 (full two-client agentic test deploy-gated) |
 | Author durable, versioned runbook templates; every run is an append-only instance, resumable by instance id | `tb.notebook.*` over `RunbookStorage` | c3 / #399 + #401 |
 | Contract-governed, ordered cell execution — document order enforced, predicted failures pass, real failures halt; tier-1 declarative + tier-2 validator outcome contracts, hash-verified | notebook engine (B5) | c3 / #399 + #402 |
 | Accrue a fitness ledger — hypothesis-vs-actual per template version, only machine-checked outcomes contribute | `runbook_fitness_ledger` aggregates | c7 / #401 |
+| Read the fitness ledger back — per-version aggregates (instances, pass rate, error rate, distinct agents) and raw rows via the public tool surface | `tb.notebook.fitness` (`notebook_fitness`) | c7 read path (2026-07-06) |
+| Instantiate a runbook from a persisted template version in a FRESH session, or resume a half-executed instance from its instanceId alone (derived status + next unsatisfied cell; ordered execution continues via `notebook_run_cell`) | `tb.notebook.instantiate` (`notebook_instantiate`) | c5 substrate (2026-07-06); Experiment H2 remains the agentic verification |
+| Run scored executable evals through the same durable path as runbooks — EvalScorecard = passed/evaluated over declared expectations; zero expectations scores 0, never a synthetic pass; graders accrue fitness ledger rows identically (the six verdict-less stub modes were removed 2026-07-06; their templates remain plain scaffolds) | `notebook_start_run { mode: "eval" }` | c7-adjacent (typed outcomes only, Principle 6) |
+| A runbook cell that **blocks on a claim** — a run parks at an unsatisfied `await` cell (skipped tail, durable claim subscription, instance stays `in_progress`), and the next pull past a satisfying claim status records the satisfaction and executes the cells behind it | `await` cell (`tb.runbook.addAwaitCell`) + `tb.runbook.advance` (B6) | c4 / §5 delivery notes |
+| Pull advancement of an instance by any agent, with concurrent advancers executing side effects **exactly once** — CAS reservation on `(instance_id, seq)` before any exec-cell side effect; losers observe `in_flight` (GH #403 resolved) | `tb.runbook.advance`, `tb.runbook.status`, `runbook_advance_reservations` | c4 (B8) |
 | Keep shell, filesystem, and code editing native and unmediated — the substrate wraps only trust-boundary verbs | (invariant; §10) | c10 |
+| Local mode is DURABLE for the coordination substrate — claims, runbook templates/instances/executions/ledger/advance-reservations, and merge commits survive server restarts via SQLite files under `<dataDir>` (`claims.db`, `runbooks.db`, `merges.db`); an instance parked at an await cell resumes after a restart | `SqliteClaimStorage` / `SqliteRunbookStorage` / `SqliteMergeCommitStorage` wired in `src/index.ts` (fs mode; `THOUGHTBOX_STORAGE=memory` stays volatile) | c1/c3/c4 local durability (2026-07-09; §11.5 gate delivered) |
+| Evidence-gated notebook→manifest **graduation** — `graduateNotebook` reads the fitness ledger and evaluates the ELG tier ladder (advisory → shadow → enforce; shadow default records would-have-blocked without blocking, `THOUGHTBOX_GRADUATION_GATE=enforce` rejects below threshold naming the missing evidence) | `peer_graduate_notebook` gate (B10, §7 delivery notes) | c8 (2026-07-09) |
+| Round-trip standing facts through the claim graph — keyed, workspace-scoped write/read/list/supersede over tb.claims semantics, for the assumption registry and handoff `standing_facts` | standing-facts shim (B11, §4 delivery notes) | Principle 3 (2026-07-09) |
 
 **Not yet — the unbuilt joins:**
 
 | Capability | Unlocked by | Claim |
 |---|---|---|
-| A runbook cell that **blocks on a claim and wakes itself** — `await` cell becomes runnable on claim satisfaction, executed on the next pull | **B6** (await↔claim binding) + **B8** (advancer) | c4 |
-| Pull advancement of an instance by agent or cron (`tb.runbook.advance`) | **B8** | c4 |
+| Cron tick advancing unattended instances (advance is agent-pull only today) | **B8 follow-up** | c4 |
 | Cells executing under the agent's **brokered allowlist and budget** (no ambient authority) | **B7** | c6 |
-| Evidence-gated notebook→manifest **graduation** (reject below fitness threshold) | **B10** | c8 |
-| Local durable claims (FileSystem `ClaimStorage`) | deferred §11.5 (gated on H1/H2) | c1 |
+| Graduation gate ENFORCED by default (today: shadow default; enforce is a config switch — ELG shadow-window promotion is deliberate, not ambient) | operator decision after a shadow window | c8 |
+| Assumptions skill / session-handoff actually writing through the B11 shim (the shim is built; the consumers still write their legacy artifacts) | skill + handoff rewiring (H5) | Principle 3 |
 
-**Verified vs claimed:** c3, c7, c10 are met and evidenced; c1 is met for Supabase + InMemory (FS deferred by design); c2's mechanism is proven but its full two-live-client agentic test is deploy-gated; c5 (fresh-session instance resumption) has its substrate in #401 but is unverified pending **Experiment H2**; c4/c6/c8 are unbuilt. The two thesis experiments (**H1** coordination-beats-orchestrator, **H2** runbook resumption) are unrun.
+**Verified vs claimed:** c3, c7, c10 are met and evidenced; c8 is met — the gate reads the ledger and vitest covers the accept, reject-naming-the-deficit, and shadow would-have-blocked paths (`src/peer-notebook/__tests__/graduation-gate.test.ts`), with enforcement itself an opt-in switch per the ELG shadow-first policy; c4 is met for the manual-pull path — vitest evidence covers (a) parking at an unsatisfied await on both the advance and real batch-run paths, (b) claim satisfaction un-parking the next advance end-to-end through the real execution path, (c) concurrent advance executing side effects exactly once, (d) the reservation CAS on all three backends including two SQLite handles racing over one database file (`src/notebook/__tests__/await-advance.test.ts`), and (e) an in-flight await surviving a restart (fresh SQLite storage instances over the same files); code review confirms no suspended-execution machinery exists (the advancer is a loop inside one explicit call; the cron tick remains unbuilt); c1 is met for Supabase + SQLite + InMemory (the §11.5 FS deferral is void — delivered as SQLite 2026-07-09); c2's mechanism is proven but its full two-live-client agentic test is deploy-gated; c5 (fresh-session instance resumption) has its substrate in #401 + `tb.runbook.status` but is unverified pending **Experiment H2**; c6 is unbuilt. The two thesis experiments (**H1** coordination-beats-orchestrator, **H2** runbook resumption) are unrun.
 
-**Bottom line:** the two halves — claim graph and durable runbooks — are built and individually evidenced, but they are **not yet wired into each other**. The reactive payoff ("block on a claim, wake the runbook") is **c4 / B6 + B8**, and it is the first unbuilt thing. Deferred concurrency hazard in single-cell advance is tracked in GH #403, to be designed with B8.
+**Bottom line:** the selection pipeline now closes end-to-end: behaviors accrue ledger fitness (B9) and graduation reads it (B10), with the ELG shadow tier keeping the evidence stream alive until an operator promotes the gate to enforce. B11 gives the first two obligatory artifacts (assumption registry, handoff standing facts) their claims-native reader/writer. The remaining unbuilt joins are the B8 cron tick and brokered cell authority (**B7** / c6); **H2** is unblocked and should run next (§9), and **H4** (graduation cheaper than specification) now has its mechanism.
